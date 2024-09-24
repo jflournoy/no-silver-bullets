@@ -11,7 +11,7 @@ format:
       hypothesis: true
   docx: default
   jats: default
-  agu-pdf: default
+  acm-pdf: default
 
 
 
