@@ -11,7 +11,8 @@ format:
       hypothesis: true
   docx: default
   jats: default
-  acm-pdf: default
+  acm-pdf: 
+    keep-tex: true
 
 
 
