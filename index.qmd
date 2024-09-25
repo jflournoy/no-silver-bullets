@@ -91,6 +91,75 @@ acm-metadata:
   #   description: teaser description   
 ---
 
+```{r setup}
+.libPaths(c("/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3", .libPaths()))
+#install.packages(c('ggnewscale'), repos = 'http://ftp.osuosl.org/pub/cran/')
+library(data.table)
+library(ggplot2)
+library(StanHeaders)
+library(marginaleffects)
+library(rstan)
+library(cmdstanr)
+library(brms)
+library(tidybayes)
+library(rlang)
+library(sjPlot)
+library(ggnewscale)
+
+plot_marginal_effect <- function(x, condition, trans.y = NULL, trans.x = NULL, patchwork_args = list(), ...){
+  require(patchwork)
+  require(rlang)
+  s_to_day <- \(x) return(x / (60*60*24))
+  # Extract the formula terms
+  terms_object <- attr(model.frame(x), "terms")
+  # Get the variables attribute (which includes the response variable)
+  response_variable <- as.character(attr(terms_object, "variables"))[2]
+  max_resp <- quantile(x$data[[response_variable]], p = .95)
+  coords <- s_to_day(c(0, max_resp))
+  condition_list <- unique(list(condition, rev(condition)))
+  p <- lapply(condition_list, \(c) {
+    pp <- marginaleffects::plot_predictions(x, condition = c, re_formula = NA, trans = s_to_day, ...) + 
+      scale_color_discrete(labels = function(b) round(as.numeric(b), 2), aesthetics = c('fill', 'color')) + 
+      coord_cartesian(y = coords) + 
+      theme_minimal()
+  
+    legend_name_auto <- ggplot_build(pp)$plot$labels$fill
+    legend_list <- list(y = 'Median Cycle Time (days)')
+    if (!is.null(legend_name_auto)) {
+      legend_name_auto <- abbreviate(gsub('_', ' ', legend_name_auto), minlength = 8)
+      legend_list <- c(legend_list, list(fill = legend_name_auto, color = legend_name_auto))
+    }
+  
+    pp <- pp + do.call(labs, legend_list)
+    
+    return(pp)
+  })
+  
+  if(!is.null(trans.y)){
+    p <- lapply(p, \(pp) pp + scale_y_continuous(trans = trans.y))
+  }
+  if(!is.null(trans.x)){
+    p <- lapply(p, \(pp) pp + scale_x_continuous(trans = trans.x))
+  }
+  default_patchwork <- list(nrow = 1)
+  p <- do.call(patchwork::wrap_plots, c(list(p), modifyList(default_patchwork, patchwork_args)))
+  return(p)
+}
+
+theme_clean <- theme_minimal() + 
+  theme(
+    strip.text.x = element_blank(), 
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, 'lines')
+  )
+```
+
+
 ## Introduction
 
 Optimizing the productivity of software developers is one of the most important goals of technology organizations. Developer productivity is a prerequisite for almost anything these organizations hope to accomplish. This is true whether software is the an organizations primary product, or whether internal software engineering enables other end goals (such as in the pharmaceutical industry). Despite the importance of developer productivity, relatively little is understood about the factors that affect it.
@@ -100,11 +169,72 @@ RQ2. How much between- and within-person variation is there in productivity?
 
 ## Background
 
+### Defining productivity
+
+There is disagreement about what constitutes productivity. Perceptions of what counts as productivity differ across individuals and roles, with managers tending to focus on long-term outcomes and ICs focusing on activity, for example [ref story 2022]. The scientific literature on this topic has used code-based metrics such as cycle time, commits, or lines of code[cite]. These have obvious limitations in that the meaning of a particular unit for any of these metrics may be different depending on context [cite]. Some researches have sought solutions to this problem by asking individuals to rate their own level of, or satisfaction with, productivity [storey2021]. While it is plausible that perceived productivity could indicate productivity per se, such a measure is not free from context effects that would impact more "objective" metrics, and presents its own set of measurement challenges. Indeed, the discussion to date around productivity reveals what is primarily a philosophical problem: we have not nailed down the necessary and sufficient conditions for something to count as productivity. This is not an easy task, and there are likely several kinds of productivity we may legitimately be interested in. This research project cannot, and will not, attempt to resolve these problems. 
+
+In this analysis, we will examine cycle time, defined as the time between the opening of a ticket and its closure. This duration is an index of many disparate causes, as any developer can easily attest. Nevertheless, it represents a unit of work that has been deemed important to the completion of some larger piece of work. 
+
 ## Research design and methodology
 
 ## Results
 
+```{r prepare results}
+ct_model <- readRDS('cycle_time_full_intx_nlq.rds')
+plot_dir <- 'plots'
+if(!dir.exists(plot_dir)) dir.create(plot_dir)
+
+make_marginal_effect_image <- function(x, condition, image_dir, return_plot = FALSE, width = 8, height = 5, units = 'in', trans.y = NULL, trans.x = NULL, patchwork_args = list(), ...){
+  image_path <- file.path(image_dir, paste0(paste(condition, collapse = '__'), '.png'))
+  r <- image_path
+  if(return_plot | !file.exists(image_path)){
+    tryCatch({
+      p <- plot_marginal_effect(x = x, condition = condition, 
+                                trans.y = trans.y, trans.x = trans.x, patchwork_args = patchwork_args, ...)
+      gg <- ggsave(image_path, plot = p, width = width, height = height, units = units)
+      if(return_plot){
+        attr(r, which = 'plot') <- p
+      }
+    }, error = function(e) message('Could not make ', image_path, ': ', e))
+  }
+  return(r)
+}
+
+plot_image_filenames <- lapply(
+  list(
+    'month_num_c',
+    'within_quarter_month_num_c',
+    c('month_num_c', 'q_unclosed_c'),
+    c('month_num_c', 'team_size_c'),
+    'wi_avg_coding_days_per_week',
+    c('month_num_c', 'yr_avg_avg_coding_days_per_week_c'),
+    'wi_total_merged_prs',
+    c('month_num_c', 'yr_avg_total_merged_prs_c'),
+    'wi_defect_tickets_pct_indiv',
+    c('month_num_c', 'yr_avg_defect_tickets_pct_indiv_c'),
+    'wi_degree_centrality_monthly_100',
+    c('month_num_c', 'yr_avg_degree_centrality_monthly_100_c'),
+    'wi_comments_per_pr',
+    c('month_num_c', 'yr_avg_comments_per_pr_c')
+  ),
+  \(x) make_marginal_effect_image(ct_model, x, image_dir = plot_dir, return_plot = FALSE, points = .25)
+)
+```
+
+```{r model summary table}
+atab <- sjPlot::tab_model(ct_model, transform = NULL, show.ci = .95, show.ci50 = TRUE,
+                          show.p = FALSE, show.r2 = FALSE, show.icc = FALSE, show.re.var = FALSE, show.ngroups = TRUE,
+                          show.obs = TRUE, robust = TRUE,
+                          rm.terms = na.omit(stringr::str_extract(variables(ct_model), 'sds_.*')))
+atab
+```
+
+
 ## Discussion
+
+## Related Work
+
+## Conclusions
 
 ## References {.unnumbered}
 
