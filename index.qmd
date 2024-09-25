@@ -77,10 +77,11 @@ acm-metadata:
         \ccsdesc[500]{General and reference~Empirical studies}
 
   keywords:
-    - datasets
-    - neural networks
-    - gaze detection
-    - text tagging
+    - productivity
+    - cycle time
+    - collaboration
+    - individual differences
+    - within-person variation
   
   # if uncommented, this produces a teaser figure
   # 
@@ -92,7 +93,18 @@ acm-metadata:
 
 ## Introduction
 
-## Prior work
+Optimizing the productivity of software developers is one of the most important goals of technology organizations. Developer productivity is a prerequisite for almost anything these organizations hope to accomplish. This is true whether software is the an organizations primary product, or whether internal software engineering enables other end goals (such as in the pharmaceutical industry). Despite the importance of developer productivity, relatively little is understood about the factors that affect it.
+
+RQ1. How do common software development process and workplace factors impact productivity?
+RQ2. How much between- and within-person variation is there in productivity?
+
+## Background
+
+## Research design and methodology
+
+## Results
+
+## Discussion
 
 ## References {.unnumbered}
 
