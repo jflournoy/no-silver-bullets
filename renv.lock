@@ -4,7 +4,7 @@
     "Repositories": [
       {
         "Name": "CRAN",
-        "URL": "http://ftp.osuosl.org/pub/cran/"
+        "URL": "https://p3m.dev/cran/latest"
       }
     ]
   },
