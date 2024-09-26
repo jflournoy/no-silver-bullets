@@ -92,14 +92,8 @@ acm-metadata:
 ---
 
 ```{r setup}
-.libPaths(c("/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3", .libPaths()))
-#install.packages(c('ggnewscale'), repos = 'http://ftp.osuosl.org/pub/cran/')
-library(data.table)
 library(ggplot2)
-library(StanHeaders)
 library(marginaleffects)
-library(rstan)
-library(cmdstanr)
 library(brms)
 library(tidybayes)
 library(rlang)
@@ -176,6 +170,54 @@ There is disagreement about what constitutes productivity. Perceptions of what c
 In this analysis, we will examine cycle time, defined as the time between the opening of a ticket and its closure. This duration is an index of many disparate causes, as any developer can easily attest. Nevertheless, it represents a unit of work that has been deemed important to the completion of some larger piece of work. 
 
 ## Research design and methodology
+
+3.1 Data Selection and Characteristics
+To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we pulled data from the software metrics tool, Flow. Flow is a software platform that leverages git and ticketing data to track individual, team, and organization-level metrics that can be used as indicators of production, productivity, and performance over time. From Flow, we selected data for analysis if users actively contributed code. The data thus consisted of data from 314 organizations of varying sizes and industries, 9,101 teams, and 37,120 developers.
+
+3.2 Defining Study Variables
+Cycle Time - We coded time as months in 2022 to capture change in cycle time over the course of a full calendar year. To preserve statistical power, we limited the number of time points to four - one point for each quarter of the calendar year. Given that most organizations set quarterly goals at the beginning of each quarter and push to meet those goals at the end of each quarter, we opted to examine data from the middle month of each quarter (February, May, August, and November). This approach allowed us to capture a more stable and realistic trajectory of change over the course of the year.
+
+Coding Time - 
+
+Task Scoping
+
+Collaboration. We measured collaboration by calculating degree centrality. To evaluate degree centrality, a metric derived from network analysis, we employed a framework where developers were treated as nodes within the network, and their interactions in the form of Pull Requests (PRs) were regarded as connections. Within this analysis, we measured the degree centrality of each developer by assessing the number of other developers with whom they had collaborated throughout the entirety of 2022. To ensure a normalized assessment, this value was then divided by the total number of developers constituting the organizational network. The calculations were executed using the Python package Networkx. This particular variable serves as an effective proxy for quantifying the extent of collaboration amongst developers.
+
+Comments per PR. Another significant indicator of collaboration is the frequency of comments within PRs. We undertook a comprehensive examination of all PRs that were successfully merged in the year 2022, meticulously calculating the average word count contained within each PR. This served as a valuable measure to gauge the depth of collaboration exhibited during the development and review process. 
+
+
+
+
+
+
+Construct
+Variable 
+Variable Description
+Coding Time
+Coding Days per Week
+Avg # of coding days a week each month. Monthly and Yearly Avgs.
+
+Task Scoping
+Total Merged PRs
+Total # of merged PRs per developer. Monthly and Yearly Avgs.
+Defect Tickets %
+% of defect tickets completed this month
+Collaboration
+Degree Centrality
+Score based on the number of reviewers a developer has worked with
+Comments per PR
+# of comments per pr a developer is the author on
+Cycle Time
+Cycle Time
+Avg time from ticket start to end in hrs. Monthly and Yearly Avgs.
+
+
+
+3.3 Analytic Approach  
+To examine coding days per week, merged PRs, defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. We used a multilevel growth model due to the hierarchical nature of the data, where each time measurement of cycle time is nested within each developer, and each developer is nested within a team. Multilevel growth models take this hierarchical structure into account by modeling within- and between-person level equations (Curran et al., 2010). We coded time as months in 2022 to capture change in cycle time over the course of a full calendar year. To preserve statistical power, we limited the number of time points to four - one point for each quarter of the calendar year. Given that most organizations set quarterly goals at the beginning of each quarter and push to meet those goals at the end of each quarter, we opted to examine data from the middle month of each quarter (February, May, August, and November). This approach allowed us to capture a more stable and realistic trajectory of change over the course of the year.
+
+As recommended by Singer and Willett (2003), we implemented a three-step procedure. First, we ran an unconditional means model. This model tested for sufficient between group variance to run a multilevel model by calculating intraclass correlation coefficients (ICCs). We then conducted a multilevel conditional growth model, adding a fixed slope representing linear change and nesting individual developers within teams, to assess the effects of time on cycle time (model 1). Finally, to test coding days per week, merged PRs, percent of defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. In this model, we added the yearly averages of each predictor and their interaction effects with time as time-invariant fixed factors at the individual developer-level (model 2). In this model, significant interaction terms indicate significantly different rates of change in cycle time between groups (Greene, Way, & Pahl, 2006; Taylor et al., 2010; Huang, 2023). The models were fit using restricted maximum likelihood using the lme4 package in R (Bates et al., 2015) and inferential tests for fixed effects were conducted via t-tests (Satterthwaite degrees of freedom) computed using the lmerTest package (Kuznetsova, Brockhoff, & Christensen, 2017). 
+
 
 ## Results
 
