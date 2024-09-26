@@ -27,6 +27,11 @@ jobs:
       - uses: r-lib/actions/setup-renv@v2
         with:
           cache-version: 1
+        env:
+          RENV_CONFIG_REPOS_RSPM: "http://packagemanager.rstudio.com/cran/latest"
+          RENV_DOWNLOAD_METHOD: "curl"
+          RENV_DOWNLOAD_FILE_METHOD: "curl"
+          CURL_SSL_NO_VERIFY: "1"
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
