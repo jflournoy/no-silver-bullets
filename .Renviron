@@ -1,1 +1,1 @@
-CURL_CA_BUNDLE="/home/rstudio/code/verse-cmdstan/zscaler.pem"
+#CURL_CA_BUNDLE="/home/rstudio/code/verse-cmdstan/zscaler.pem"
