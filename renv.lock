@@ -125,7 +125,7 @@
       "Package": "StanHeaders",
       "Version": "2.35.0.9000",
       "Source": "Repository",
-      "Repository": "https://stan-dev.r-universe.dev",
+      "Repository": "https://mc-stan.org/r-packages/",
       "Requirements": [
         "R",
         "RcppEigen",
@@ -181,7 +181,7 @@
       "Package": "bayesplot",
       "Version": "1.11.1.9000",
       "Source": "Repository",
-      "Repository": "https://stan-dev.r-universe.dev",
+      "Repository": "https://mc-stan.org/r-packages/",
       "Requirements": [
         "R",
         "dplyr",
@@ -879,7 +879,7 @@
       "Package": "loo",
       "Version": "2.8.0.9000",
       "Source": "Repository",
-      "Repository": "https://stan-dev.r-universe.dev",
+      "Repository": "https://mc-stan.org/r-packages/",
       "Requirements": [
         "R",
         "checkmate",
@@ -1277,7 +1277,7 @@
       "Package": "rstan",
       "Version": "2.35.0.9000",
       "Source": "Repository",
-      "Repository": "https://stan-dev.r-universe.dev",
+      "Repository": "https://mc-stan.org/r-packages/",
       "Requirements": [
         "BH",
         "QuickJSR",
@@ -1300,7 +1300,7 @@
       "Package": "rstantools",
       "Version": "2.4.0.9000",
       "Source": "Repository",
-      "Repository": "https://stan-dev.r-universe.dev",
+      "Repository": "https://mc-stan.org/r-packages/",
       "Requirements": [
         "Rcpp",
         "RcppParallel",
