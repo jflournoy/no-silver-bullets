@@ -4,7 +4,7 @@
     "Repositories": [
       {
         "Name": "CRAN",
-        "URL": "http://packagemanager.posit.co/cran/"
+        "URL": "http://ftp.osuosl.org/pub/cran/"
       }
     ]
   },
