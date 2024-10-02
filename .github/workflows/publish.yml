@@ -31,6 +31,8 @@ jobs:
           r-version: '4.3.2' 
       
       - name: Install R packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Function to extract package names from the qmd file
           extract_packages <- function(file_path) {
