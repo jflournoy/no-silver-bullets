@@ -89,32 +89,6 @@ if (!is_github_action()) {
   .libPaths('/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3/')
 }
 
-# Function to extract package names from the current qmd file
-extract_packages <- function() {
-  content <- readLines(knitr::current_input())
-  library_calls <- grep("^library\\(|^require\\(", content, value = TRUE)
-  packages <- gsub("^library\\(|^require\\(|\\)$", "", library_calls)
-  unique(packages)
-}
-
-# Function to install packages from a specific repository
-install_packages <- function(packages, repo_url) {
-  new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
-  if(length(new_packages) > 0) {
-    install.packages(new_packages, repos = repo_url)
-  }
-}
-
-# Set your specific repository URL
-repo_url <- "http://ftp.osuosl.org/pub/cran/"  # Replace with your specific repository URL
-
-# Extract packages and install them
-packages_to_install <- extract_packages()
-install_packages(packages_to_install, repo_url)
-
-# Load the packages
-invisible(lapply(packages_to_install, library, character.only = TRUE))
-
 library(ggplot2)
 library(marginaleffects)
 library(brms)

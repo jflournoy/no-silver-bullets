@@ -11,8 +11,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1
         
       - name: Ensure OpenSSL is installed
         run: |
@@ -32,7 +32,43 @@ jobs:
       
       - name: Install R packages
         run: |
-          install.packages(c("knitr", "rmarkdown"))
+          # Function to extract package names from the qmd file
+          extract_packages <- function(file_path) {
+            content <- readLines(file_path)
+            library_calls <- grep("^library\\(|^require\\(", content, value = TRUE)
+            packages <- gsub("^library\\(|^require\\(|\\)$", "", library_calls)
+            unique(packages)
+          }
+
+          # List of packages available in Stan universe
+          stan_packages <- c("rstan", "rstanarm", "brms", "cmdstanr", "bayesplot", "shinystan", "loo", "projpred", "posterior")
+
+          # Extract packages from index.qmd
+          qmd_file <- "index.qmd"
+          if (!file.exists(qmd_file)) {
+            stop("index.qmd not found in the current directory")
+          }
+          packages <- extract_packages(qmd_file)
+
+          # Separate Stan and CRAN packages
+          stan_to_install <- intersect(packages, stan_packages)
+          cran_to_install <- setdiff(packages, stan_packages)
+
+          # Install Stan packages
+          if (length(stan_to_install) > 0) {
+            install.packages("remotes")
+            remotes::install_github("stan-dev/rstantools")
+            sapply(stan_to_install, function(pkg) remotes::install_github(paste0("stan-dev/", pkg)))
+          }
+
+          # Install CRAN packages
+          if (length(cran_to_install) > 0) {
+            install.packages(c("knitr", "rmarkdown", cran_to_install))
+          }
+
+          # Print installed packages for debugging
+          print("Installed packages:")
+          print(installed.packages()[,"Package"])
         shell: Rscript {0}
 
       - name: Render and Publish
