@@ -106,7 +106,7 @@ install_packages <- function(packages, repo_url) {
 }
 
 # Set your specific repository URL
-repo_url <- "https://ftp.osuosl.org/pub/cran/"  # Replace with your specific repository URL
+repo_url <- "http://ftp.osuosl.org/pub/cran/"  # Replace with your specific repository URL
 
 # Extract packages and install them
 packages_to_install <- extract_packages()
