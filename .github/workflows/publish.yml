@@ -40,9 +40,16 @@ jobs:
           # Function to extract package names from the qmd file
           extract_packages <- function(file_path) {
             content <- readLines(file_path)
+            # Find library/require calls
             library_calls <- grep("^library\\(|^require\\(", content, value = TRUE)
-            packages <- gsub("^library\\(|^require\\(|\\)$", "", library_calls)
-            unique(packages)
+            lib_packages <- gsub("^library\\(|^require\\(|\\)$", "", library_calls)
+            
+            # Find package::function calls
+            direct_calls <- grep("::", content, value = TRUE)
+            direct_packages <- unique(gsub("::.*$", "", direct_calls))
+            
+            # Combine and return unique package names
+            unique(c(lib_packages, direct_packages))
           }
 
           # List of packages available in Stan universe (excluding brms)
