@@ -37,7 +37,7 @@ acm-metadata:
   # acm preamble information
   copyright-year: 2024
   acm-year: 2024
-  copyright: acmcopyright
+  copyright: acmlicensed
   doi: XXXXXXX.XXXXXXX
   conference-acronym: "Conference acronym 'XX"
   conference-name: |
@@ -79,9 +79,11 @@ editor:
 ---
 
 ```{r setup}
+.libPaths('/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3/')
 library(ggplot2)
 library(marginaleffects)
 library(brms)
+library(rstan)
 library(tidybayes)
 library(rlang)
 library(sjPlot)
@@ -127,6 +129,13 @@ plot_marginal_effect <- function(x, condition, trans.y = NULL, trans.x = NULL, p
   return(p)
 }
 
+brms_to_draws <- function(x, variables){
+  x <- x$fit@sim$samples
+  x_subsamples <- lapply(x, \(x) x[, variables])
+  x_draws <- posterior::as_draws(x_subsamples)
+  return(x_draws)
+}
+
 theme_clean <- theme_minimal() + 
   theme(
     strip.text.x = element_blank(), 
@@ -140,29 +149,37 @@ theme_clean <- theme_minimal() +
   )
 ```
 
-## Introduction
+# Introduction
 
-Optimizing the productivity of software developers is one of the most important goals of technology organizations. Developer productivity is a prerequisite for almost anything these organizations hope to accomplish. This is true whether software is the an organizations primary product, or whether internal software engineering enables other end goals (such as in the pharmaceutical industry). Despite the importance of developer productivity, relatively little is understood about the factors that affect it.
+Understanding the factors that affect the productivity of software developers offers organizations the knowledge to deliver value to users, maintain competitiveness, and improve developer experience. Indeed, whether software is the an organizations primary product, or whether internal software engineering enables other end goals (such as in the pharmaceutical industry), the productivity of developers is increasingly the foundation on which all other activities are built. 
 
-RQ1. How do common software development process and workplace factors impact productivity? RQ2. How much between- and within-person variation is there in productivity?
+While the choice of a productivity metric is itself a question that has produced a large literature, this analysis focuses on cycle time, which is often used because of its ease and low cost. This report seeks to describe both the impact of several influential factors, as well as describe what cycle time looks like across a wide range of conditions. That is, understanding the variation in cycle time is as important as what influences it on average. We report on cycle time data for a full year, across hundreds of organizations, which allows us to examine fluctuations within a person's workflow as well as different stable tendencies between people.
 
-## Background
+RQ1. How do common software development process and workplace factors impact productivity? 
 
-### Defining productivity
+RQ2. How much between- and within-person variation is there in productivity?
 
-There is disagreement about what constitutes productivity. Perceptions of what counts as productivity differ across individuals and roles, with managers tending to focus on long-term outcomes and ICs focusing on activity, for example \[ref story 2022\]. The scientific literature on this topic has used code-based metrics such as cycle time, commits, or lines of code\[cite\]. These have obvious limitations in that the meaning of a particular unit for any of these metrics may be different depending on context \[cite\]. Some researches have sought solutions to this problem by asking individuals to rate their own level of, or satisfaction with, productivity \[storey2021\]. While it is plausible that perceived productivity could indicate productivity per se, such a measure is not free from context effects that would impact more "objective" metrics, and presents its own set of measurement challenges. Indeed, the discussion to date around productivity reveals what is primarily a philosophical problem: we have not nailed down the necessary and sufficient conditions for something to count as productivity. This is not an easy task, and there are likely several kinds of productivity we may legitimately be interested in. This research project cannot, and will not, attempt to resolve these problems.
+# Background
+
+## Defining productivity
+
+There is disagreement about what constitutes productivity. Perceptions of what counts as productivity differ across individuals and roles, with managers tending to focus on long-term outcomes and ICs focusing on activity, for example [@storeyHowDevelopersManagers2022]. The scientific literature on this topic has used code-based metrics such as cycle time, commits, or lines of code[@murphy-hillWhatPredictsSoftware2021a]. These have obvious limitations in that the meaning of a particular unit for any of these metrics may be different depending on context \[cite\]. Some researches have sought solutions to this problem by asking individuals to rate their own level of, or satisfaction with, productivity [@storeyTheorySoftwareDeveloper2021]. While it is plausible that perceived productivity could indicate productivity _per se_, such a measure is not free from context effects that would impact more "objective" metrics, and presents its own set of measurement challenges. 
+
+There is also discussion about the difference in terms of whether we should think about production, productivity, or performance.
+
+Indeed, the discussion to date around productivity reveals what is primarily a philosophical problem: we have not nailed down the necessary and sufficient conditions for something to count as productivity. This is not an easy task, and there are likely several kinds of productivity we may legitimately be interested in. This research project cannot, and will not, attempt to resolve these problems.
 
 In this analysis, we will examine cycle time, defined as the time between the opening of a ticket and its closure. This duration is an index of many disparate causes, as any developer can easily attest. Nevertheless, it represents a unit of work that has been deemed important to the completion of some larger piece of work.
 
-## Research design and methodology
+# Research design and methodology
 
 All code can be found in the repository for this paper.
 
-### Data Selection and Characteristics
+## Data Selection and Characteristics
 
 To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we pulled data from the software metrics tool, Flow. Flow is a software platform that leverages git and ticketing data to track individual, team, and organization-level metrics that can be used as indicators of production, productivity, and performance over time. From Flow, we selected data for analysis if users actively contributed code. The data thus consisted of data from 314 organizations of varying sizes and industries, 9,101 teams, and 37,120 developers.
 
-### Defining Study Variables
+## Defining Study Variables
 
 Using the most complete data for each user, we use the mean to aggregate each variable at the month level and the year level (see below for more details specific to each variable). For each predictor, we then subtracted each person's yearly average from their monthly data to produce a within-person deviation variable. This allows us to disaggregate effects on the outcome due to yearly-level individual differences and within-person, month-to-month fluctuations.
 
@@ -181,7 +198,7 @@ Using the most complete data for each user, we use the mean to aggregate each va
 ***Comments per PR*** Another indicator of collaboration is the frequency of comments within PRs. We undertook a comprehensive examination of all PRs that were successfully merged in the year 2022, meticulously calculating the average word count contained within each PR. This served as a valuable measure to gauge the depth of collaboration exhibited during the development and review process.
 
 | Broad Construct | Variable                          | Variable Description                                                 |
-|------------------------|------------------|------------------------------|
+|:-----------------------|:------------------|:------------------------------|
 | Coding Time     | Coding Days per Week              | Avg number of coding days a week                                     |
 | Task Scoping    | Total Merged PRs                  | Total number of merged PRs per developer                             |
 |                 | Percent Defect Tickets            | Percent of all tickets that are defect tickets                       |
@@ -192,71 +209,33 @@ Using the most complete data for each user, we use the mean to aggregate each va
 
 : Construct and variable descriptions {#tbl-constructs}
 
-### Analytic Approach
+## Analytic Approach
 
 To examine coding days per week, merged PRs, defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. We used a multilevel growth model due to the hierarchical nature of the data, where each time measurement of cycle time is nested within each developer, and each developer is nested within a team. Multilevel growth models take this hierarchical structure into account by modeling within- and between-person level equations (Curran et al., 2010). We coded time as months in 2022 to capture change in cycle time over the course of a full calendar year. To preserve statistical power, we limited the number of time points to four - one point for each quarter of the calendar year. Given that most organizations set quarterly goals at the beginning of each quarter and push to meet those goals at the end of each quarter, we opted to examine data from the middle month of each quarter (February, May, August, and November). This approach allowed us to capture a more stable and realistic trajectory of change over the course of the year.
 
 As recommended by Singer and Willett (2003), we implemented a three-step procedure. First, we ran an unconditional means model. This model tested for sufficient between group variance to run a multilevel model by calculating intraclass correlation coefficients (ICCs). We then conducted a multilevel conditional growth model, adding a fixed slope representing linear change and nesting individual developers within teams, to assess the effects of time on cycle time (model 1). Finally, to test coding days per week, merged PRs, percent of defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. In this model, we added the yearly averages of each predictor and their interaction effects with time as time-invariant fixed factors at the individual developer-level (model 2). In this model, significant interaction terms indicate significantly different rates of change in cycle time between groups (Greene, Way, & Pahl, 2006; Taylor et al., 2010; Huang, 2023). The models were fit using restricted maximum likelihood using the lme4 package in R (Bates et al., 2015) and inferential tests for fixed effects were conducted via t-tests (Satterthwaite degrees of freedom) computed using the lmerTest package (Kuznetsova, Brockhoff, & Christensen, 2017).
 
-## Results
+# Results
 
 ```{r prepare results}
 ct_model <- readRDS('cycle_time_full_intx_nlq.rds')
-plot_dir <- 'plots'
-if(!dir.exists(plot_dir)) dir.create(plot_dir)
-
-make_marginal_effect_image <- function(x, condition, image_dir, return_plot = FALSE, width = 8, height = 5, units = 'in', trans.y = NULL, trans.x = NULL, patchwork_args = list(), ...){
-  image_path <- file.path(image_dir, paste0(paste(condition, collapse = '__'), '.png'))
-  r <- image_path
-  if(return_plot | !file.exists(image_path)){
-    tryCatch({
-      p <- plot_marginal_effect(x = x, condition = condition, 
-                                trans.y = trans.y, trans.x = trans.x, patchwork_args = patchwork_args, ...)
-      gg <- ggsave(image_path, plot = p, width = width, height = height, units = units)
-      if(return_plot){
-        attr(r, which = 'plot') <- p
-      }
-    }, error = function(e) message('Could not make ', image_path, ': ', e))
-  }
-  return(r)
-}
-
-plot_image_filenames <- lapply(
-  list(
-    'month_num_c',
-    'within_quarter_month_num_c',
-    c('month_num_c', 'q_unclosed_c'),
-    c('month_num_c', 'team_size_c'),
-    'wi_avg_coding_days_per_week',
-    c('month_num_c', 'yr_avg_avg_coding_days_per_week_c'),
-    'wi_total_merged_prs',
-    c('month_num_c', 'yr_avg_total_merged_prs_c'),
-    'wi_defect_tickets_pct_indiv',
-    c('month_num_c', 'yr_avg_defect_tickets_pct_indiv_c'),
-    'wi_degree_centrality_monthly_100',
-    c('month_num_c', 'yr_avg_degree_centrality_monthly_100_c'),
-    'wi_comments_per_pr',
-    c('month_num_c', 'yr_avg_comments_per_pr_c')
-  ),
-  \(x) make_marginal_effect_image(ct_model, x, image_dir = plot_dir, return_plot = FALSE, points = .25)
-)
 ```
 
-```{r model summary table, eval=FALSE}
-atab <- sjPlot::tab_model(ct_model, transform = NULL, show.ci = .95, show.ci50 = TRUE,
-                          show.p = FALSE, show.r2 = FALSE, show.icc = FALSE, show.re.var = FALSE, show.ngroups = TRUE,
-                          show.obs = TRUE, robust = TRUE,
-                          rm.terms = na.omit(stringr::str_extract(variables(ct_model), 'sds_.*')))
-atab
+```{r model summary table, eval=TRUE}
+ct_model_draws <- brms_to_draws(ct_model, variables = variables(ct_model)[1:37])
+ct_model_pars <- parameters::model_parameters(ct_model_draws, centrality = 'median', ci = .95, ci_method = 'hdi')
+kableExtra::kable_styling(kableExtra::kbl(ct_model_pars, digits = 2), bootstrap_options = 'striped')
 ```
 
-## Discussion
+# Limitations
 
-## Related Work
+Factors outside our control that organizations can control to increase the reliability and validity of their cycle time data include establishing a systematic approach to ticket use. Even within an organization, individual teams may have different cultures regarding when it is appropriate to open and close a ticket. If one is using cycle time as a metric to guage team velocity, it may be ideal to open and close tickets based on consisten criteria across teams. For example, opening a ticket after a piece of work is completed, and then closing it soon after, does not provide a good measure of how long that work took to complete. Distinguishing ticket types may also help. Here we were able to separate tickets into defect and non-defect tickets, but there are certainly more granular ways of categorizing tickets. These categories, in an analysis like the above, can help ensure the analytic model is comparing like with like. 
 
-## Conclusions
+# Discussion
 
-## References {.unnumbered}
+# Related Work
 
-::: {#refs}
-:::
+# Conclusions
+
+# References {.unnumbered}
+
