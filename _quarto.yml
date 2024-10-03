@@ -1,9 +1,11 @@
 project:
   type: manuscript
 
+manuscript:
+  meca-bundle: false
+
 execute:
   freeze: auto
-
 
 format:
   html:

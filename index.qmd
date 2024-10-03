@@ -14,7 +14,6 @@ author:
       name: Pluralsight
       city: Draper, UT
       country: USA
-meca-bundle: false
 # keywords:
 abstract: |
   Things
