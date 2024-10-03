@@ -3,7 +3,7 @@ project:
 
 execute:
   freeze: auto
-  meca-bundle: false
+
 
 format:
   html:
