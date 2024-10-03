@@ -13,6 +13,33 @@ jobs:
     steps:
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1
+      
+      - name: Ensure .zip files are tracked by Git LFS
+        run: |
+          git lfs install
+          git lfs track "*.zip"
+          git add .gitattributes
+          
+      - name: Verify .zip files are tracked by Git LFS
+        run: |
+          if ! grep -q '*.zip filter=lfs diff=lfs merge=lfs' .gitattributes; then
+            echo "Error: .zip files are not tracked by Git LFS in .gitattributes"
+            exit 1
+          fi
+          
+          # Check if any .zip files exist
+          if ls *.zip 1> /dev/null 2>&1; then
+            # Check if .zip files are LFS pointers
+            if ! git lfs ls-files | grep -q '\.zip'; then
+              echo "Error: .zip files exist but are not LFS pointers"
+              exit 1
+            fi
+          else
+            echo "No .zip files found in the repository"
+          fi
+          
+          echo "Verification passed: .zip files are correctly tracked by Git LFS"
+
         
       - name: Ensure OpenSSL is installed
         run: |
