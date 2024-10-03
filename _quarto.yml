@@ -1,6 +1,8 @@
 project:
   type: manuscript
 
+meca-bundle: false
+
 execute:
   freeze: auto
 
