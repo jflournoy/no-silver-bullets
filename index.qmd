@@ -233,7 +233,7 @@ ct_model <- readRDS('cycle_time_full_intx_nlq.rds')
 ```{r model summary table, eval=TRUE}
 ct_model_draws <- brms_to_draws(ct_model, variables = variables(ct_model)[1:37])
 ct_model_pars <- parameters::model_parameters(ct_model_draws, centrality = 'median', ci = .95, ci_method = 'hdi')
-kableExtra::kable_styling(kableExtra::kbl(ct_model_pars, digits = 2), bootstrap_options = 'striped')
+kableExtra::kable_styling(kableExtra::kbl(ct_model_pars, digits = 2, format = 'pipe'), bootstrap_options = 'striped')
 ```
 
 # Limitations
