@@ -141,7 +141,6 @@ if (!is_github_action()) {
 library(ggplot2)
 library(marginaleffects)
 library(rstan)
-library(cmdstanr)
 library(brms)
 library(tidybayes)
 library(rlang)
@@ -292,7 +291,7 @@ Another indicator of collaboration is the frequency of comments within PRs. We u
 
 
 
-We fit the above models using `brms` [v`r packageVersion('brms')`, @burknerAdvancedBayesianMultilevel2018; @burknerBrmsPackageBayesian2017], interface the the Stan probabilistic programming language for Bayesian sampling [v`r cmdstanr::cmdstan_version()`, @gelman], with the `cmdstanr` backend [v`r packageVersion('cmdstanr')`, @gabryCmdstanrInterfaceCmdStan2024], in R [v`r paste(R.version$major, R.version$minor, sep = '.')`, @rcoreteamLanguageEnvironmentStatistical2023].
+We fit the above models using `brms` [v2.21.6, @burknerAdvancedBayesianMultilevel2018; @burknerBrmsPackageBayesian2017], interface the the Stan probabilistic programming language for Bayesian sampling [v2.35.0, @gelman], with the `cmdstanr` backend [v0.8.0, @gabryCmdstanrInterfaceCmdStan2024], in R [v4.3.2, @rcoreteamLanguageEnvironmentStatistical2023].
 
 # Results
 
