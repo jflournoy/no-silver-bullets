@@ -8,7 +8,7 @@ author:
     #   - Software
     #   - Visualization
     corresponding: true
-    email: john-flournoy@pluralsight.com
+    email: jcflournoyphd@pm.me
     # roles:
     affiliation:
       name: Pluralsight
@@ -21,7 +21,6 @@ author:
     #   - Software
     #   - Visualization
     corresponding: false
-    email: carol-lee@pluralsight.com
     # roles:
     affiliation:
       name: Pluralsight
@@ -34,7 +33,6 @@ author:
     #   - Software
     #   - Visualization
     corresponding: false
-    email: maggie-wu@pluralsight.com
     # roles:
     affiliation:
       name: Pluralsight
@@ -47,7 +45,6 @@ author:
     #   - Software
     #   - Visualization
     corresponding: false
-    #email: Masoud Hosseini
     # roles:
     affiliation:
       name: Pluralsight
@@ -143,8 +140,9 @@ if (!is_github_action()) {
 
 library(ggplot2)
 library(marginaleffects)
-library(brms)
 library(rstan)
+library(cmdstanr)
+library(brms)
 library(tidybayes)
 library(rlang)
 library(sjPlot)
@@ -292,9 +290,7 @@ Another indicator of collaboration is the frequency of comments within PRs. We u
 
 ## Analytic Approach
 
-!!To examine coding days per week, merged PRs, defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. We used a multilevel growth model due to the hierarchical nature of the data, where each time measurement of cycle time is nested within each developer, and each developer is nested within a team. Multilevel growth models take this hierarchical structure into account by modeling within- and between-person level equations (Curran et al., 2010). We coded time as months in 2022 to capture change in cycle time over the course of a full calendar year. To preserve statistical power, we limited the number of time points to four - one point for each quarter of the calendar year. Given that most organizations set quarterly goals at the beginning of each quarter and push to meet those goals at the end of each quarter, we opted to examine data from the middle month of each quarter (February, May, August, and November). This approach allowed us to capture a more stable and realistic trajectory of change over the course of the year.
 
-!!As recommended by Singer and Willett (2003), we implemented a three-step procedure. First, we ran an unconditional means model. This model tested for sufficient between group variance to run a multilevel model by calculating intraclass correlation coefficients (ICCs). We then conducted a multilevel conditional growth model, adding a fixed slope representing linear change and nesting individual developers within teams, to assess the effects of time on cycle time (model 1). Finally, to test coding days per week, merged PRs, percent of defect tickets, degree centrality, and comments per PR as predictors of cycle time over time, we conducted a multilevel conditional growth model. In this model, we added the yearly averages of each predictor and their interaction effects with time as time-invariant fixed factors at the individual developer-level (model 2). In this model, significant interaction terms indicate significantly different rates of change in cycle time between groups (Greene, Way, & Pahl, 2006; Taylor et al., 2010; Huang, 2023). The models were fit using restricted maximum likelihood using the lme4 package in R (Bates et al., 2015) and inferential tests for fixed effects were conducted via t-tests (Satterthwaite degrees of freedom) computed using the lmerTest package (Kuznetsova, Brockhoff, & Christensen, 2017).
 
 We fit the above models using `brms` [v`r packageVersion('brms')`, @burknerAdvancedBayesianMultilevel2018; @burknerBrmsPackageBayesian2017], interface the the Stan probabilistic programming language for Bayesian sampling [v`r cmdstanr::cmdstan_version()`, @gelman], with the `cmdstanr` backend [v`r packageVersion('cmdstanr')`, @gabryCmdstanrInterfaceCmdStan2024], in R [v`r paste(R.version$major, R.version$minor, sep = '.')`, @rcoreteamLanguageEnvironmentStatistical2023].
 
