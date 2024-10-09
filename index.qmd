@@ -241,11 +241,16 @@ All code can be found in the repository for this paper.
 
 ## Data Selection and Characteristics
 
-To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we pulled data from the software metrics tool, Flow. Flow is a software platform that leverages git and ticketing data to track individual, team, and organization-level metrics that can be used as indicators of production, productivity, and performance over time. From Flow, we selected data for analysis if users actively contributed code. The data thus consisted of `r scales::comma(ct_model_obs_info$nobs)` observations across 12 months from `r scales::comma(ct_model_obs_info$nusers)` in `r scales::comma(ct_model_obs_info$norgs)` organizations of varying sizes and industries.
+To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we pulled data from the software metrics tool, Flow. Flow is a software platform that leverages git and ticketing data to track individual, team, and organization-level metrics that can be used as indicators of production, productivity, and performance over time. From Flow, we selected data for analysis if users actively contributed code. The data thus consisted of `r scales::comma(ct_model_obs_info$nobs)` observations across 12 months from `r scales::comma(ct_model_obs_info$nusers)` users in `r scales::comma(ct_model_obs_info$norgs)` organizations of varying sizes and industries.
 
-## Defining Study Variables
+- [ ] Add missing data visualization?
+- [ ] Add distribution of users per org
 
-Using the most complete data for each user, we use the mean to aggregate each variable at the month level and the year level (see below for more details specific to each variable). For each predictor, we then subtracted each person's yearly average from their monthly data to produce a within-person deviation variable. This allows us to disaggregate effects on the outcome due to yearly-level individual differences and within-person, month-to-month fluctuations [@curranDisaggregationPersonPerson2011]. This important step allows us to avoid averaging between-person and within-person differences into a single effect estimate. These effects can be different even in the sign. Take the trivial example of typing speed and errors: for any given person, the faster they type, the more likely they are to make an error; however, typists who are faster on average tend to be more experienced and make fewer errors.
+## Computing study variables
+
+All study variables were derived from snapshots of the Flow production database that was moved to a Snowflake database. Users were included if they were labeled as a "contributor" and had opened a ticket in the year 2022. 
+
+Using the most complete data for each user, we use the mean to aggregate each variable at the month level and the year level (see below for more details specific to each variable). For each predictor, we then subtracted each person's yearly average from their monthly data to produce a within-person deviation variable. This allows us to disaggregate effects on the outcome due to yearly-level individual differences and within-person, month-to-month fluctuations [@curranDisaggregationPersonPerson2011]. This important step allows us to avoid averaging between-person and within-person differences into a single effect estimate. These effects can be different even in the sign. Take the trivial example of typing speed and errors: for any given person, the faster they type, the more likely they are to make an error; however, typists who are faster on average tend to be more experienced and make fewer errors. All year-level individual differences variables were centered at their mean. Exceptions or addenda are mentioned below. See @tbl-variables for a brief list of variables.
 
 ### Cycle Time
 
@@ -253,9 +258,17 @@ This is the dependent variable in these analyses. After computing the cycle time
 
 ### Unclosed Tickets
 
-We were not able to observe the closing date for every ticket given our data collection cutoff of ***DATE***, and so it is plausible that we underestimate the median cycle time in a way that depends in part on how many ticket closing times we do not observe. For this reason, we also computed the proportion of tickets opened in that month that had not been closed by the end of our data collection. For example, any ticket opened in April but not closed by ***DATE*** would count toward the proportion of unclosed tickets for that month.
+We were not able to observe the closing date for every ticket given our data collection cutoff of ***DATE***, and so it is plausible that we underestimate the median cycle time in a way that depends in part on how many ticket closing times we do not observe. For this reason, we also computed the proportion of tickets opened in that month that had not been closed by the end of our data collection. For example, any ticket opened in April but not closed by ***DATE*** would count toward the proportion of unclosed tickets for that month. We transformed proportions from $[0,1]$ to $(-\inf, \inf)$ using the logistic quantile function (with minum and maximum proportions forced to be .01 and .99 respectively).
 
-### Coding Time
+### Time (Month, and within-quarter month)
+
+We include month number as our measure of time. Additionally, we include the within-quarter month number to account for any effects of quarterly cycles. Month number was centered at month 7, and within-quarter month was centered at month 2.
+
+### Team Size
+
+To control for any influence of team size on cycle time, we compute each individual's team size as the average size of all teams that individual belongs to.
+
+### Coding days
 
 The amount of coding time was summarized as the average number of days per week that a developer made at least one commit. We divided the number of coding days in a month by the total number of days in that month and multiplied by seven to aid in interpretation.
 
@@ -265,31 +278,40 @@ Task scoping is a potentially important driver of cycle time. To measure the ext
 
 ### Percent Defect Tickets
 
-Defect tickets represent unplanned work that may interfere with timely completion of planned work. To account for this possibility, for each user, for each month, we computed the proportion of tickets that were defect tickets.
+Defect tickets represent unplanned work that may interfere with timely completion of planned work. To account for this possibility, for each user, for each month, we computed the percent of tickets that were defect tickets.
 
 ### Degree centrality
 
-We measured collaboration by calculating degree centrality. To evaluate degree centrality, a metric derived from network analysis, we employed a framework where developers were treated as nodes within the network, and their interactions in the form of Pull Requests (PRs) were regarded as connections. Within this analysis, we measured the degree centrality of each developer by assessing the number of other developers with whom they had collaborated throughout the entirety of 2022. To ensure a normalized assessment, this value was then divided by the total number of developers constituting the organizational network. The calculations were executed using the Python package Networkx. This particular variable serves as an effective proxy for quantifying the extent of collaboration amongst developers.
+We measured collaboration by calculating degree centrality. To evaluate degree centrality, a metric derived from network analysis, we employed a framework where developers were treated as nodes within the network, and their interactions in the form of Pull Requests (PRs) were regarded as connections. Within this analysis, we measured the degree centrality of each developer by assessing the number of other developers with whom they had collaborated throughout the entirety of 2022. To ensure a normalized assessment, this value was then divided by the total number of developers constituting the organizational network. The calculations were executed using the Python package Networkx. This particular variable serves as an effective proxy for quantifying the extent of collaboration among developers. We multiply the degree centrality, which is between 0 and 1, by 100.
 
 ### Comments per PR
 
-Another indicator of collaboration is the frequency of comments within PRs. We undertook a comprehensive examination of all PRs that were successfully merged in the year 2022, meticulously calculating the average word count contained within each PR. This served as a valuable measure to gauge the depth of collaboration exhibited during the development and review process.
+::: {.callout-warning}
+Is this still an accurate description of this var?
+:::
 
-| Broad Construct | Variable                          | Variable Description                                                 |
-|:-----------------------|:------------------|:------------------------------|
+Another indicator of collaboration is the frequency of comments within PRs. We undertook a comprehensive examination of all PRs that were successfully merged in the year 2022, meticulously calculating the average word count contained within each PR. This served as a valuable measure to gauge the depth of collaboration exhibited during the development and review process. This value was an indication of the collaboration on PRs on which an individual was the author of the PR.
+
+|                 | Variable                          | Variable Description                                                 |
+|:----------------|:----------------------------------|:---------------------------------------------------------------------|
+| Productivity    | Cycle Time                        | Avg time from ticket start to end                                    |
+|                 | Proportion unclosed tickets       | Control variable to account for tickets missing cycle time           |
+| Time            | Month                             | Continuous time variable coded as month number                       |
+|                 | Within-quarter month              | Index of the month number within each quarter year                   |
+| Team Context    | Team size                         | Average size across all teams a individual is on                     |
 | Coding Time     | Coding Days per Week              | Avg number of coding days a week                                     |
 | Task Scoping    | Total Merged PRs                  | Total number of merged PRs per developer                             |
 |                 | Percent Defect Tickets            | Percent of all tickets that are defect tickets                       |
 | Collaboration   | Degree Centrality                 | Score based on the number of reviewers a developer has worked with   |
 |                 | Comments per PR                   | Number of comments per pr a developer is the author on               |
-| Productivity    | Cycle Time                        | Avg time from ticket start to end                                    |
-|                 | Proportion unclosed tickets       | Control variable to account for tickets missing cycle time           |
 
-: Construct and variable descriptions {#tbl-constructs}
+: Variable descriptions {#tbl-variables}
 
 ## Analytic Approach
 
+We develop a model of monthly average ticket cycle time conditional on the above predictors. Specifically, we model cycle time as distributed Weibull with two parameters, $\lambda$ (scale), and _k_ (shape). The Weibull distribution is often used to model time-to-event data [@harrellRegressionModelingStrategies2015; @rummelAverageWeibullAnalysis2017], where _k_ determines the change over time in the probability of an event occurring (often called the "hazard rate"), and where $lambda$ determines the time-to-event for some proportion of the cases (or in other words, how spread out the distribution is). In our case, we are interested in determining the influence of our covariates on the scale of the distribution of cycle times, but we can also allow the shape, _k_, to vary across organizations to account for different general tendencies in the change of the probability of ticket closer. In short, the Weibull distribution provides flexibility for accurately describe cycle time data that tend to have a bulk of observations at the low end, with a very long tail of more extreme observations.
 
+Our data is comprised of observations nested within individuals, and individuals nested within organizations. To account for this structure we allow the mean of _k_ to vary by organization. We additionally allow the mean of $\lambda$, and the linear effect of month on $\lambda$, to vary across organizations and individuals. We assume these random effects are distributed normal, and allow them to correlate within grouping factors (that is, within user and organization).
 
 We fit the above models using `brms` [v2.21.6, @burknerAdvancedBayesianMultilevel2018; @burknerBrmsPackageBayesian2017], interface the the Stan probabilistic programming language for Bayesian sampling [v2.35.0, @gelman], with the `cmdstanr` backend [v0.8.0, @gabryCmdstanrInterfaceCmdStan2024], in R [v4.3.2, @rcoreteamLanguageEnvironmentStatistical2023].
 
