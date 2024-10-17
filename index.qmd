@@ -106,7 +106,6 @@ editor:
 ```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, error = FALSE)
 library(knitr)
-library(kableExtra)
 library(flextable)
 library(posterior)
 library(parameters)
@@ -290,6 +289,8 @@ fe_par_nicenames <- c(b_Intercept = 'Intercept log(λ)',
 
 ct_model_draws_fe <- readRDS('cycle_time_full_intx_lin_remonth_draws_id-fe.rds')
 ct_model_draws_bs <- readRDS('cycle_time_full_intx_lin_remonth_draws_id-bs.rds')
+ct_model_draws_re <- readRDS('cycle_time_full_intx_lin_remonth_draws_id-re.rds')
+ct_model_draws_sds <- readRDS('cycle_time_full_intx_lin_remonth_draws_id-sds.rds')
 ct_model_pars_fe <- parameters::model_parameters(ct_model_draws_fe, 
                                                  digits = 4,
                                                  centrality = 'median', 
@@ -302,6 +303,18 @@ ct_model_pars_bs <- parameters::model_parameters(ct_model_draws_bs,
                                                  ci = .95, 
                                                  ci_method = 'hdi', 
                                                  test = 'pd', exponentiate = FALSE)
+ct_model_pars_re <- parameters::model_parameters(ct_model_draws_re, 
+                                                 digits = 4,
+                                                 centrality = 'median', 
+                                                 ci = .95, 
+                                                 ci_method = 'hdi', 
+                                                 test = 'pd', exponentiate = FALSE)
+ct_model_pars_sds <- parameters::model_parameters(ct_model_draws_sds, 
+                                                 digits = 4,
+                                                 centrality = 'median', 
+                                                 ci = .95, 
+                                                 ci_method = 'hdi', 
+                                                 test = 'pd', exponentiate = FALSE)
 ct_model_pars_fe_for_text <- ct_model_pars_fe
 ct_model_pars_fe$Parameter <- fe_par_nicenames[ct_model_pars_fe$Parameter]
 ct_model_pars_fe$pd <- sprintf('% 3.0f%%', ct_model_pars_fe$pd*100)
@@ -309,14 +322,16 @@ ct_model_pars_fe$pd <- sprintf('% 3.0f%%', ct_model_pars_fe$pd*100)
 names(ct_model_pars_fe) <- c('Parameter', 'Posterior Median', 'Lower 95% HDI', 'Upper 95% HDI', 'Sign Probability')
 ```
 
-We find that all measured factors, both individual-difference and within-person deviations, have a non-zero association with cycle time, with 100% of the posterior distribution for these parameters sharing the same sign (see @tbl-results-fe for point estimates and uncertainty intervals). Within-quarter month showed a very small (relative to other effects shown below) negative association with cycle time, indicating that time to ticket completion is shorter at the end of quarters. Team size showed had close to no effect on cycle time. Cycle times tended to decrease slightly over the year. The proportion of unclosed tickets, an important control variable, on average had close to no effect on our measure of average monthly cycle time but interacted with month (see supplement).
+We find that all measured factors, both individual-difference and within-person deviations, have a non-zero association with cycle time, with 100% of the posterior distribution for these parameters sharing the same sign (see @tbl-results-fe for point estimates and uncertainty intervals). Within-quarter month showed a very small (relative to other effects shown below) negative association with cycle time, indicating that time to ticket completion is shorter at the end of quarters (@fig-quarter). Team size showed had close to no effect on cycle time (@tbl-results-fe). Cycle times tended to decrease slightly over the year (@fig-month). The proportion of unclosed tickets, an important control variable, on average had close to no effect on our measure of average monthly cycle time but interacted with month (see supplement).
 
+![Effect of within-quarter month. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.](plots/Plot Full growth model with linear predictors interacting-2.png){#fig-quarter}
 
-Specifically, when individuals increased average coding days per week month-to-month they also tended to have lower cycle times, and individuals with more average coding days per week across the year tended to have lower cycle times (@fig-codingdays). The association between coding days and cycle time also tended to increase in strength across months, with `r sprintf('%.0f%%', 100*ct_model_pars_fe_for_text$pd[ct_model_pars_fe_for_text$Parameter == 'b_yr_avg_avg_coding_days_per_week_c:month_num_c'])` of the posterior in this direction.
+![Effect of month. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.](plots/Plot Full growth model with linear predictors interacting-1.png){#fig-month}
 
 ```{r model summary table fe, eval=TRUE}
+#| tbl-cap: Fixed effects {#tbl-results-fe}
+
 flextable(ct_model_pars_fe) |>
-    flextable::set_caption(caption = 'Fixed effects {#tbl-results-fe}') |>
     colformat_double(digits = 4) |>
     set_table_properties(layout = 'autofit') |>
     theme_booktabs(bold_header = TRUE) |>
@@ -324,6 +339,8 @@ flextable(ct_model_pars_fe) |>
     add_footer_lines('Posterior Median: The median of the posterior probability density for the parameter is used as the parameter point estimate. 95% HDI: The 95% highest density interval is the region of the posterior distribution with the 95% most probable values for the parameter. Sign Probability: The proportion of the posterior distribution that has the same sign (direction) as the point estimate.')
 
 ```
+
+Specifically, when individuals increased average coding days per week month-to-month they also tended to have lower cycle times, and individuals with more average coding days per week across the year tended to have lower cycle times (@fig-codingdays). The association between coding days and cycle time also tended to increase in strength across months, with `r sprintf('%.0f%%', 100*ct_model_pars_fe_for_text$pd[ct_model_pars_fe_for_text$Parameter == 'b_yr_avg_avg_coding_days_per_week_c:month_num_c'])` of the posterior in this direction.
 
 ![Effect of average coding days per week on cycle time. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.](plots/Plot Full growth model with linear predictors interacting-5.png){#fig-codingdays}
 
@@ -342,6 +359,42 @@ Degree centrality, both on average across the year individual differences and wi
 Finally, the number of comments per PR showed a positive association with cycle time. Individuals who tended to garner more comments on their PRs also tended to have higher cycle times, and within a given month, a higher number of comments per PR relative to a person's average was also associated with higher cycle times (@fig-comments). This effect also does not unambiguously strengthen or weaken across the year with `r sprintf('%.0f%%', 100*ct_model_pars_fe_for_text$pd[ct_model_pars_fe_for_text$Parameter == 'b_yr_avg_comments_per_pr_c:month_num_c'])` of the posterior for the interaction effect having negative sign with a fairly narrow distribution around zero (95% HDI = `r sprintf('[%.4f, %.4f]', ct_model_pars_fe_for_text[ct_model_pars_fe_for_text$Parameter == 'b_yr_avg_comments_per_pr_c:month_num_c', 'CI_low'], ct_model_pars_fe_for_text[ct_model_pars_fe_for_text$Parameter == 'b_yr_avg_comments_per_pr_c:month_num_c', 'CI_high'])`). 
 
 ![Effect of comments per PR on cycle time. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.](plots/Plot Full growth model with linear predictors interacting-9.png){#fig-comments}
+
+```{r model summary table re, eval=TRUE}
+#| tbl-cap: Random effects {#tbl-results-re}
+
+flextable(ct_model_pars_re) |>
+    colformat_double(digits = 4) |>
+    set_table_properties(layout = 'autofit') |>
+    theme_booktabs(bold_header = TRUE) |>
+    align(j = 5, align = 'right', part = 'all') |>
+    add_footer_lines('Posterior Median: The median of the posterior probability density for the parameter is used as the parameter point estimate. 95% HDI: The 95% highest density interval is the region of the posterior distribution with the 95% most probable values for the parameter. Sign Probability: The proportion of the posterior distribution that has the same sign (direction) as the point estimate.')
+
+```
+
+```{r model summary table bs, eval=TRUE}
+#| tbl-cap: Basis spline effects {#tbl-results-bs}
+
+flextable(ct_model_pars_bs) |>
+    colformat_double(digits = 4) |>
+    set_table_properties(layout = 'autofit') |>
+    theme_booktabs(bold_header = TRUE) |>
+    align(j = 5, align = 'right', part = 'all') |>
+    add_footer_lines('Posterior Median: The median of the posterior probability density for the parameter is used as the parameter point estimate. 95% HDI: The 95% highest density interval is the region of the posterior distribution with the 95% most probable values for the parameter. Sign Probability: The proportion of the posterior distribution that has the same sign (direction) as the point estimate.')
+
+```
+
+```{r model summary table sds, eval=TRUE}
+#| tbl-cap: Spline wiggliness effects {#tbl-results-sds}
+
+flextable(ct_model_pars_sds) |>
+    colformat_double(digits = 4) |>
+    set_table_properties(layout = 'autofit') |>
+    theme_booktabs(bold_header = TRUE) |>
+    align(j = 5, align = 'right', part = 'all') |>
+    add_footer_lines('Posterior Median: The median of the posterior probability density for the parameter is used as the parameter point estimate. 95% HDI: The 95% highest density interval is the region of the posterior distribution with the 95% most probable values for the parameter. Sign Probability: The proportion of the posterior distribution that has the same sign (direction) as the point estimate.')
+
+```
 
 # Limitations
 
