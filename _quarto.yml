@@ -16,6 +16,7 @@ format:
   jats: default
   acm-pdf: 
     keep-tex: true
+    pdf-engine: lualatex
 
 
 
