@@ -1,0 +1,2975 @@
+---
+title: "Cycle time analysis"
+author: "John Flournoy"
+date: "`r Sys.Date()`"
+execute: 
+  warning: false
+  error: false
+  eval: false
+  enabled: false
+format:
+  html: 
+    page-layout: full
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+    fig-cap-location: top
+---
+
+## Data preparation
+
+
+```{r setup}
+library(gt)
+library(rlang)
+library(data.table)
+library(brms) 
+library(ggplot2)
+library(mgcv)
+library(StanHeaders)
+library(marginaleffects)
+library(rstan)
+library(cmdstanr)
+library(tidybayes)
+library(patchwork)
+library(showtext)
+font_name <- "Roboto"
+font_add_google(font_name)
+
+brms_to_draws <- function(x, variables){
+  x <- x$fit@sim$samples
+  x_subsamples <- lapply(x, \(x) x[, variables])
+  x_draws <- posterior::as_draws(x_subsamples)
+  return(x_draws)
+}
+
+get_unique_N <- function(xdt, var = 'user_id'){
+  return(xdt[, .(N = uniqueN(.SD)), .SDcols = var]$N)
+}
+
+create_label_transform <- function(center, inverse_logit = FALSE, format = "numeric") {
+  function(x) {
+    x <- as.numeric(as.character(x))
+    uncentered <- x + center
+    
+    if (inverse_logit) {
+      values <- plogis(uncentered)
+    } else {
+      values <- uncentered
+    }
+    
+    if (format == "numeric") {
+      return(round(values, 3))
+    } else if (format == "percent") {
+      return(paste0(round(values * 100, 1), "%"))
+    } else {
+      stop("Invalid format. Use 'numeric' or 'percent'.")
+    }
+  }
+}
+
+get_center <- function(x, var){
+  var_c <- paste0(var, '_c')
+  return(
+    unique(round(month_level_dt[[var]] - 
+                   month_level_dt[[var_c]], 5))
+  )
+}
+
+plot_marginal_effect <- function(x, condition, 
+                                 trans.y = NULL, 
+                                 translabels.x = NULL, 
+                                 translabels.fill = rev(translabels.x), 
+                                 binwidth = NULL,
+                                 plot_labels = NULL,
+                                 bin_alpha = .8,
+                                 patchwork_args = list(),
+                                 stack_swaps = FALSE,
+                                 swap_condition_axes = FALSE){
+  # x = cycle_time_full_intx_lin_remonth_m
+  # condition = list('month_num_c' = c(1, 3, 6, 9, 12) - 7,
+  #                  'yr_avg_comments_per_pr_c' = c(1, 5, 7, 12, 18) - yr_avg_comments_per_pr_center)
+  # trans.y = scales::modulus_trans(p = .25)
+  # trans.x = NULL
+  # patchwork_args = list(nrow = 2)
+  # binwidth = NULL
+  # bin_alpha = .8
+  # plot_labels = list(labs(x = 'Month',
+  #                         y = 'Median cycle time (days)',
+  #                         fill = 'Comments per PR',
+  #                         color = 'Comments per PR'),
+  #                    labs(y = 'Median cycle time (days)',
+  #                         x = 'Comments per PR',
+  #                         fill = 'Month',
+  #                         color = 'Month'))
+  # translabels.x = list(create_label_transform(7),
+  #                      create_label_transform(yr_avg_comments_per_pr_center))
+  # translabels.fill = rev(translabels.x)
+  # stack_swaps = TRUE
+  # swap_condition_axes = FALSE
+
+  require(patchwork)
+  require(rlang)
+  
+  s_to_day <- \(x) return(x / (60*60*24))
+  # Extract the formula terms
+  terms_object <- attr(model.frame(x), "terms")
+  # Get the variables attribute (which includes the response variable)
+  response_variable <- as.character(attr(terms_object, "variables"))[2]
+  max_resp <- quantile(x$data[[response_variable]], p = .95)
+  coords <- s_to_day(c(0, max_resp))
+  
+  if(stack_swaps){
+    condition_list <- unique(list(condition, rev(condition)))
+  } else if (swap_condition_axes) {
+    condition_list <- unique(list(rev(condition)))
+  } else {
+    condition_list <- unique(list(condition))
+  }
+  
+  p <- lapply(1:length(condition_list), \(c_i) {
+    cond <- condition_list[[c_i]]
+    if(!is.null(names(cond))){
+      c_names <- names(cond)
+      cond[[1]] <- function(x) seq(from = min(x), to = max(x), length.out = 50)
+    } else {
+      c_names <- cond
+    }
+    
+    if (is.null(binwidth)) {
+      if(c_names[[1]] == 'month_num_c'){
+        binwidth_x <- 1
+        binwidth_y <- .005*s_to_day(diff(range(x$data[[response_variable]])))
+      } else {
+        binwidth_x <- .05*diff(range(x$data[[c_names[[1]]]]))
+        binwidth_y <- .0025*s_to_day(diff(range(x$data[[response_variable]])))
+      }
+      this_binwidth <- c(binwidth_x, binwidth_y)
+    } else {
+      if(c_i > length(binwidth)){
+        stop('binwidth should be a list with length equal to condition_list')
+      }
+      this_binwidth <- binwidth[[c_i]]
+      if(length(this_binwidth) != 2){
+        stop('each element of binwidth should have length == 2')
+      }
+    }
+    pp_data <- marginaleffects::plot_predictions(x, condition = cond, re_formula = NA, trans = s_to_day, draw = FALSE)
+    
+    pp <-  ggplot(data = pp_data, aes(x = get(c_names[[1]]), y = estimate)) + 
+      stat_summary_2d(data = x$data, 
+                      aes(y = s_to_day(get(response_variable)), 
+                          x = get(c_names[[1]]),
+                          z = 1), 
+                      binwidth = this_binwidth, alpha = bin_alpha,
+                      fun = function(x) sum(!is.na(x))) + 
+      # geom_bin2d(data = x$data, aes(y = s_to_day(get(response_variable)), x = get(c_names[[1]])), 
+      #            binwidth = this_binwidth, alpha = bin_alpha) + 
+      scale_fill_viridis_c(option = 'mako', guide = 'none',
+                           begin = 1, end = .5)
+    if(length(cond) > 1){
+      pp <- pp + 
+        ggnewscale::new_scale_fill() + 
+        geom_ribbon(aes(ymin = conf.low, ymax = conf.high, group = get(c_names[[2]]), 
+                        fill = get(c_names[[2]])), alpha = .5) + 
+        geom_line(aes(group = get(c_names[[2]]), color = get(c_names[[2]])))
+      
+      if(!is.null(translabels.fill)){
+        pp <- pp + scale_color_viridis_d(aesthetics = c('fill', 'color'),
+                              option = 'rocket', begin = 0, end = .7,
+                              labels = translabels.fill[[c_i]])
+      } else {
+        pp <- pp + scale_color_viridis_d(labels = function(b) round(as.numeric(b), 2), 
+                              aesthetics = c('fill', 'color'),
+                              option = 'rocket', begin = 0, end = .7)
+      }
+      pp <- pp + 
+        theme_minimal()
+    } else if(length(cond) == 1) {
+      pp <- pp + 
+        ggnewscale::new_scale_fill() + 
+        geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = .5) + 
+        geom_line() + 
+        theme_minimal()
+    }
+    
+    if(!is.null(translabels.x)){
+      pp <- pp + 
+        scale_x_continuous(labels = translabels.x[[c_i]])
+    }
+    
+    if(is.null(plot_labels)){
+      if(length(c_names) == 1){
+        pp <- pp + 
+          labs(x = c_names[[1]], y = response_variable) 
+      } else if(length(c_names == 2)){
+        pp <- pp + 
+          labs(x = c_names[[1]], y = response_variable, fill = c_names[[2]], color = c_names[[2]])
+      }
+    } else {
+      pp <- pp + 
+        plot_labels[[c_i]]
+    }
+    pp <- pp + 
+      coord_cartesian(y = coords, 
+                      x = range(x$data[[c_names[[1]]]]))
+    
+    return(pp)
+  })
+  
+  if(!is.null(trans.y)){
+    message('adding transform for y')
+    p <- lapply(p, \(pp) pp + scale_y_continuous(transform = trans.y))
+  }
+
+  default_patchwork <- list(nrow = 1)
+  p <- do.call(patchwork::wrap_plots, c(list(p), modifyList(default_patchwork, patchwork_args)))
+  return(p)
+}
+
+traceplot_manyvars <- function(x, variables){
+  require(posterior)
+  require(data.table)
+  x <- x$fit@sim$samples
+  x_subsamples <- lapply(x, \(x) x[, variables])
+  x_draws_df_l <- melt(as.data.table(posterior::as_draws_df(x_subsamples)),
+                       id.vars = c('.chain', '.iteration', '.draw'))
+  x_draws_df_l[, .chain := factor(.chain)]
+  p <- ggplot(x_draws_df_l, aes(x = .iteration, y = value)) + 
+    geom_line(aes(group = .chain, color = .chain), alpha = 1, linewidth = .125) + 
+    facet_wrap(~ variable, scales = 'free') + 
+    scale_color_viridis_d(option = 'mako', begin = 0, end = .65) + 
+    theme_minimal() + 
+    theme(
+      strip.text.x = element_text(size = 8),  # Adjust text size for readability
+      axis.text.x = element_blank(),            # Remove axis text for clarity
+      axis.ticks.x = element_blank(),
+      panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(), 
+      panel.spacing = unit(0, 'lines'),
+      legend.position = 'none',
+      axis.title = element_blank()
+    )
+  return(p)
+}
+
+
+theme_clean <- theme_minimal() + 
+  theme(
+    text = element_text(family = font_name),
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, 'lines')
+  )
+
+objects_in_mem <- function() {
+  # Load the data.table package
+  require(data.table)
+
+  # Get all objects in the global environment
+  all_objects <- ls(envir = .GlobalEnv)
+  
+  # Create a data table with object names and sizes
+  object_sizes <- data.table(
+    Object = all_objects,
+    Size = sapply(all_objects, function(x) object.size(get(x, envir = .GlobalEnv)))
+  )
+  
+  # Sort the data table by size in descending order
+  setorder(object_sizes, -Size)
+  
+  # Return the sorted list
+  return(object_sizes)
+}
+
+filename_do <- function(filename, do_this){
+  if(!file.exists(filename)){
+    result <- do_this
+    saveRDS(result, filename)
+  } else {
+    result <- readRDS(filename)
+  }
+  return(result)
+}
+```
+
+```{r data}
+data_dir <- '~/remote'
+full_df <- data.table::fread(file.path(data_dir, 'productivity-project/ind_full_df.csv'))
+ct_20240829 <- fread(file.path(data_dir, 'productivity-project/cycle_time_and_tickets_20240829.csv'))
+comments_20240903 <- fread(file.path(data_dir, 'productivity-project/comments_pr.csv'))
+defecttkts_20240903 <- fread(file.path(data_dir, 'productivity-project/defect_tickets.csv'))
+centr_20240903 <- fread(file.path(data_dir, 'productivity-project/degree_cent_month.csv'))
+
+full_df[, month_num := match(tolower(month), tolower(month.abb))]
+
+ct_20240829 <- unique(ct_20240829[, -'TEAM_ID'])
+ct_20240829[!is.na(CT_TIME_END) & !is.na(TK_TIME_END) & !CT_TIME_END == '' & !TK_TIME_END == '', 
+            .(sum(CT_TIME_END == TK_TIME_END), .N)]
+ct_20240829[!is.na(CT_CYCLE_TIME_S) & !is.na(TK_CYCLE_TIME_S) & !CT_CYCLE_TIME_S == '' & !TK_CYCLE_TIME_S == '', 
+            .(sum(CT_CYCLE_TIME_S == TK_CYCLE_TIME_S), .N)]
+ct_20240829[(is.na(CT_CYCLE_TIME_S) | CT_CYCLE_TIME_S == '') & (!is.na(TK_CYCLE_TIME_S) & !TK_CYCLE_TIME_S == ''), 
+            .(.N, N_user_id = uniqueN(ASSIGNEE_APEX_USER_ID))]
+ct_20240829[, new_cycle_time := fifelse(is.na(CT_CYCLE_TIME_S) | CT_CYCLE_TIME_S == '', TK_CYCLE_TIME_S, CT_CYCLE_TIME_S)]
+ct_20240829[, .(na_new_ct = sum(is.na(new_cycle_time)),
+                na_old_ct = sum(is.na(CT_CYCLE_TIME_S) | CT_CYCLE_TIME_S == ''))]
+ct_20240829_agg <- ct_20240829[, .(N_tickets_old = sum(!is.na(CT_CYCLE_TIME_S) & !CT_CYCLE_TIME_S == ''),
+                                   N_tickets_new = uniqueN(TICKET_IDENTITY_ID),
+                                   N_unclosed = sum(CT_TIME_END == '' & TK_TIME_END == ''),
+                                   P_unclosed = sum(CT_TIME_END == '' & TK_TIME_END == '') / uniqueN(TICKET_IDENTITY_ID),
+                                   cycle_time_old = as.numeric(median(CT_CYCLE_TIME_S, na.rm = TRUE)),
+                                   cycle_time_new = as.numeric(median(new_cycle_time, na.rm = TRUE))),
+                               by = c('ASSIGNEE_APEX_USER_ID', 'ORG_ID', 'TICKET_CREATED_MONTH', 'TICKET_CREATED_YEAR')]
+
+minmaxp <- c(.01, .99)
+range_non01_punclosed <- qlogis(minmaxp)
+ct_20240829_agg[, q_unclosed := fifelse(P_unclosed < minmaxp[[1]], range_non01_punclosed[1], 
+                                        fifelse(P_unclosed > minmaxp[[2]], range_non01_punclosed[2], 
+                                                qlogis(P_unclosed)))]
+
+setnames(ct_20240829_agg, 
+         old = c('ORG_ID', 'ASSIGNEE_APEX_USER_ID', 'TICKET_CREATED_YEAR', 'TICKET_CREATED_MONTH'),
+         new = c('org_id', 'user_id',               'year',                'month_num'))
+
+setnames(comments_20240903, 
+         old = c('ORG_ID', 'APEX_USER_ID', 'PR_YEAR', 'PR_MONTH',  'COMMENTS_PER_PR'),
+         new = c('org_id', 'user_id',      'year',    'month_num', 'comments_per_pr'))
+
+setnames(defecttkts_20240903,
+         old = c('ORG_ID', 'USER_ID', 'YEAR', 'MONTH_NUM', 'DEFECT_TICKET_PCT'),
+         new = c('org_id', 'user_id', 'year', 'month_num', 'defect_tickets_pct_indiv'))
+
+setnames(centr_20240903,
+         old = c('ORG_ID', 'APEX_USER_ID', 'PR_MONTH',  'DEGREE_CENTRALITY'),
+         new = c('org_id', 'user_id',      'month_num', 'degree_centrality_monthly'))
+
+full_df_cleaned_unclosed <- merge(ct_20240829_agg[!is.na(cycle_time_new)], full_df, by = c('org_id', 'user_id', 'year', 'month_num'), all.y = TRUE)
+full_df_cleaned_unclosed <- merge(comments_20240903, full_df_cleaned_unclosed, by = c('org_id', 'user_id', 'year', 'month_num'), all.y = TRUE)
+full_df_cleaned_unclosed <- merge(defecttkts_20240903, full_df_cleaned_unclosed, by = c('org_id', 'user_id', 'year', 'month_num'), all.y = TRUE)
+full_df_cleaned_unclosed <- merge(centr_20240903, full_df_cleaned_unclosed, by = c('org_id', 'user_id', 'month_num'), all.y = TRUE)
+if(! get_unique_N(full_df_cleaned_unclosed) >= get_unique_N(full_df)){
+  stop('Error in merging')
+}
+
+full_df_cleaned_unclosed[, median_cycle_time_s := cycle_time_new]
+full_df_cleaned_unclosed[, degree_centrality_monthly_100 := 100*degree_centrality_monthly]
+full_df_cleaned_unclosed[, within_quarter_month_num := (month_num - 1) %% 3]
+
+yr_avg_vars <- c('avg_coding_days_per_week', 'total_merged_prs', 
+                 'defect_tickets_pct_indiv', 'degree_centrality_monthly_100', 
+                 'comments_per_pr')
+within_vars_new <- paste0('wi_', yr_avg_vars)
+yr_avg_vars_new <- paste0('yr_avg_', yr_avg_vars)
+yr_avg_vars_new_c <- paste0(yr_avg_vars_new, '_c')
+center_vars_ <- c('q_unclosed', 'avg_coding_days_per_week', 
+                 'total_merged_prs', 'defect_tickets_pct_indiv',  
+                 'comments_per_pr', 'degree_centrality_monthly_100') 
+team_vars <- c('team_size')
+team_vars_new <- paste0(team_vars, '_c')
+factor_vars <- c('org_id', 'user_id')
+factor_vars_new <- paste0(factor_vars, '_fac')
+time_vars <- c('month_num', 'within_quarter_month_num')
+time_vars_new <- paste0(time_vars, '_c')
+outcome_vars <- c('median_cycle_time_s')
+full_df_cleaned_unclosed_team_size_info <- unique(
+  full_df_cleaned_unclosed[, c('team_size', 'org_id', 'user_id', 'team_id')]
+)[, .(team_size = mean(team_size, na.rm = TRUE)), by = c('org_id', 'user_id')]
+
+full_df_cleaned_unclosed_old <- copy(full_df_cleaned_unclosed)
+
+full_df_cleaned_unclosed <- unique(full_df_cleaned_unclosed[, c(..outcome_vars,
+                                                                ..center_vars_,
+                                                                ..factor_vars,
+                                                                'org_name',
+                                                                ..time_vars)]) 
+full_df_cleaned_unclosed[, (yr_avg_vars_new) := lapply(.SD, mean, na.rm = TRUE), .SDcols = yr_avg_vars, by = c('org_id', 'user_id')]
+full_df_cleaned_unclosed[, (within_vars_new) := lapply(.SD, \(x) x - mean(x, na.rm = TRUE)), 
+                         .SDcols = yr_avg_vars, 
+                         by = c('org_id', 'user_id')]
+center_vars <- c(center_vars_, yr_avg_vars_new)
+center_vars_new <- paste0(center_vars, '_c')
+full_df_cleaned_unclosed <- merge(full_df_cleaned_unclosed, full_df_cleaned_unclosed_team_size_info)
+full_df_cleaned_unclosed[, (center_vars) := lapply(.SD, round, digits = 4), .SDcols = center_vars]
+full_df_cleaned_unclosed[, (team_vars) := lapply(.SD, round, digits = 4), .SDcols = team_vars]
+full_df_cleaned_unclosed[, (center_vars_new) := lapply(.SD, \(x) scale(x, scale = FALSE)[,1]), .SDcols = center_vars]
+full_df_cleaned_unclosed[, (team_vars_new) := lapply(.SD, \(x) scale(x, scale = FALSE)[,1]), .SDcols = team_vars]
+full_df_cleaned_unclosed[, (factor_vars_new) := lapply(.SD, factor), .SDcols = factor_vars]
+full_df_cleaned_unclosed[, c('month_num_c', 'within_quarter_month_num_c') := 
+                           .(month_num - 7, within_quarter_month_num - 1)]
+
+model_vars <- unique(c(factor_vars, factor_vars_new,
+                outcome_vars,
+                center_vars,
+                center_vars_new,
+                within_vars_new, yr_avg_vars_new_c,
+                team_vars, team_vars_new,
+                time_vars, time_vars_new))
+model_vars_yrpred <- unique(c(factor_vars, factor_vars_new,
+                       outcome_vars, 
+                       'q_unclosed', 'q_unclosed_c',
+                       yr_avg_vars_new, yr_avg_vars_new_c, 
+                       team_vars, team_vars_new,
+                       time_vars, time_vars_new))
+
+#model_vars <- model_vars[which(! model_vars %in% c('q_unclosed', 'q_unclosed_c'))]
+
+full_df_cleaned_unclosed <- full_df_cleaned_unclosed[!is.na(org_name)]
+
+unique_users_dropping_col <- lapply(center_vars_, \(x){
+  uniqueN(na.omit(full_df_cleaned_unclosed[, c(..center_vars, 'user_id')][, .SD, .SDcols = !c(x)])$user_id)
+})
+names(unique_users_dropping_col) <- center_vars_
+
+unique_users_dropping_col_yr <- lapply(yr_avg_vars_new, \(x){
+  uniqueN(na.omit(full_df_cleaned_unclosed[, c(..yr_avg_vars_new, 'user_id')][, .SD, .SDcols = !c(x)])$user_id)
+})
+names(unique_users_dropping_col_yr) <- yr_avg_vars_new
+unique_users_dropping_col
+unique_users_dropping_col_yr
+
+#This is a considerably smaller data set due to missingness in the predictors
+month_level_dt <- full_df_cleaned_unclosed[, .SD, .SDcols = unique(model_vars, model_vars_yrpred)]
+month_level_dt <- month_level_dt[median_cycle_time_s > 0]
+month_level_dt <- na.omit(month_level_dt[, ..model_vars])
+
+month_level_yrpred_dt <- na.omit(full_df_cleaned_unclosed[median_cycle_time_s > 0, ..model_vars_yrpred])
+
+month_level_midq_dt <- month_level_dt[within_quarter_month_num == 1]
+
+month_level_ptyp_dt <- copy(month_level_dt)
+set.seed(451)
+month_level_ptyp_dt[, chunk_id := sample(1:40, 1, replace = TRUE), by = c('org_id')] #make N chunks of data stratified by org, team
+month_level_ptyp_dt <- month_level_ptyp_dt[chunk_id == 1]
+
+full_df_cleaned_step9 <- full_df[month %in% c('Feb', 'May', 'Aug', 'Nov'), 
+                                         c(..factor_vars, 'team_id', 'cycle_time', 'month', 
+                                           'yr_avg_coding_days_per_week', 
+                                           'yr_total_merged_prs', 
+                                           'yr_defect_tickets_pct', 
+                                           'degree_centrality', 
+                                           'yr_comments')]
+full_df_cleaned_step9 <- na.omit(full_df_cleaned_step9[cycle_time > 0])
+
+#Has fewer unique_id because of missing month-level covariates
+month_level_dt[, .(N_user = uniqueN(user_id_fac),
+                                            N_org = uniqueN(org_id_fac),
+                                            N_obs = .N)]
+
+month_level_yrpred_dt[, .(N_user = uniqueN(user_id_fac),
+                                            N_org = uniqueN(org_id_fac),
+                                            N_obs = .N)]
+
+full_df_cleaned_step9[, .(N_user = uniqueN(user_id),
+                          N_team = uniqueN(team_id),
+                          N_teamuser = uniqueN(paste(team_id, user_id)),
+                          N_org = uniqueN(org_id),
+                          N_obs = .N)]
+full_df_cleaned_unclosed[, .(N_user = uniqueN(user_id_fac),
+                             N_org = uniqueN(org_id_fac),
+                             N_obs = .N)]
+
+month_level_dt[, lapply(.SD, \(x) fifelse(.N == 1, 0, sd(x, na.rm = TRUE))), 
+               .SDcols = c(outcome_vars, center_vars_new, time_vars),
+               by = c('user_id_fac', 'org_id_fac')]
+```
+
+
+A lot happens here. I take the data that Carol was using it and then integrate it with ticket-level data which also includes some updated ticket-end timestamps. I then re-aggregate at the month level within-person, so that we get median cycle times for each person over that month. The predictor variables all come from the previous data set and are already aggregated at the month level or the year level. 
+
+I also keep or create some control variables. I discard repeat rows due to users working in multiple teams but I keep their average team size as a control variable. I also take the proportion of unclosed tickets for each month and transform it from $P(unclosed) \in [0,1]$ to be $Q(unclosed) \in (-\inf, +\inf)$ using the logistic quantile function.
+
+I planned to run models where the predictors, where possible, vary by month, as well as where they are aggregated across the year to be individually varying but time invariant. There are trade-offs here. The time-varying data gives us a more granular view of correlated change across time, and a much closer sense of what might be causal processes. That is, we can say things like, within the same person when X changes from month to month we also see a change in cycle time. However, there are a lot of missing observations of our predictors so this reduces the size of the data to some extent. When all is cleaned up we have ` formatC(dim(month_level_dt)[[1]], format="f", big.mark=",", digits=0)` rows comprised of ` formatC(length(unique(month_level_dt$user_id_fac)), format="f", big.mark=",", digits=0)` unique users across ` formatC(length(unique(month_level_dt$org_id_fac)), format="f", big.mark=",", digits=0)`, with a median of ` formatC(month_level_dt[, .N, by = 'user_id_fac'][, .(median(N))][[1]], format="f", big.mark=",", digits=0)` (interquartile range = ` tmprange <- quantile(month_level_dt[, .N, by = 'user_id_fac']$N, c(.25, .75)); sprintf('[%d, %d]', tmprange[[1]], tmprange[[2]])`) observations per user.
+
+From the data aggregated across the year we simply use all available information for each person to compute their average on each predictor, thereby "recovering" quite a few monthly observations of cycle time but with the cost of only being able to make inferences back to correlated stable individual differences. That is, we can say the sort of person who tends to have N coding days per week also tends to have lower cycle time and a steeper decrease in cycle time across the year (for example). In the data with yearly-average predictors, we have ` formatC(dim(month_level_yrpred_dt)[[1]], format="f", big.mark=",", digits=0)` rows comprised of ` formatC(length(unique(month_level_yrpred_dt$user_id_fac)), format="f", big.mark=",", digits=0)` unique users across ` formatC(length(unique(month_level_yrpred_dt$org_id_fac)), format="f", big.mark=",", digits=0)`, with a median of ` formatC(month_level_yrpred_dt[, .N, by = 'user_id_fac'][, .(median(N))][[1]], format="f", big.mark=",", digits=0)` (interquartile range = ` tmprange <- quantile(month_level_yrpred_dt[, .N, by = 'user_id_fac']$N, c(.25, .75)); sprintf('[%d, %d]', tmprange[[1]], tmprange[[2]])`) observations per user.
+
+## Data exploration
+
+These plots helped me get a sense of the data distribution of the outcome (cycle time) and other variables that we were concerned might have undue influence on either the outcome itself or as a potential confound between the outcome and predictors (or their effect on the growth of our outcome over time).
+
+### Outcome distribution
+
+```{r Full data response distributions per org, cache=TRUE, fig.width=8, fig.height=8, fig.cap='Density plots both on the original and log scale'}
+ggplot(month_level_yrpred_dt, aes(x = median_cycle_time_s)) + 
+  stat_density(geom = 'area', fill = 'blue', alpha = .5, position = 'identity', aes(group = org_id)) + 
+  stat_density(geom = 'line', color = 'black', alpha = .8, position = 'identity', aes(group = org_id)) + 
+  facet_wrap(~ org_id, scales = 'free_y') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()            # Remove grid lines for simplicity
+  ) + 
+  labs(y = 'Density of observations', x = 'Median Cycle Time')
+ggplot(month_level_yrpred_dt, aes(x = median_cycle_time_s)) + 
+  stat_density(geom = 'area', fill = 'blue', alpha = .5, position = 'identity', aes(group = org_id)) + 
+  stat_density(geom = 'line', color = 'black', alpha = .8, position = 'identity', aes(group = org_id)) + 
+  facet_wrap(~ org_id, scales = 'free_y') +
+  scale_x_log10() + 
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()            # Remove grid lines for simplicity
+  ) + 
+  labs(y = 'Density of observations', x = 'Log Median Cycle Time')
+```
+
+In the above, we see extreme right skew that is often a feature of time-to-event data.
+
+### Outcome across months
+
+```{r cycle time across months, fig.height=8, fig.width=8, fig.cap='Cycle time over months for each org', cache=TRUE}
+hours_width <- 2*28*24*60*60
+N_weeks <- hours_width / (7*24*60*60)
+ggplot(month_level_yrpred_dt, aes(y = median_cycle_time_s, x = month_num)) + 
+  geom_hex(binwidth = c(1, hours_width)) +
+  scale_x_continuous(breaks = 1:12) +
+  scale_y_continuous(breaks = seq(0, 12000, by = hours_width), labels = N_weeks*c(0:(length(seq(0, 12000, by = hours_width)) - 1))) + 
+  scale_fill_continuous(
+    trans = "log",
+    name = "Count",
+    breaks = c(1, 10, 100, 1000)
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()            # Remove grid lines for simplicity
+  ) + 
+  labs(x = 'Month', y = 'Cycle time') +
+  facet_wrap(~ org_id)
+```
+We can see a slight downward trend in the outliers across months for many orgs.
+
+### Outlier trends
+
+```{r monthly trend in outliers,fig.cap='Monthly trend in outliers'}
+ggplot(month_level_yrpred_dt, aes(x = month_num, y = median_cycle_time_s)) +
+  geom_point() + 
+  theme_minimal()
+
+ggplot(month_level_yrpred_dt[, .(max_cycle_time = max(median_cycle_time_s, na.rm = TRUE)), by = c('month_num')],
+       aes(x = month_num, y = max_cycle_time)) + 
+  geom_smooth(method = 'lm') + 
+  geom_point() + 
+  scale_x_continuous(breaks = 1:12) + 
+  theme_minimal()
+```
+In the above we see the monthly trend in outliers more clearly. This is what gave rise to our diving back into ticket close dates to try to recover what we didn't have from before as well as thinking about including a measure of proportion open tickets to try to control for the possibility that we were systematically mis-measuring cycle time because of systematic differences in missing ticket data over time.
+
+```{r unclosed tickets, fig.width=8, fig.height=8, cache=TRUE, fig.cap='Median proportion unclosed tickets for each org, by month'}
+ggplot(ct_20240829_agg[, .(med_p_unclosed = median(P_unclosed), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = med_p_unclosed)) + 
+  geom_line() + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  ) + 
+  coord_cartesian(y = c(0,1))
+#View(ind_perf_agg[, .(med_p_unclosed = median(P_unclosed), N = .N), by = c('org_id', 'month_num')][N > 10])
+```
+
+
+Above we see that across many orgs we have an uptick in unclosed tickets at the end of the year. These unclosed tickets can't be included in the cycle time data and so will potentially have the effect of reducing observed cycle time for that month.
+
+### Predictor plots
+
+- [ ] A kind of question people ask: are there clusters of orgs based on eg across these variables and over time, "hit by the wave of planning and resists it", how much variability and chaos, stability.
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+ggplot(month_level_dt[, .(avg_coding_days_per_week = median(avg_coding_days_per_week), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = avg_coding_days_per_week)) + 
+  geom_line(stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+month_level_dt_plot <- copy(month_level_dt)
+month_level_dt_plot[, group := rep(sample(1:144, size = 1), .N), by = 'user_id_fac']
+ggplot(month_level_dt_plot, aes(x = month_num, y = avg_coding_days_per_week)) + 
+  geom_line(aes(group = user_id_fac), 
+            alpha = .5, size = .1, 
+            stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  facet_wrap(~ group) +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+ggplot(month_level_dt[, .(total_merged_prs = median(total_merged_prs), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = total_merged_prs)) + 
+  geom_line(stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+month_level_dt_plot <- copy(month_level_dt)
+month_level_dt_plot[, group := rep(sample(1:144, size = 1), .N), by = 'user_id_fac']
+ggplot(month_level_dt_plot, aes(x = month_num, y = total_merged_prs)) + 
+  geom_line(aes(group = user_id_fac), 
+            alpha = .5, size = .1, 
+            stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  facet_wrap(~ group, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+ggplot(month_level_dt[, .(defect_tickets_pct_indiv = median(defect_tickets_pct_indiv), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = defect_tickets_pct_indiv)) + 
+  geom_line(stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+month_level_dt_plot <- copy(month_level_dt)
+month_level_dt_plot[, group := rep(sample(1:144, size = 1), .N), by = 'user_id_fac']
+ggplot(month_level_dt_plot, aes(x = month_num, y = defect_tickets_pct_indiv)) + 
+  geom_line(aes(group = user_id_fac), 
+            alpha = .5, size = .1, 
+            stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  facet_wrap(~ group, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+ggplot(month_level_dt[, .(degree_centrality_monthly_100 = median(degree_centrality_monthly_100), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = degree_centrality_monthly_100)) + 
+  geom_line(stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+month_level_dt_plot <- copy(month_level_dt)
+month_level_dt_plot[, group := rep(sample(1:144, size = 1), .N), by = 'user_id_fac']
+ggplot(month_level_dt_plot, aes(x = month_num, y = degree_centrality_monthly_100)) + 
+  geom_line(aes(group = user_id_fac), 
+            alpha = .5, size = .1, 
+            stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  facet_wrap(~ group, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+ggplot(month_level_dt[, .(comments_per_pr = median(comments_per_pr), N = .N), by = c('org_id', 'month_num')][N > 10],
+       aes(x = month_num, y = comments_per_pr)) + 
+  geom_line(stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  geom_point(size = .2, alpha = .8) + 
+  facet_wrap(~ org_id, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+
+```{r, warning=FALSE, cache=TRUE, fig.width=8, fig.height=8}
+month_level_dt_plot <- copy(month_level_dt)
+month_level_dt_plot[, group := rep(sample(1:144, size = 1), .N), by = 'user_id_fac']
+ggplot(month_level_dt_plot, aes(x = month_num, y = comments_per_pr)) + 
+  geom_line(aes(group = user_id_fac), 
+            alpha = .5, size = .1, 
+            stat = 'smooth', method = 'lm', se = FALSE, formula = y ~ x) + 
+  facet_wrap(~ group, scales = 'free') +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r remove unused data objects, include=FALSE}
+rm_ls_pattern <- "(centr_20240903|comments_20240903|ct_20240829|ct_20240829_agg|defecttkts_20240903|full_df|full_df_cleaned_step9|full_df_cleaned_unclosed|full_df_cleaned_unclosed_old|full_df_cleaned_unclosed_team_size_info|month_level_dt_plot|month_level_midq_dt|month_level_ptyp_dt)"
+ls_list <- ls(pattern = rm_ls_pattern)
+if(length(ls_list) > 0) rm(list = ls_list)
+gc()
+```
+
+
+## Modeling
+
+These are the goals that informed my modelling decisions (beyond those that Carol already set forth, e.g., accounting for nesting):
+
+1. Allow non-linear effects of certain predictors, especially month number, on the outcome.
+    - requirement: `s()` and related syntax from `mgcv` package
+2. Model the outcome using a distribution appropriate for its observed shape and for its hypothesized data generating process
+    - requirement: response distributions for time-to-event data (i.e., log normal, gamma, Weibull)
+3. Include group-varying effects for intercepts and predictor variables when groups are nested and crossed (as in Carol's original models)
+    - requirement: `lme4`-style random effects specifications
+4. Uncertaint quantification across the range of effects of interest including individually-varying effects
+    - requirement: simulation or draws from the posterior distribution
+  
+The above requirements are met by `brms` which uses the Bayesian probabilistic programming language Stan. Added benefits of this method include good model diagnostics, robust fitting due to control via weakly-informative priors, and modeling 
+
+### Likelihood and prior definitions
+
+In the code blocks below I define the likelihood (i.e., model) and priors for a set of models going from most complicated to least complicated. This was part of the process of diagnosing any fitting problems starting with very simple models, and optimizing them to fit in a reasonable amount of time. I iterated through some trial and error finding reasonable prior distributions that constrained possible model-generated values to a reasonable range without being overly restrictive. This was particularly helpful in stabilizing the estimate of the shape parameter and intercept of the Weibull distribution.
+
+:::{.panel-tabset}
+
+#### Likelihoods 
+
+```{r setup-likelihood, collapse=FALSE, cache=TRUE}
+cycle_time_full_intx_lin_remonth_yrpred_f <- bf(median_cycle_time_s ~ 1 + 
+                                                  within_quarter_month_num_c + 
+                                                  team_size_c + 
+                                                  s(q_unclosed_c, k = 5) + 
+                                                  s(month_num_c, k = 5) + 
+                                                  s(month_num_c, by = team_size_c, k = 5) +
+                                                  s(month_num_c, by = q_unclosed_c, k = 5) +
+                                                  yr_avg_avg_coding_days_per_week_c + 
+                                                  yr_avg_total_merged_prs_c + 
+                                                  yr_avg_defect_tickets_pct_indiv_c + 
+                                                  yr_avg_degree_centrality_monthly_100_c + 
+                                                  yr_avg_comments_per_pr_c + 
+                                                  month_num_c:yr_avg_avg_coding_days_per_week_c + 
+                                                  month_num_c:yr_avg_total_merged_prs_c + 
+                                                  month_num_c:yr_avg_defect_tickets_pct_indiv_c + 
+                                                  month_num_c:yr_avg_degree_centrality_monthly_100_c + 
+                                                  month_num_c:yr_avg_comments_per_pr_c + 
+                                                  (month_num_c | org_id_fac) + (month_num_c | org_id_fac:user_id_fac),
+                                                shape ~ 1 + (1 | org_id_fac),
+                                                family = brms::weibull())
+cycle_time_full_intx_lin_remonth_f <- bf(median_cycle_time_s ~ 1 + 
+                                           within_quarter_month_num_c + 
+                                           team_size_c + 
+                                           s(q_unclosed_c, k = 5) + 
+                                           s(month_num_c, k = 5) + 
+                                           s(month_num_c, by = team_size_c, k = 5) +
+                                           s(month_num_c, by = q_unclosed_c, k = 5) +
+                                           wi_avg_coding_days_per_week +
+                                           yr_avg_avg_coding_days_per_week_c + 
+                                           wi_total_merged_prs + 
+                                           yr_avg_total_merged_prs_c + 
+                                           wi_defect_tickets_pct_indiv +
+                                           yr_avg_defect_tickets_pct_indiv_c + 
+                                           wi_degree_centrality_monthly_100 + 
+                                           yr_avg_degree_centrality_monthly_100_c + 
+                                           wi_comments_per_pr + 
+                                           yr_avg_comments_per_pr_c + 
+                                           month_num_c:yr_avg_avg_coding_days_per_week_c + 
+                                           month_num_c:yr_avg_total_merged_prs_c + 
+                                           month_num_c:yr_avg_defect_tickets_pct_indiv_c + 
+                                           month_num_c:yr_avg_degree_centrality_monthly_100_c + 
+                                           month_num_c:yr_avg_comments_per_pr_c + 
+                                           (month_num_c | org_id_fac) + (month_num_c | org_id_fac:user_id_fac),
+                                         shape ~ 1 + (1 | org_id_fac),
+                                         family = brms::weibull())
+cycle_time_full_intx_lin_f <- bf(median_cycle_time_s ~ 1 + 
+                                   within_quarter_month_num_c + 
+                                   team_size_c + 
+                                   s(q_unclosed_c, k = 5) + 
+                                   s(month_num_c, k = 5) + 
+                                   s(month_num_c, by = team_size_c, k = 5) +
+                                   s(month_num_c, by = q_unclosed_c, k = 5) +
+                                   wi_avg_coding_days_per_week +
+                                   yr_avg_avg_coding_days_per_week_c + 
+                                   wi_total_merged_prs + 
+                                   yr_avg_total_merged_prs_c + 
+                                   wi_defect_tickets_pct_indiv +
+                                   yr_avg_defect_tickets_pct_indiv_c + 
+                                   wi_degree_centrality_monthly_100 + 
+                                   yr_avg_degree_centrality_monthly_100_c + 
+                                   wi_comments_per_pr + 
+                                   yr_avg_comments_per_pr_c + 
+                                   month_num_c:yr_avg_avg_coding_days_per_week_c + 
+                                   month_num_c:yr_avg_total_merged_prs_c + 
+                                   month_num_c:yr_avg_defect_tickets_pct_indiv_c + 
+                                   month_num_c:yr_avg_degree_centrality_monthly_100_c + 
+                                   month_num_c:yr_avg_comments_per_pr_c + 
+                                   (1 | org_id_fac) + (1 | org_id_fac:user_id_fac),
+                                 shape ~ 1 + (1 | org_id_fac),
+                                 family = brms::weibull())
+cycle_time_full_intx_nlq_f <- bf(median_cycle_time_s ~ 1 + 
+                                   within_quarter_month_num_c + 
+                                   team_size_c + 
+                                   s(q_unclosed_c, k = 5) + 
+                                   s(month_num_c, k = 5) + 
+                                   s(month_num_c, by = team_size_c, k = 5) +
+                                   s(month_num_c, by = q_unclosed_c, k = 5) +
+                                   wi_avg_coding_days_per_week +
+                                   yr_avg_avg_coding_days_per_week_c + 
+                                   wi_total_merged_prs + 
+                                   yr_avg_total_merged_prs_c + 
+                                   wi_defect_tickets_pct_indiv +
+                                   yr_avg_defect_tickets_pct_indiv_c + 
+                                   wi_degree_centrality_monthly_100 + 
+                                   yr_avg_degree_centrality_monthly_100_c + 
+                                   wi_comments_per_pr + 
+                                   yr_avg_comments_per_pr_c +
+                                   s(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3) + 
+                                   s(month_num_c, by = yr_avg_total_merged_prs_c, k = 3) + 
+                                   s(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3) + 
+                                   s(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3) + 
+                                   s(month_num_c, by = yr_avg_comments_per_pr_c, k = 3) + 
+                                   (month_num_c | org_id_fac) + (month_num_c | org_id_fac:user_id_fac),
+                                 shape ~ 1 + (1 | org_id_fac),
+                                 family = brms::weibull())
+cycle_time_full_intx_f <- bf(median_cycle_time_s ~ 1 + 
+                               within_quarter_month_num_c + 
+                               team_size_c + 
+                               q_unclosed_c + 
+                               s(month_num_c, k = 5) + 
+                               s(month_num_c, by = team_size_c, k = 5) +
+                               s(month_num_c, by = q_unclosed_c, k = 5) +
+                               wi_avg_coding_days_per_week +
+                               yr_avg_avg_coding_days_per_week_c + 
+                               wi_total_merged_prs + 
+                               yr_avg_total_merged_prs_c + 
+                               wi_defect_tickets_pct_indiv +
+                               yr_avg_defect_tickets_pct_indiv_c + 
+                               wi_degree_centrality_monthly_100 + 
+                               yr_avg_degree_centrality_monthly_100_c + 
+                               wi_comments_per_pr + 
+                               yr_avg_comments_per_pr_c +
+                               s(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3) + 
+                               s(month_num_c, by = yr_avg_total_merged_prs_c, k = 3) + 
+                               s(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3) + 
+                               s(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3) + 
+                               s(month_num_c, by = yr_avg_comments_per_pr_c, k = 3) + 
+                               (month_num_c | org_id_fac) + (month_num_c | org_id_fac:user_id_fac),
+                             shape ~ 1 + (1 | org_id_fac),
+                             family = brms::weibull())
+cycle_time_full_intx_ptyp_f <- bf(median_cycle_time_s ~ 1 + 
+                                    within_quarter_month_num_c + 
+                                    team_size_c + 
+                                    q_unclosed_c + 
+                                    s(month_num_c, k = 5) + 
+                                    s(month_num_c, by = team_size_c, k = 5) +
+                                    s(month_num_c, by = q_unclosed_c, k = 5) +
+                                    wi_avg_coding_days_per_week +
+                                    yr_avg_avg_coding_days_per_week_c + 
+                                    wi_total_merged_prs + 
+                                    yr_avg_total_merged_prs_c + 
+                                    wi_defect_tickets_pct_indiv +
+                                    yr_avg_defect_tickets_pct_indiv_c + 
+                                    wi_degree_centrality_monthly_100 + 
+                                    yr_avg_degree_centrality_monthly_100_c + 
+                                    wi_comments_per_pr + 
+                                    yr_avg_comments_per_pr_c +
+                                    s(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3) + 
+                                    s(month_num_c, by = yr_avg_total_merged_prs_c, k = 3) + 
+                                    s(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3) + 
+                                    s(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3) + 
+                                    s(month_num_c, by = yr_avg_comments_per_pr_c, k = 3) + 
+                                    (1 | org_id_fac) + (1 | org_id_fac:user_id_fac),
+                                  shape ~ 1 + (1 | org_id_fac),
+                                  family = brms::weibull())
+cycle_time_full_ptyp_f <- bf(median_cycle_time_s ~ 1 + 
+                               within_quarter_month_num_c + 
+                               team_size_c + 
+                               q_unclosed_c + 
+                               s(month_num_c, k = 5) + 
+                               s(month_num_c, by = team_size_c, k = 5) +
+                               s(month_num_c, by = q_unclosed_c, k = 5) +
+                               wi_avg_coding_days_per_week +
+                               yr_avg_avg_coding_days_per_week_c + 
+                               wi_total_merged_prs + 
+                               yr_avg_total_merged_prs_c + 
+                               wi_defect_tickets_pct_indiv +
+                               yr_avg_defect_tickets_pct_indiv_c + 
+                               wi_degree_centrality_monthly_100 + 
+                               yr_avg_degree_centrality_monthly_100_c + 
+                               wi_comments_per_pr + 
+                               yr_avg_comments_per_pr_c +
+                               (1 | org_id_fac) + (1 | org_id_fac:user_id_fac),
+                             shape ~ 1 + (1 | org_id_fac),
+                             family = brms::weibull())
+growth_ptyp_f <- bf(median_cycle_time_s ~ 1 + 
+                      team_size_c + 
+                      q_unclosed_c + 
+                      within_quarter_month_num_c + 
+                      s(month_num_c, k = 5) + 
+                      (1 | org_id_fac) + (1 | org_id_fac:user_id_fac),
+                    shape ~ 1 + (1 | org_id_fac),
+                    family = brms::weibull())
+growth_ptyp_shape_f <- bf(median_cycle_time_s ~ 1 + 
+                            (1 | org_id_fac) + (1 | org_id_fac:user_id_fac),
+                          shape ~ 1 + (1 | org_id_fac),
+                          family = brms::weibull())
+```
+
+#### Default Priors
+
+Here I get a list of all the parameters and the default priors as a starting point (not evaluated here because the output is so long).
+
+```{r default priors, eval=FALSE}
+get_prior(cycle_time_full_intx_lin_remonth_yrpred_f, data = month_level_yrpred_dt)
+get_prior(cycle_time_full_intx_lin_remonth_f, data = month_level_dt)
+get_prior(cycle_time_full_intx_lin_f, data = month_level_dt)
+get_prior(cycle_time_full_intx_nlq_f, data = month_level_dt)
+get_prior(cycle_time_full_intx_f, data = month_level_dt)
+get_prior(cycle_time_full_intx_ptyp_f, data = month_level_dt)
+get_prior(cycle_time_full_ptyp_f, data = month_level_dt)
+get_prior(growth_ptyp_f, data = month_level_dt)
+get_prior(growth_ptyp_shape_f, data = month_level_dt)
+```
+
+#### Set priors
+
+```{r setup-priors, collapse=FALSE, dependson="setup-likelihood", cache=TRUE}
+cycle_time_full_intx_lin_remonth_yrpred_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                                   prior('normal(14, 2.5)', class = 'Intercept'),
+                                                   prior('normal(.29, .25)', dpar = 'shape', class = 'Intercept'),
+                                                   prior('normal(.25, .5)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                                   prior('normal(.05, .1)', class = 'sd', group = 'org_id_fac', coef = 'month_num_c'),
+                                                   prior('lkj(1.5)', class = 'cor', group = 'org_id_fac'),
+                                                   prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                                   prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'month_num_c'),
+                                                   prior('lkj(1.5)', class = 'cor', group = 'org_id_fac:user_id_fac'),
+                                                   prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                                   prior('normal(0, 1)', class = 'sds', coef = 's(month_num_c, k = 5)'))
+cycle_time_full_intx_lin_remonth_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                            prior('normal(14, 2.5)', class = 'Intercept'),
+                                            prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                                            prior('normal(.25, .5)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                            prior('normal(.05, .1)', class = 'sd', group = 'org_id_fac', coef = 'month_num_c'),
+                                            prior('lkj(1.5)', class = 'cor', group = 'org_id_fac'),
+                                            prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                            prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'month_num_c'),
+                                            prior('lkj(1.5)', class = 'cor', group = 'org_id_fac:user_id_fac'),
+                                            prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                            prior('normal(0, .5)', class = 'sds', coef = 's(q_unclosed_c, k = 5)'),
+                                            prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'),
+                                            prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = q_unclosed_c, k = 5)'),
+                                            prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = team_size_c, k = 5)'))
+cycle_time_full_intx_lin_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                    prior('normal(14, 2.5)', class = 'Intercept'),
+                                    prior('normal(.29, .25)', dpar = 'shape', class = 'Intercept'),
+                                    prior('normal(.25, .5)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                    # prior('normal(.05, .1)', class = 'sd', group = 'org_id_fac', coef = 'month_num_c'),
+                                    prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                    # prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'month_num_c'),
+                                    # prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:team_id_fac', coef = 'Intercept'),
+                                    prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                    prior('normal(0, 1)', class = 'sds', coef = 's(month_num_c, k = 5)'))
+cycle_time_full_intx_nlq_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                    prior('normal(14, 2.5)', class = 'Intercept'),
+                                    prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                                    prior('normal(.25, .5)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                    prior('normal(.05, .1)', class = 'sd', group = 'org_id_fac', coef = 'month_num_c'),
+                                    prior('lkj(1.5)', class = 'cor', group = 'org_id_fac'),
+                                    prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                    prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'month_num_c'),
+                                    prior('lkj(1.5)', class = 'cor', group = 'org_id_fac:user_id_fac'),
+                                    prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                    prior('normal(0, .5)', class = 'sds', coef = 's(q_unclosed_c, k = 5)'),
+                                    prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = q_unclosed_c, k = 5)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = team_size_c, k = 5)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_total_merged_prs_c, k = 3)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3)'),
+                                    prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_comments_per_pr_c, k = 3)'))
+cycle_time_full_intx_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                prior('normal(14, 2.5)', class = 'Intercept'),
+                                prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                                prior('normal(.25, .5)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                prior('normal(.05, .1)', class = 'sd', group = 'org_id_fac', coef = 'month_num_c'),
+                                prior('lkj(1.5)', class = 'cor', group = 'org_id_fac'),
+                                prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'month_num_c'),
+                                prior('lkj(1.5)', class = 'cor', group = 'org_id_fac:user_id_fac'),
+                                prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = q_unclosed_c, k = 5)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = team_size_c, k = 5)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_total_merged_prs_c, k = 3)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_comments_per_pr_c, k = 3)'))
+cycle_time_full_intx_ptyp_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                     prior('normal(14, 2.5)', class = 'Intercept'),
+                                     prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                                     prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                     prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                     prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                     prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = q_unclosed_c, k = 5)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = team_size_c, k = 5)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_avg_coding_days_per_week_c, k = 3)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_total_merged_prs_c, k = 3)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_defect_tickets_pct_indiv_c, k = 3)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_degree_centrality_monthly_100_c, k = 3)'),
+                                     prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = yr_avg_comments_per_pr_c, k = 3)'))
+cycle_time_full_ptyp_prior <- c(prior('normal(0,.1)', class = 'b'),
+                                prior('normal(14, 2.5)', class = 'Intercept'),
+                                prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                                prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                                prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                                prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                                prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = q_unclosed_c, k = 5)'),
+                                prior('normal(0, .25)', class = 'sds', coef = 's(month_num_c, by = team_size_c, k = 5)'))
+growth_ptyp_prior <- c(prior('normal(0,.1)', class = 'b'),
+                       prior('normal(14, 2.5)', class = 'Intercept'),
+                       prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                       prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                       prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                       prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'),
+                       prior('normal(0, .5)', class = 'sds', coef = 's(month_num_c, k = 5)'))
+growth_ptyp_shape_prior <- c(prior('normal(14, 2.5)', class = 'Intercept'),
+                             prior('normal(.1, .75)', dpar = 'shape', class = 'Intercept'),
+                             prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac', coef = 'Intercept'),
+                             prior('normal(.15, .25)', class = 'sd', group = 'org_id_fac:user_id_fac', coef = 'Intercept'),
+                             prior('normal(.15, .15)', class = 'sd', group = 'org_id_fac', dpar = 'shape', coef = 'Intercept'))
+cycle_time_full_intx_prior <- cycle_time_full_intx_ptyp_prior
+```
+
+:::
+
+### Non-linear Predictors interacting with non-linear unclosed control (Full data)
+
+:::{.panel-tabset}
+
+#### Prior check
+
+```{r Full Data - Prior with non-linear predictors interacting nlq, cache=TRUE}
+cycle_time_full_intx_nlq_prior_m <- brm(formula = cycle_time_full_intx_nlq_f, data = month_level_dt, prior = cycle_time_full_intx_nlq_prior,
+                                        file = 'cycle_time_full_intx_nlq_prior',   
+                                        sample_prior = 'only',
+                                        chains = 4, iter = 750, warmup = 500, 
+                                        cores = 4,
+                                        init = 0,
+                                        backend = 'cmdstanr', silent = 0, refresh = 500,
+                                        file_refit = 'never', 
+                                        stan_model_args = list(cpp_options = list(
+                                          PRECOMPILED_HEADERS = FALSE, STAN_CPP_OPTIMS = TRUE,
+                                          "CXXFLAGS+= -O1 -march=native -mtune=native",
+                                          "CXXFLAGS+= -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE",
+                                          "LDLIBS += -lblas -llapack -llapacke"), 
+                                          force_recompile = TRUE))
+summary(cycle_time_full_intx_nlq_prior_m)
+
+cycle_time_full_intx_nlq_prior_pred <- posterior_predict(cycle_time_full_intx_nlq_prior_m)
+cycle_time_full_intx_nlq_prior_dt <- as.data.table(t(cycle_time_full_intx_nlq_prior_pred))
+cycle_time_full_intx_nlq_prior_l <- melt(cycle_time_full_intx_nlq_prior_dt, 
+                                         measure.vars = names(cycle_time_full_intx_nlq_prior_dt), 
+                                         variable.name = 'iter', value.name = 'y_hat')
+ggplot(cycle_time_full_intx_nlq_prior_l, aes(x = y_hat)) + 
+  geom_histogram(aes(y = after_stat(density)), bins = 200, fill = 'blue', alpha = 1) + 
+  geom_histogram(aes(x = median_cycle_time_s, y = after_stat(density)), data = month_level_dt,
+                 bins = 200, fill = 'gray', alpha = .8) + 
+  scale_x_log10() + 
+  scale_y_continuous(transform = scales::modulus_trans(p = -10)) + 
+  theme_clean
+get_prior(cycle_time_full_intx_nlq_prior_m)
+
+# growth_ptyp_shape_prior_pp <- pp_check(growth_ptyp_shape_prior_m)
+# growth_ptyp_shape_prior_pp + scale_y_log10()
+```
+
+```{r mem cleanup intx nlq prior, include=FALSE}
+# Get objects matching the pattern
+matching_objects <- ls(pattern = '_prior_(l|dt|pred)$', envir = .GlobalEnv)
+
+# Create a logical vector indicating which objects inherit from 'data.frame'
+is_data <- sapply(matching_objects, function(x) inherits(get(x, envir = .GlobalEnv), 'data.frame') | inherits(get(x, envir = .GlobalEnv), 'array'))
+
+if (length(is_data) > 0) rm(list = matching_objects[is_data])
+rm(list = ls(pattern = '_m$'))
+gc(verbose = TRUE, full = TRUE, reset = TRUE)
+```
+
+#### Model fit
+
+```{r Full Data - Full growth prototype model with predictors interacting nlq}
+make_init <- function(N_org, N_user){
+  return(
+    function(){
+      return(
+        list(Intercept = 14, 
+             b = rep(0, 12),
+             bs = rep(.1, 16), 
+             zs_1_1 = rep(.1, 3),
+             sds_1 = .1, 
+             zs_2_1 = rep(.1, 3),
+             sds_2 = .1, 
+             zs_3_1 = rep(.1, 3),
+             sds_3 = .1, 
+             zs_4_1 = rep(.1, 3),
+             sds_4 = .1, 
+             zs_5_1 = rep(.1, 1),
+             sds_5 = .1, 
+             zs_6_1 = rep(.1, 1),
+             sds_6 = .1, 
+             zs_7_1 = rep(.1, 1),
+             sds_7 = .1, 
+             zs_8_1 = rep(.1, 1),
+             sds_8 = .1, 
+             zs_9_1 = rep(.1, 1),
+             sds_9 = .1, 
+             Intercept_shape = .29, 
+             #org
+             sd_1 = rep(.1, 2),
+             z_1 = matrix(rep(0, N_org*2), nrow = 2),
+             L_1 = t(chol(matrix(c(1, .2, .2, 1), nrow = 2, byrow = TRUE))),
+             #user
+             sd_2 = rep(.1, 2),
+             z_2 = matrix(rep(0, N_user*2), nrow = 2),
+             L_2 = t(chol(matrix(c(1, .2, .2, 1), nrow = 2, byrow = TRUE))),
+             #org
+             sd_3 = .1, 
+             z_3 = matrix(rep(0, N_org), nrow = 1))
+      )
+    }
+  )
+}
+init <- make_init(length(unique(month_level_dt$org_id_fac)),
+                  length(unique(month_level_dt$user_id_fac)))
+cycle_time_full_intx_nlq_m <- brm(formula = cycle_time_full_intx_nlq_f, data = month_level_dt, prior = cycle_time_full_intx_nlq_prior,
+                file = 'cycle_time_full_intx_nlq',   
+                # control = list(adapt_delta = .99, max_treedepth = 20),
+                sample_prior = 'no',
+                chains = 4, iter = 2000, warmup = 1000, 
+                cores = 1, threads = 19, 
+                init = init,
+                backend = 'cmdstanr', silent = 0, refresh = 1,
+                file_refit = 'never', 
+                stan_model_args = list(cpp_options = list(
+                  PRECOMPILED_HEADERS = FALSE, STAN_CPP_OPTIMS = TRUE,
+                  "CXXFLAGS+= -O1 -march=native -mtune=native",
+                  "CXXFLAGS+= -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE",
+                  "LDLIBS += -lblas -llapack -llapacke"), 
+                  force_recompile = TRUE))
+#summary(cycle_time_full_intx_nlq_m)
+```
+
+```{r traceplots for intx_nlq, cache=TRUE, fig.height=10}
+traceplot_manyvars(cycle_time_full_intx_nlq_m, variables = variables(cycle_time_full_intx_nlq_m)[1:46])
+```
+
+#### Table
+
+```{r model table for intx_nlq}
+apa <- function(x) {
+  x |> 
+  tab_options(
+    table.border.top.color = "white",
+    heading.title.font.size = px(16),
+    column_labels.border.top.width = 3,
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.width = 3,
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table.border.bottom.color = "white",
+    table.width = pct(100),
+    table.background.color = "white"
+  ) |> 
+  cols_align(align="auto") %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_fill(color = "white", alpha = NULL)
+      ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  )
+}
+
+
+cycle_time_full_intx_nlq_m_draws <- brms_to_draws(cycle_time_full_intx_nlq_m, 
+                                                  variables = variables(cycle_time_full_intx_nlq_m)[1:30])
+cycle_time_full_intx_nlq_m_pars <- parameters::model_parameters(cycle_time_full_intx_nlq_m_draws, 
+                                              centrality = 'median', ci = .95, ci_method = 'hdi')
+gt(cycle_time_full_intx_nlq_m_pars) |> 
+  tab_header(title = "Model parameters") |> 
+  fmt_number(decimals = 2, columns = c('Median', 'CI_low', 'CI_high')) |> 
+  fmt_number(columns = 'pd', scale_by = 100, decimals = 0, pattern = '{x}%') |> 
+  cols_label(Median = 'Posterior Median',
+             CI_low = '2.5% HDI',
+             CI_high = '97.5% HDI',
+             pd = md('P(Sign)')) |> 
+  apa()
+  
+```
+
+
+#### Plot model expectations
+
+```{r Plot Full growth model with predictors interacting nlq ppcheck}
+cycle_time_full_intx_nlq_ppcheck <- pp_check(cycle_time_full_intx_nlq_m)
+cycle_time_full_intx_nlq_ppcheck + 
+  scale_x_log10()
+cycle_time_full_intx_nlq_ppcheck + 
+  coord_cartesian(x = c(0, 7.5e6))
+```
+
+```{r Plot Full growth model with predictors interacting nlq}
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 'month_num_c', binwidth = list(c(1, 10)))
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 'within_quarter_month_num_c', binwidth = list(c(.25, 10)))
+
+q_unclosed_center <- unique(round(month_level_dt$q_unclosed - month_level_dt$q_unclosed_c, 5))[[1]]
+plot_marginal_effect(cycle_time_full_intx_nlq_m, list('month_num_c' = c(1, seq(3, 12, 3)) - 7, 
+                                                      'q_unclosed_c' = round(
+                                                        quantile(cycle_time_full_intx_nlq_m$data$q_unclosed_c, 
+                                                                 c(.1, .5, .9)), 
+                                                        1
+                                                      )), translabels.x = list(create_label_transform(7), 
+                                                                             create_label_transform(q_unclosed_center,
+                                                                                                    inverse_logit = TRUE)))
+
+plot_marginal_effect(cycle_time_full_intx_nlq_m, c('month_num_c', 'team_size_c'))
+
+yr_avg_avg_coding_days_per_week_center <- get_center(month_level_dt, 'yr_avg_avg_coding_days_per_week')
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                     'wi_avg_coding_days_per_week', 
+                     binwidth = list(c(.5, 10)), 
+                     plot_labels = list(labs(x = 'Coding days per week\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) +
+  plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                       list('month_num_c' = c(1, 3, 6, 9, 12) - 7,
+                            'yr_avg_avg_coding_days_per_week_c' = c(1, 3, 5, 7) - yr_avg_avg_coding_days_per_week_center),
+                       binwidth = list(c(1, 10), c(.5, 10)),
+                       translabels.x = list(create_label_transform(7),
+                                            create_label_transform(yr_avg_avg_coding_days_per_week_center)),
+                       plot_labels = list(labs(x = 'Month',
+                                               y = 'Median cycle time (days)',
+                                               fill = 'Avg coding\ndays/week',
+                                               color = 'Avg coding\ndays/week'),
+                                          labs(y = 'Median cycle time (days)',
+                                               x = 'Average coding days per week',
+                                               fill = 'Month',
+                                               color = 'Month')),
+                       patchwork_args = list(nrow = 2)) + 
+  plot_layout(design = 'AB')
+
+yr_avg_total_merged_prs_center <- get_center(month_level_dt, 'yr_avg_total_merged_prs')
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                     'wi_total_merged_prs',
+                     binwidth = list(c(.5, 10)), 
+                     plot_labels = list(labs(x = 'Total merged PRs\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) +
+  plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                       list('month_num_c' = c(1, 3, 6, 9, 12) - 7, 
+                            'yr_avg_total_merged_prs_c' = c(1:4, 100) - yr_avg_total_merged_prs_center),
+                       translabels.x = list(create_label_transform(7),
+                                            create_label_transform(yr_avg_total_merged_prs_center)),
+                       plot_labels = list(labs(x = 'Month',
+                                               y = 'Median cycle time (days)',
+                                               fill = 'Total merged PRs',
+                                               color = 'Total merged PRs'),
+                                          labs(y = 'Median cycle time (days)',
+                                               x = 'Total merged PRs',
+                                               fill = 'Month',
+                                               color = 'Month')),
+                       patchwork_args = list(nrow = 2)) + 
+  plot_layout(design = 'AB')
+
+yr_avg_defect_tickets_pct_indiv_center <- get_center(month_level_dt, 'yr_avg_defect_tickets_pct_indiv')
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                     'wi_defect_tickets_pct_indiv',
+                     binwidth = list(c(10, 10)),
+                     plot_labels = list(labs(x = 'Defect ticket percent\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                       list('month_num_c' = c(1, 3, 6, 9, 12) - 7, 
+                            'yr_avg_defect_tickets_pct_indiv_c' = c(0, 25, 50, 75, 100) - yr_avg_defect_tickets_pct_indiv_center),
+                       translabels.x = list(create_label_transform(7),
+                                            create_label_transform(yr_avg_defect_tickets_pct_indiv_center)),
+                       plot_labels = list(labs(x = 'Month',
+                                               y = 'Median cycle time (days)',
+                                               fill = 'Defect ticket percent',
+                                               color = 'Defect ticket percent'),
+                                          labs(y = 'Median cycle time (days)',
+                                               x = 'Defect ticket percent',
+                                               fill = 'Month',
+                                               color = 'Month')),
+                       patchwork_args = list(nrow = 2)) + 
+  plot_layout(design = 'AB')
+
+yr_avg_degree_centrality_monthly_100_center <- get_center(month_level_dt, 'yr_avg_degree_centrality_monthly_100')
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                     'wi_degree_centrality_monthly_100',
+                     binwidth = list(c(10,10)),
+                     plot_labels = list(labs(x = 'Degree centrality\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                       list('month_num_c' = c(1, 3, 6, 9, 12) - 7, 
+                            'yr_avg_degree_centrality_monthly_100_c' = c(0, 25, 50, 75, 100) - yr_avg_degree_centrality_monthly_100_center), 
+                       translabels.x = list(create_label_transform(7),
+                                            create_label_transform(yr_avg_degree_centrality_monthly_100_center)),
+                       plot_labels = list(labs(x = 'Month',
+                                               y = 'Median cycle time (days)',
+                                               fill = 'Degree centrality',
+                                               color = 'Degree centrality'),
+                                          labs(y = 'Median cycle time (days)',
+                                               x = 'Degree centrality',
+                                               fill = 'Month',
+                                               color = 'Month')),
+                       patchwork_args = list(nrow = 2)) + 
+  plot_layout(design = 'AB')
+
+yr_avg_comments_per_pr_center <- get_center(month_level_dt, 'yr_avg_comments_per_pr')
+plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                     'wi_comments_per_pr',
+                     binwidth = list(c(40, 10)),
+                     plot_labels = list(labs(x = 'Comments per PR\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_nlq_m, 
+                       list('month_num_c' = c(1, 3, 6, 9, 12) - 7, 
+                            'yr_avg_comments_per_pr_c' = c(1, 5, 7, 12, 18) - yr_avg_comments_per_pr_center), 
+                       translabels.x = list(create_label_transform(7),
+                                            create_label_transform(yr_avg_comments_per_pr_center)),
+                       plot_labels = list(labs(x = 'Month',
+                                               y = 'Median cycle time (days)',
+                                               fill = 'Comments per PR',
+                                               color = 'Comments per PR'),
+                                          labs(y = 'Median cycle time (days)',
+                                               x = 'Comments per PR',
+                                               fill = 'Month',
+                                               color = 'Month')),
+                       patchwork_args = list(nrow = 2)) + 
+  plot_layout(design = 'AB')
+```
+
+```{r more detailed ppcheck for intx_nlq prep data, fig.width=5, fig.height=10}
+cycle_time_full_intx_nlq_pp_draws <- posterior_predict(cycle_time_full_intx_nlq_m, re_formula = NULL, ndraws = 500)
+cycle_time_full_intx_nlq_pp_draws_w_data <- cbind(as.data.table(cycle_time_full_intx_nlq_m$data), 
+                                                  as.data.table(t(cycle_time_full_intx_nlq_pp_draws)))
+cycle_time_full_intx_nlq_pp_draws_l <- melt(cycle_time_full_intx_nlq_pp_draws_w_data, 
+                                            measure.vars = c(paste0('V', 1:500)))
+cycle_time_full_intx_nlq_pp_draws_l[, N := .N, by = c('org_id_fac', 'variable')]
+
+cycle_time_full_intx_nlq_pp_draws_l_filtered <- cycle_time_full_intx_nlq_pp_draws_l[N > 10]
+mod_trans <- scales::transform_modulus(p = .325)
+cycle_time_full_intx_nlq_pp_draws_l_filtered[, transformed_value := mod_trans$transform(value)]
+cycle_time_full_intx_nlq_pp_draws_l_density <- cycle_time_full_intx_nlq_pp_draws_l_filtered[
+  N > 10, 
+  {
+    d <- density(transformed_value, n = 50)
+    list(x = d$x, y = d$y, median_x = suppressWarnings(approx(cumsum(d$y)/sum(d$y), d$x, xout=0.5)$y), N = unique(N))
+  }, 
+  by = c('org_id_fac', 'variable')
+]
+cycle_time_full_intx_nlq_pp_draws_l_density[, median_median_x := median(median_x), by = c('org_id_fac')]
+```
+
+```{r more detailed ppcheck for intx_nlq draw, fig.width=6, fig.height=4}
+
+N_col <- 4
+
+get_col <- function(ranks, n_rows, n_cols) {
+  base <- floor(n_rows/n_cols)  # base rows per column
+  extra <- n_rows %% n_cols     # how many columns need an extra row
+  
+  cutoffs <- c(0, cumsum(c(rep(base + 1, extra), rep(base, n_cols - extra))))
+  
+  # Map to columns based on ranks
+  findInterval(ranks - 1, cutoffs)
+}
+
+unique_orders <- unique(cycle_time_full_intx_nlq_pp_draws_l_density[, c('org_id_fac', 'N', 'median_median_x')])
+unique_orders[, N_rank := frankv(.SD, ties.method = 'dense'), .SDcols = c('N', 'org_id_fac')]
+unique_orders[, col_num := get_col(N_rank, .N, 4) - 1]
+setorder(unique_orders, col_num, median_median_x, org_id_fac)
+unique_orders[, I := .I]
+unique_orders[, row_num := .N:1, by = col_num]
+
+cycle_time_full_intx_nlq_pp_draws_l_density_orders <- cycle_time_full_intx_nlq_pp_draws_l_density[
+  unique_orders[, c('org_id_fac', 'col_num', 'row_num', 'I')], 
+  on = 'org_id_fac']
+cycle_time_full_intx_nlq_pp_draws_l_density_orders[, org_id_fac := reorder(org_id_fac, I, decreasing = FALSE)]
+
+y_separation <- max(cycle_time_full_intx_nlq_pp_draws_l_density_orders$y)/4
+y_mag <- 3
+cycle_time_full_intx_nlq_pp_draws_l_density_orders[, y_ridges := (y*y_mag + y_separation*row_num)]
+cycle_time_full_intx_nlq_pp_draws_l_density_orders[, y_ridges_min := y_separation*row_num]
+
+breaks_seconds_to_days <- mod_trans$transform(c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*52))
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "1y")
+cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered <- cycle_time_full_intx_nlq_pp_draws_l_density_orders[variable %in% paste0('V', 1:50)]
+
+ggplot(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered, aes(x = x, y = y_ridges, group = interaction(org_id_fac, variable))) + 
+  geom_segment(x = breaks_seconds_to_days['4w'], xend = breaks_seconds_to_days['4w'],
+               y = 0, yend = max(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$y_ridges), 
+               color = viridis::mako(1, begin = .2),
+               linewidth = .25) +
+  geom_ribbon(aes(ymin = y_ridges_min, ymax = y_ridges, fill = N), alpha = 0.25) +
+  geom_line(linewidth = .05, alpha = .25, color = viridis::mako(1)) +
+  scale_x_continuous(breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) + 
+  coord_cartesian(x = c(0, quantile(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$x, .975))) + 
+  facet_grid(~col_num) +
+  theme_minimal() +
+  theme(
+    strip.text.y = element_blank(), 
+    axis.text.y = element_blank(),  
+    axis.ticks.x = element_line(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text = element_blank(),
+    axis.text.x = element_text(angle = 0, hjust = .5, family = font_name, size = 6)
+  ) + 
+  scale_fill_viridis_c(option = 'mako', transform = scales::transform_modulus(p = .1), 
+                       breaks = c(min(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$N), 
+                                  100, 1000, 
+                                  max(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$N)),
+                       labels = format(c(min(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$N), 
+                                  100, 1000, 
+                                  max(cycle_time_full_intx_nlq_pp_draws_l_density_orders_filtered$N)), big.mark = ","),
+                       begin = .2,
+                       guide = guide_colorbar(
+                         barwidth = .5,
+                         barheight = 5
+                       )) + 
+  labs(x = "Cycle time", y = "Posterior prediction probability density")
+ggsave('cycle_time_full_intx_nlq_pp_check.png', width = 6, height = 4, dpi = 300, units = 'in')
+```
+
+```{r overall detailed ppcheck summary for intx_nlq, fig.width=4, fig.height=3}
+cycle_time_full_intx_nlq_pp_draws_l_summary_density <- cycle_time_full_intx_nlq_pp_draws_l_filtered[
+  N > 10, 
+  {
+    d <- density(transformed_value, n = 500)
+    list(x = d$x, y = d$y)
+  }, 
+  by = c('variable')
+]
+
+cycle_time_full_intx_nlq_pp_draws_l_summary_data <- as.data.table(cycle_time_full_intx_nlq_m$data)
+cycle_time_full_intx_nlq_pp_draws_l_summary_data[, N := .N, by = org_id_fac]
+cycle_time_full_intx_nlq_pp_draws_l_summary_data <- cycle_time_full_intx_nlq_pp_draws_l_summary_data[N > 10]
+cycle_time_full_intx_nlq_pp_draws_l_summary_data[, median_cycle_time_s_modulus := mod_trans$transform(median_cycle_time_s)]
+
+breakpoints <- seq(min(cycle_time_full_intx_nlq_pp_draws_l_summary_data$median_cycle_time_s_modulus),
+                   max(cycle_time_full_intx_nlq_pp_draws_l_summary_data$median_cycle_time_s_modulus), length.out = 50)
+cycle_time_full_intx_nlq_pp_draws_l_summary_data[, intervals := findInterval(median_cycle_time_s_modulus, breakpoints)]
+
+bin_width <- diff(breakpoints)[1]  # Width of each bin
+total_n <- nrow(cycle_time_full_intx_nlq_pp_draws_l_summary_data)
+
+cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist <- cycle_time_full_intx_nlq_pp_draws_l_summary_data[, .(density = .N / (bin_width*total_n)), by = intervals]
+setorder(cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist, intervals)
+breakpoints_dt <- data.table(bin_value = breakpoints[-1], intervals = 1:length(breakpoints[-1]))
+cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist <- cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist[breakpoints_dt, on = 'intervals']
+cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist[, density := fifelse(is.na(density), 0, density)]
+
+ggplot(cycle_time_full_intx_nlq_pp_draws_l_summary_density, aes(x = x, y = y, group = variable)) + 
+  geom_col(data = cycle_time_full_intx_nlq_pp_draws_l_summary_data_hist, aes(x = bin_value, y = density, group = NULL),
+           fill = viridis::mako(1, begin = .35)) + 
+  geom_ribbon(aes(ymax = y), ymin = 0, fill = viridis::mako(1, begin = .65), alpha = 0.025) +
+  geom_line(linewidth = .015, alpha = .5, color = viridis::mako(1)) +
+  scale_x_continuous(breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) + 
+  coord_cartesian(x = c(0, quantile(cycle_time_full_intx_nlq_pp_draws_l_summary_density$x, .60))) + 
+  theme_minimal() +
+  theme(
+    strip.text.y = element_blank(), 
+    axis.text.y = element_blank(),  
+    axis.ticks.x = element_line(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text = element_blank(),
+    axis.text.x = element_text(angle = 0, hjust = .5, family = font_name, size = 6)
+  ) + 
+  labs(x = "Cycle time", y = "Posterior prediction\nprobability density")
+ggsave('cycle_time_full_intx_nlq_pp_check_summary.png', width = 4, height = 3, dpi = 300, units = 'in')
+```
+
+```{r testing re plots nl}
+re_draws_org_fn <- 'cycle_time_full_intx_nlq_draws_re_sum.rds'
+re_draws_id_fn <- 'cycle_time_full_intx_nlq_draws_uidre_sum.rds'
+
+if(!file.exists(re_draws_org_fn)){
+  cycle_time_full_intx_nlq_draws_re <- spread_draws(cycle_time_full_intx_nlq_m, r_org_id_fac[org_id_fac,par])
+  cycle_time_full_intx_nlq_draws_re_sum <- posterior::summarize_draws(cycle_time_full_intx_nlq_draws_re, median, ~posterior::quantile2(.x, probs = c(1-.8, (1+.8))/2), ~posterior::quantile2(.x, probs = c(1-.5, (1+.5))/2))
+  saveRDS(cycle_time_full_intx_nlq_draws_re_sum, re_draws_org_fn)
+} else {
+  cycle_time_full_intx_nlq_draws_re_sum <- readRDS(re_draws_org_fn)
+}
+
+if(!file.exists(re_draws_id_fn)){
+  cycle_time_full_intx_nlq_draws_uidre <- spread_draws(cycle_time_full_intx_nlq_m, `r_.*user_id_fac`[org_id_fac,par], regex = TRUE)
+  cycle_time_full_intx_nlq_draws_uidre_sum <- posterior::summarize_draws(cycle_time_full_intx_nlq_draws_uidre, median, ~posterior::quantile2(.x, probs = c(1-.8, (1+.8))/2), ~posterior::quantile2(.x, probs = c(1-.5, (1+.5))/2))
+  cycle_time_full_intx_nlq_draws_uidre_sum <- as.data.table(cycle_time_full_intx_nlq_draws_uidre_sum)
+  saveRDS(cycle_time_full_intx_nlq_draws_uidre_sum, re_draws_id_fn)
+} else {
+  cycle_time_full_intx_nlq_draws_uidre_sum <- readRDS(re_draws_id_fn)
+}
+```
+
+```{r testing re plots plotting nl, fig.width=8, fig.height=5, eval = FALSE}
+cycle_time_full_intx_nlq_draws_uidre_sum[, order := rank(median), by = 'par']
+cycle_time_full_intx_nlq_draws_uidre_sum[, pp := order / (.N + 1), by = 'par']
+cycle_time_full_intx_nlq_draws_uidre_sum[, qq := qnorm(pp, mean = 0, sd = sd(median)), by = 'par']
+ggplot(cycle_time_full_intx_nlq_draws_uidre_sum, aes(x = order)) + 
+  geom_interval(aes(ymin = q10, ymax = q90), size = .125/4, alpha = .25, orientation = 'vertical') +
+  geom_interval(aes(ymin = q25, ymax = q75), size = .25/4, alpha = .25, orientation = 'vertical') +
+  geom_line(aes(y = qq), color = 'white', linewidth = 1, alpha = .5) +
+  facet_wrap(par~., scales = 'free_y') + 
+  theme_clean + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.x = element_text(size = 12)) + 
+  labs(y = 'Individual deviation from population parameter')
+```
+
+```{r testing re plots plotting nl 2, fig.width=5, fig.height=4}
+cycle_time_full_intx_nlq_draws_uidre_sum_l <- melt(cycle_time_full_intx_nlq_draws_uidre_sum[, c('median', 'q10', 'q25', 'q75', 'q90', 'par', 'org_id_fac')], 
+                                                  measure.vars = c('median', 'q10', 'q25', 'q75', 'q90'), 
+                                                  variable.name = 'quantile', value.name = 'y_hat')
+cycle_time_full_intx_nlq_draws_uidre_sum_l[, var := paste0(par, '_', quantile)]
+cycle_time_full_intx_nlq_draws_uidre_sum_w <- dcast(cycle_time_full_intx_nlq_draws_uidre_sum_l[, -'par'], org_id_fac ~ var, value.var = 'y_hat')
+ggplot(cycle_time_full_intx_nlq_draws_uidre_sum_w, aes(x = Intercept_median, y = month_num_c_median)) + 
+  geom_segment(aes(x = Intercept_q25, xend = Intercept_q75), size = .125, alpha = .35) +
+  geom_segment(aes(y = month_num_c_q25, yend = month_num_c_q75), size = .125, alpha = .35) +
+  geom_hex(bins = 120, alpha = 1) +
+  scale_fill_viridis_c(aesthetics = c('fill', 'color'), option = 'plasma', transform = scales::modulus_trans(p = -.3),
+                       breaks = c(2, 10, 100)) + 
+  theme_clean + 
+  theme(axis.text.x = element_text())
+```
+
+
+```{r getting id subsample nl}
+set.seed(34232)
+cycle_time_full_intx_nlq_m_data <- as.data.table(cycle_time_full_intx_nlq_m$data)
+#using frank (fast rank)
+
+quantile_labeler <- function(x, n_quantiles = 20){
+  N <- length(x)
+  (1 + (frank(x, ties.method = "min")-1) %/% (N/n_quantiles)) / n_quantiles
+}
+
+cycle_time_full_intx_nlq_m_data[, yr_avg_avg_coding_days_per_week_c_quantile := quantile_labeler(yr_avg_avg_coding_days_per_week_c)]
+cycle_time_full_intx_nlq_m_data[, wi_avg_coding_days_per_week_quantile := quantile_labeler(wi_avg_coding_days_per_week)]
+cycle_time_full_intx_nlq_m_data[, N_obs := .N, by = 'user_id_fac']
+cycle_time_full_intx_nlq_m_data_subsample_ids <- unique(cycle_time_full_intx_nlq_m_data[N_obs >= 4, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')])
+
+nsamples <- 20
+cycle_time_full_intx_nlq_m_data_subsample_ids[, yr_avg_avg_coding_days_per_week_c_subsample := 
+                                                sample(c(rep(1, nsamples), rep(0, .N-nsamples)), .N), 
+                                              by = yr_avg_avg_coding_days_per_week_c_quantile]
+
+table(cycle_time_full_intx_nlq_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_subsample,
+      cycle_time_full_intx_nlq_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_quantile)
+
+cycle_time_full_intx_nlq_m_data_subsample_ids <- cycle_time_full_intx_nlq_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_subsample == 1]
+
+cycle_time_full_intx_nlq_m_data_subsample <- cycle_time_full_intx_nlq_m_data[cycle_time_full_intx_nlq_m_data_subsample_ids, on = 'user_id_fac']
+```
+
+
+```{r a plot of individual data cycle time nl}
+raw_data_ct_example_for_plot <- cycle_time_full_intx_nlq_m_data_subsample[, CJ(user_id_fac = unique(user_id_fac), 
+                                                                               month_num_c = unique(month_num_c))]
+raw_data_ct_example_for_plot <- merge(unique(cycle_time_full_intx_nlq_m_data_subsample[, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')]),
+                                      raw_data_ct_example_for_plot, 
+                                      on = c('user_id_fac'))
+raw_data_ct_example_for_plot <- merge(unique(cycle_time_full_intx_nlq_m_data_subsample[, c('user_id_fac', 
+                                                                                           'month_num_c', 
+                                                                                           'median_cycle_time_s',
+                                                                                           'yr_avg_avg_coding_days_per_week_c')]),
+                                      raw_data_ct_example_for_plot, 
+                                      all = TRUE)
+  
+med_med_ct <- median(raw_data_ct_example_for_plot$median_cycle_time_s, na.rm = TRUE)
+
+ggplot(raw_data_ct_example_for_plot[yr_avg_avg_coding_days_per_week_c_quantile %in% seq(.05, 1, .25)], 
+       aes(x = month_num_c, y = median_cycle_time_s)) + 
+  geom_hline(yintercept = med_med_ct) + 
+  geom_line(aes(group = user_id_fac, color = yr_avg_avg_coding_days_per_week_c), linewidth = .125, alpha = 1) + 
+  scale_y_continuous(transform = scales::modulus_trans(p = .25)) +
+  scale_color_viridis_c(option = 'plasma', end = .8) + 
+  facet_grid(~yr_avg_avg_coding_days_per_week_c_quantile) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r individual trajectories nl}
+subsample_predictions <- as.data.table(predictions(cycle_time_full_intx_nlq_m, 
+                                                   newdata = unique(cycle_time_full_intx_nlq_m_data_subsample),
+                                                   re_formula = NULL))
+cycle_time_full_intx_nlq_m_data_subsample <- as.data.table(cycle_time_full_intx_nlq_m_data_subsample)
+pred_data_ct_example_for_plot <- cycle_time_full_intx_nlq_m_data_subsample[, CJ(user_id_fac = unique(user_id_fac), 
+                                                                                month_num_c = unique(month_num_c))]
+pred_data_ct_example_for_plot <- merge(
+  unique(cycle_time_full_intx_nlq_m_data_subsample[, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')]),
+                                      pred_data_ct_example_for_plot, 
+                                      on = c('user_id_fac'))
+pred_data_ct_example_for_plot <- merge(unique(subsample_predictions[, c('user_id_fac', 
+                                                                        'month_num_c', 
+                                                                        'estimate',
+                                                                        'conf.low', 'conf.high',
+                                                                        'yr_avg_avg_coding_days_per_week_c',
+                                                                        'wi_avg_coding_days_per_week')]),
+                                      pred_data_ct_example_for_plot, 
+                                      all = TRUE)
+  
+med_med_ct <- median(pred_data_ct_example_for_plot$estimate, na.rm = TRUE)
+
+mod_trans <- scales::transform_modulus(p = .325)
+breaks_seconds_to_days <- c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*26)
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "6m")
+
+
+pred_data_ct_example_for_plot[, quantile_name := reorder(sprintf('%.0f%% - %.0f%%', 
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100 - 5,
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100),
+                                                         yr_avg_avg_coding_days_per_week_c_quantile)]
+
+
+ggplot(pred_data_ct_example_for_plot[yr_avg_avg_coding_days_per_week_c_quantile %in% c(.1, .2, .5, .85, .95)], 
+       aes(x = month_num_c, y = estimate)) + 
+  geom_hline(yintercept = med_med_ct) + 
+  geom_ribbon(aes(group = user_id_fac, ymin = conf.low, ymax = conf.high), alpha = .025) + 
+  geom_line(aes(group = user_id_fac), linewidth = .125, alpha = 1) + 
+  scale_y_continuous(transform = mod_trans, breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  facet_grid(~quantile_name) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(size = 8),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time')
+ggsave('cycle_time_full_intx_nlq_post_pred_ids.png', width = 4, height = 3, dpi = 300, units = 'in')
+
+gc()
+```
+
+```{r within-person nl}
+pred_data_ct_example_for_plot_wi <- copy(pred_data_ct_example_for_plot)
+pred_data_ct_example_for_plot_wi[, median_estimate := median(estimate, na.rm = TRUE), by = user_id_fac]
+pred_data_ct_example_for_plot_wi[, c('wi_estimate', 'wi_conf.high', 'wi_conf.low') :=
+                                   .(estimate - median_estimate, conf.high - median_estimate, conf.low - median_estimate)]
+
+pred_data_ct_example_for_plot_wi[, quantile_name := reorder(sprintf('%.0f%% - %.0f%%', 
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100 - 5,
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100),
+                                                         yr_avg_avg_coding_days_per_week_c_quantile)]
+ggplot(pred_data_ct_example_for_plot_wi[yr_avg_avg_coding_days_per_week_c_quantile %in% c(.1, .2, .5, .85, .95)], 
+       aes(x = month_num_c, y = wi_estimate)) + 
+  geom_hline(yintercept = 0) + 
+  geom_ribbon(aes(group = user_id_fac, ymin = wi_conf.low, ymax = wi_conf.high), alpha = .025) + 
+  geom_line(aes(group = user_id_fac, color = wi_avg_coding_days_per_week), linewidth = .125, alpha = 1) + 
+  geom_point(aes(color = wi_avg_coding_days_per_week), size = .75) + 
+  scale_color_viridis_c(option = 'plasma', transform = scales::modulus_trans(p = -.5), breaks = c(-1, 0, 1),
+                        guide = guide_colorbar(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) + 
+  scale_y_continuous(transform = mod_trans, breaks = c(-rev(breaks_seconds_to_days), breaks_seconds_to_days), 
+                     labels = c(paste0('-', rev(names(breaks_seconds_to_days))), names(breaks_seconds_to_days))) +
+  facet_grid(~quantile_name) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+  ) + 
+  labs(x = 'Calendar time', y = 'Deviation in cycle time', color = 'Within-person deviation in average coding days per week')
+
+ggsave('cycle_time_full_intx_nlq_post_pred_ids_win.png', width = 6, height = 3, dpi = 300, units = 'in')
+```
+
+```{r counterfactual plots get subset id nl}
+set.seed(7331)
+cycle_time_full_intx_nlq_m_data_subsample_ids <- unique(cycle_time_full_intx_nlq_m_data[N_obs == 12, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')])
+
+#hist(cycle_time_full_intx_nlq_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_quantile)
+
+nsamples <- 1
+cycle_time_full_intx_nlq_m_data_subsample_ids[, yr_avg_avg_coding_days_per_week_c_subsample := 
+                                                sample(c(rep(1, nsamples), rep(0, .N-nsamples)), .N), 
+                                              by = yr_avg_avg_coding_days_per_week_c_quantile]
+
+cycle_time_full_intx_nlq_m_data_subsample_ids <- cycle_time_full_intx_nlq_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_quantile %in% c(1, .9, .8, .7, .6, .5, .4, .3, .2, .1)
+]
+
+cycle_time_full_intx_nlq_m_data_subsample_ids <- cycle_time_full_intx_nlq_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_subsample == 1]
+
+cycle_time_full_intx_nlq_m_data_subsample <- cycle_time_full_intx_nlq_m_data[cycle_time_full_intx_nlq_m_data_subsample_ids, on = 'user_id_fac']
+
+ggplot(cycle_time_full_intx_nlq_m_data_subsample, 
+       aes(x = month_num_c, y = median_cycle_time_s)) + 
+  geom_line(aes(group = user_id_fac, color = yr_avg_avg_coding_days_per_week_c_quantile), linewidth = .5, alpha = 1) + 
+  scale_y_continuous(transform = scales::modulus_trans(p = .25)) +
+  theme_minimal() +
+  scale_color_viridis_c(end = .8) + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+```
+
+```{r get predictions nl, fig.width=5, fig.height=3}
+cycle_time_full_intx_nlq_m_data_subsample_posterior_summary <- posterior_summary(posterior_epred(cycle_time_full_intx_nlq_m, 
+                                                                                                 newdata = cycle_time_full_intx_nlq_m_data_subsample,
+                                                                                                 re_formula = NULL))
+
+cycle_time_full_intx_nlq_m_data_subsample_posterior_preds <- posterior_predict(cycle_time_full_intx_nlq_m, 
+                                                                               newdata = cycle_time_full_intx_nlq_m_data_subsample,
+                                                                               re_formula = NULL, ndraws = 100)
+cycle_time_full_intx_nlq_m_data_subsample_posterior_preds_data <- cbind(cycle_time_full_intx_nlq_m_data_subsample,
+                                                                        as.data.table(t(cycle_time_full_intx_nlq_m_data_subsample_posterior_preds)))
+cycle_time_full_intx_nlq_m_data_subsample_posterior_preds_data_l <- melt(cycle_time_full_intx_nlq_m_data_subsample_posterior_preds_data,
+                                                                         measure.vars = paste0('V', 1:100))
+cycle_time_full_intx_nlq_m_data_subsample_posterior_summary <- cbind(cycle_time_full_intx_nlq_m_data_subsample,
+                                                                     as.data.table(cycle_time_full_intx_nlq_m_data_subsample_posterior_summary))
+
+breaks_seconds_to_days <- c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*26)
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "6m")
+
+cycle_time_full_intx_nlq_m_data_subsample_posterior_summary <- month_level_dt[
+  , 
+  c('yr_avg_avg_coding_days_per_week', 'month_num_c', 'user_id_fac', 'org_id_fac')
+][
+  cycle_time_full_intx_nlq_m_data_subsample_posterior_summary, 
+  on = c('month_num_c', 'user_id_fac', 'org_id_fac')
+]
+
+cycle_time_full_intx_nlq_m_data_subsample_posterior_summary[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week)]
+cycle_time_full_intx_nlq_m_data_subsample_posterior_preds_data_l[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c)]
+```
+
+```{r plot predictions nl, fig.width=5, fig.height=3}
+real_data_and_prediction_plot <- ggplot(cycle_time_full_intx_nlq_m_data_subsample_posterior_summary, 
+       aes(x = month_num_c, y = median_cycle_time_s)) +
+  geom_line(aes(y = median_cycle_time_s), linewidth = .125, alpha = .5) +
+  geom_point(aes(y = median_cycle_time_s), size = .125, alpha = .5) + 
+  geom_line(data = cycle_time_full_intx_nlq_m_data_subsample_posterior_preds_data_l,
+            aes(group = interaction(user_id_fac_sorted, variable), y = value), 
+            linewidth = .15, alpha = .0625) +
+  geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5, group = user_id_fac, fill = yr_avg_avg_coding_days_per_week), 
+              linewidth = .0625, alpha = .5, color = 'white') +
+  geom_line(aes(y = Estimate, group = user_id_fac), color = 'white', linewidth = .65, alpha = 1) +
+  geom_line(aes(y = Estimate, group = user_id_fac, color = yr_avg_avg_coding_days_per_week), linewidth = .5, alpha = 1) +
+  scale_y_continuous(transform = mod_trans,
+                     breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  theme_minimal() +
+  facet_wrap(~ user_id_fac_sorted, nrow = 2) + 
+  scale_color_viridis_c(end = .7, aesthetics = c('fill', 'color'), breaks = c(2, 3, 4),
+                     name = 'Year-average coding-days-per-week',
+                     guide = guide_colorbar(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) + 
+  theme(
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    #legend.key.width = unit(0.4, "cm"),
+    legend.key.height = unit(0.3, "cm")
+    
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time') + 
+  coord_cartesian(y = c(0, 60*60*24*7*25))
+print(real_data_and_prediction_plot)
+ggsave(real_data_and_prediction_plot, file = 'cycle_time_full_intx_nlq_post_pred_samples.png', width = 6, height = 3, dpi = 300, units = 'in')
+```
+
+
+```{r get counterfactual posterior predictions nl, fig.width=6, fig.height=4}
+yr_avg_avg_coding_days_per_week_c_quantiles <- quantile(
+  unique(
+    cycle_time_full_intx_nlq_m$data[
+      , c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c')]
+  )[['yr_avg_avg_coding_days_per_week_c']],
+  seq(.1, .9, length.out = 3))
+
+cf_data <- rbindlist(
+  lapply(names(yr_avg_avg_coding_days_per_week_c_quantiles),
+         \(x){
+           a_dt <- copy(cycle_time_full_intx_nlq_m_data_subsample)
+           a_dt[, yr_avg_avg_coding_days_per_week_c := rep(yr_avg_avg_coding_days_per_week_c_quantiles[x], .N)]
+           a_dt[, quantiles := rep(x, .N)]
+           return(a_dt)
+         })
+)
+
+ndraws = 100
+cf_post_pred <- posterior_predict(cycle_time_full_intx_nlq_m, 
+                                 newdata = cf_data,
+                                 re_formula = NULL, 
+                                 ndraws = ndraws)
+cf_post_epred_sum <- posterior_summary(posterior_epred(cycle_time_full_intx_nlq_m, 
+                                                       newdata = cf_data,
+                                                       re_formula = NULL))
+
+cf_data_post_pred <- cbind(cf_data,
+                           as.data.table(t(cf_post_pred)))
+cf_data_post_epred <- cbind(cf_data,
+                            as.data.table(cf_post_epred_sum))
+cf_data_post_pred[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c_quantile)]
+cf_data_post_epred[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c_quantile)]
+
+cf_data_post_pred_l <- melt(cf_data_post_pred, measure.vars = paste0('V', 1:ndraws))
+
+unique(cycle_time_full_intx_nlq_m_data_subsample_posterior_summary[, .(diff = -yr_avg_avg_coding_days_per_week_c + yr_avg_avg_coding_days_per_week)])[[1]] + yr_avg_avg_coding_days_per_week_c_quantiles
+
+cf_data_post_epred[, .(diff = Estimate[quantiles == '50%'] - Estimate[quantiles == '90%']), 
+                   by = c('user_id_fac', 'month_num_c')][, .(med_diff = median(diff)), by = c('user_id_fac')][
+                     , .(med_diff = median(med_diff) / (60*60*24))
+                   ]
+```
+
+```{r plot counterfactual posterior predictions nl, fig.width=6, fig.height=4}
+real_data_and_cf_prediction_plot <- ggplot(cf_data_post_pred_l, 
+       aes(x = month_num_c, y = value)) +
+  # geom_point(aes(group = interaction(variable, quantiles), color = quantiles), size = .25, alpha = .25) +
+  geom_bin2d(aes(group = interaction(quantiles, month_num_c), fill = quantiles, alpha = after_stat(count)), binwidth = c(1, 25), 
+           position = position_dodge(width = 1, preserve = 'total')) + 
+  #geom_line(aes(group = interaction(variable, quantiles), color = quantiles), linewidth = .25, alpha = .0625) +
+  geom_line(data = cf_data_post_epred, aes(y = Estimate, group = quantiles), color = 'white', linewidth = 1) + 
+  geom_line(data = cf_data_post_epred, aes(y = Estimate, group = quantiles, color = quantiles), linewidth = .75) + 
+  scale_y_continuous(transform = mod_trans,
+                     breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  scale_alpha_continuous(range = c(.4, 1), breaks = c(1, 5, 20),
+                         guide = 'none', transform = scales::transform_modulus(p = 1)) + 
+  scale_color_viridis_d(aesthetics = c('fill', 'color'), option = 'cividis', end = .7,
+                     name = 'Counterfactual year-average-coding-days quantile',
+                     guide = guide_legend(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) +
+  # scale_color_manual(aesthetics = c('fill', 'color'), 
+  #                    breaks = c("10%", "50%", "90%"), 
+  #                    values = c("#29483A", "#759C44", "#DF3383"),
+  #                    name = 'Counterfactual Year Average Coding Days quantiles',
+  #                    guide = guide_legend(direction = "horizontal", title.position = "top",
+  #                                           position = 'bottom', title.hjust = 0.5)) +
+  theme_minimal() +
+  facet_wrap( ~ user_id_fac_sorted, nrow = 2) + 
+  theme(
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.key.height = unit(0.3, "cm")
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time') + 
+  coord_cartesian(y = c(0, 60*60*24*7*25))
+print(real_data_and_cf_prediction_plot)
+ggsave(real_data_and_cf_prediction_plot, file = 'cycle_time_full_intx_nlq_post_pred_counterfactual.png', width = 6, height = 4, dpi = 300, units = 'in')
+```
+
+```{r combine prediction plots nl, fig.width=7, fig.height=4}
+combined_prediction_plot <- real_data_and_prediction_plot + real_data_and_cf_prediction_plot + plot_layout(axis_titles = 'collect')
+print(combined_prediction_plot)
+ggsave(combined_prediction_plot, file = 'cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png', width = 7, height = 4, dpi = 300, units = 'in')
+```
+
+```{r marginal effects of changes in dev days nl}
+options("marginaleffects_posterior_interval" = "hdi")
+options("marginaleffects_posterior_center" = "median")
+
+coding_days_comparisons_90_50 <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_nlq_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[3:2]),
+  newdata = cycle_time_full_intx_nlq_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+coding_days_comparisons_50_10 <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_nlq_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[2:1]),
+  newdata = cycle_time_full_intx_nlq_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+
+convert_s_to_d <- 1/(60*60*24)
+raw_median_cycle_time <- as.data.table(cycle_time_full_intx_nlq_m$data)[, .(median_users = median(median_cycle_time_s)), by = 'user_id_fac'][, .(median = median(median_users))]*convert_s_to_d
+sprintf("A difference between the 50th and 90th quantile of coding days is associated with a difference of %.2f (95%% CI = [%.2f, %.2f]) in cycle time (refer to overall median cycle time: %.2f",
+        coding_days_comparisons_90_50$estimate*convert_s_to_d, 
+        coding_days_comparisons_90_50$conf.low*convert_s_to_d, 
+        coding_days_comparisons_90_50$conf.high*convert_s_to_d,
+        raw_median_cycle_time)
+
+sprintf("A difference between the 10th and 50th quantile of coding days is associated with a difference of %.2f (95%% CI = [%.2f, %.2f]) in cycle time (refer to overall median cycle time: %.2f",
+        coding_days_comparisons_50_10$estimate*convert_s_to_d, 
+        coding_days_comparisons_50_10$conf.low*convert_s_to_d, 
+        coding_days_comparisons_50_10$conf.high*convert_s_to_d,
+        raw_median_cycle_time)
+
+```
+```
+[1] "A difference between the 50th and 90th quantile of coding days is associated with a difference of -2.10 (95% CI = [-2.74, -1.43]) in cycle time (refer to overall median cycle time: 13.01"
+[1] "A difference between the 10th and 50th quantile of coding days is associated with a difference of -1.83 (95% CI = [-2.40, -1.14]) in cycle time (refer to overall median cycle time: 13.01"
+```
+
+```{r comparison grid eff size coding days nl}
+coding_days_comparisons_90_50_by_month <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_nlq_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[3:2]),
+  by = c('org_id_fac', 'month_num_c'),
+  newdata = cycle_time_full_intx_nlq_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+```
+
+```{r plot grid of effects coding days nl, fig.width=2.5, fig.height=3}
+coding_days_comparisons_90_50_by_month$org_id_fac_reorder <- reorder(coding_days_comparisons_90_50_by_month$org_id_fac, coding_days_comparisons_90_50_by_month$estimate, FUN = mean)
+ggplot(coding_days_comparisons_90_50_by_month, aes(x = month_num_c, y = org_id_fac_reorder)) + 
+  geom_raster(aes(fill = estimate*convert_s_to_d)) + 
+  scale_fill_viridis_c(transform = scales::transform_modulus(p = -.1), breaks = c(-.5, -1, -2, -4, -8)) + 
+  theme_clean + 
+  theme(
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.key.height = unit(0.8, "cm")
+  ) + 
+  labs(x = 'Calendar time', y = 'Organization', fill = 'Change in\ncycle time (days)')
+```
+
+
+```{r, include=FALSE}
+rm(list = ls(pattern = '_m$'))
+gc()
+```
+
+:::
+
+### Linear predictors interacting with "month" random effect (full data)
+
+:::{.panel-tabset}
+
+#### Prior check
+
+```{r Full Data - Prior with predictors interacting linearly and RE of month}
+cycle_time_full_intx_lin_remonth_prior_m <- brm(formula = cycle_time_full_intx_lin_remonth_f, data = month_level_dt, prior = cycle_time_full_intx_lin_remonth_prior,
+                                                file = 'cycle_time_full_intx_lin_remonth_prior',    
+                                                sample_prior = 'only',
+                                                chains = 4, iter = 750, warmup = 500, 
+                                                cores = 4,
+                                                init = 0,
+                                                backend = 'cmdstanr', silent = 0, refresh = 500,
+                                                file_refit = 'never', 
+                                                stan_model_args = list(cpp_options = list(
+                                                  PRECOMPILED_HEADERS = FALSE, STAN_CPP_OPTIMS = TRUE,
+                                                  "CXXFLAGS+= -O1 -march=native -mtune=native",
+                                                  "CXXFLAGS+= -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE",
+                                                  "LDLIBS += -lblas -llapack -llapacke"), 
+                                                  force_recompile = TRUE))
+summary(cycle_time_full_intx_lin_remonth_prior_m)
+
+cycle_time_full_intx_lin_remonth_prior_pred <- posterior_predict(cycle_time_full_intx_lin_remonth_prior_m)
+cycle_time_full_intx_lin_remonth_prior_dt <- as.data.table(t(cycle_time_full_intx_lin_remonth_prior_pred))
+cycle_time_full_intx_lin_remonth_prior_l <- melt(cycle_time_full_intx_lin_remonth_prior_dt, 
+                             measure.vars = names(cycle_time_full_intx_lin_remonth_prior_dt), 
+                             variable.name = 'iter', value.name = 'y_hat')
+ggplot(cycle_time_full_intx_lin_remonth_prior_l, aes(x = y_hat)) + 
+  geom_histogram(aes(y = after_stat(density)), bins = 200, fill = 'blue', alpha = 1) + 
+  geom_histogram(aes(x = median_cycle_time_s, y = after_stat(density)), data = month_level_dt,
+                 bins = 200, fill = 'gray', alpha = .8) + 
+  scale_x_log10() + 
+  theme_minimal()
+get_prior(cycle_time_full_intx_lin_remonth_prior_m)
+
+# growth_ptyp_shape_prior_pp <- pp_check(growth_ptyp_shape_prior_m)
+# growth_ptyp_shape_prior_pp + scale_y_log10()
+```
+#### Model fit
+
+```{r Full Data - Full growth prototype model with predictors interacting linearly RE month, fig.width=20, fig.height=10}
+make_init <- function(N_org, N_user){
+  return(
+    function(){
+      return(
+        list(Intercept = 14, 
+             b = rep(0, 17), #runif(n = 15, min = -.05, max = .05),
+             bs = rep(.1, 6), #runif(n = 1, min = -.1, max = .1),
+             zs_1_1 = rep(.1, 3), #runif(n = 3, min = -.1, max = .1), 
+             sds_1 = .1, #runif(n = 1, min = 0, max = .1), 
+             zs_2_1 = rep(.1, 3), #runif(n = 3, min = -.1, max = .1), 
+             sds_2 = .1, #runif(n = 1, min = 0, max = .1), 
+             zs_3_1 = rep(.1, 3), #runif(n = 3, min = -.1, max = .1), 
+             sds_3 = .1, #runif(n = 1, min = 0, max = .1), 
+             zs_4_1 = rep(.1, 3), #runif(n = 3, min = -.1, max = .1), 
+             sds_4 = .1, #runif(n = 1, min = 0, max = .1), 
+             Intercept_shape = .29, 
+             #org
+             sd_1 = rep(.1, 2), #runif(n = 1, min = 0, max = .1), 
+             z_1 = matrix(rep(0, N_org*2), nrow = 2), 
+             L_1 = t(chol(matrix(c(1, .2, .2, 1), nrow = 2, byrow = TRUE))),
+             #user
+             sd_2 = rep(.1, 2), #runif(n = 1, min = 0, max = .1), 
+             z_2 = matrix(rep(0, N_user*2), nrow = 2), 
+             L_2 = t(chol(matrix(c(1, .2, .2, 1), nrow = 2, byrow = TRUE))),
+             #org
+             sd_3 = .1, 
+             z_3 = matrix(rep(0, N_org), nrow = 1))
+      )
+    }
+  )
+}
+init <- make_init(length(unique(month_level_dt$org_id_fac)),
+                  length(unique(month_level_dt$user_id_fac)))
+cycle_time_full_intx_lin_remonth_m <- brm(formula = cycle_time_full_intx_lin_remonth_f, data = month_level_dt, 
+                                       prior = cycle_time_full_intx_lin_remonth_prior,
+                                       save_model = 'cycle_time_full_intx_lin_remonth.stan',
+                                       #control = list(adapt_delta = .99, max_treedepth = 20),
+                                       file = 'cycle_time_full_intx_lin_remonth',    
+                                       sample_prior = 'no',
+                                       chains = 4, iter = 2000, warmup = 1000, 
+                                       cores = 1, threads = 19, 
+                                       init = init,
+                                       backend = 'cmdstanr', silent = 0, refresh = 1,
+                                       file_refit = 'never', 
+                                       stan_model_args = list(cpp_options = list(
+                                         PRECOMPILED_HEADERS = FALSE, STAN_CPP_OPTIMS = TRUE,
+                                         "CXXFLAGS+= -O1 -march=native -mtune=native",
+                                         "CXXFLAGS+= -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE",
+                                         "LDLIBS += -lblas -llapack -llapacke"), 
+                                         force_recompile = TRUE))
+#summary(cycle_time_full_intx_lin_remonth_m)
+
+#traceplot_manyvars(cycle_time_full_intx_lin_remonth_m, variables = variables(cycle_time_full_intx_lin_remonth_m)[1:26])
+```
+
+#### Table
+
+```{r model table for intx_lin_remonth}
+cycle_time_full_intx_lin_remonth_m_draws <- brms_to_draws(cycle_time_full_intx_lin_remonth_m, 
+                                                  variables = variables(cycle_time_full_intx_lin_remonth_m)[1:25])
+cycle_time_full_intx_lin_remonth_m_pars <- parameters::model_parameters(cycle_time_full_intx_lin_remonth_m_draws, 
+                                              centrality = 'median', ci = .95, ci_method = 'hdi')
+cycle_time_full_intx_lin_remonth_m_param_table <- kableExtra::kbl(cycle_time_full_intx_lin_remonth_m_pars, 
+                                     digits = 2, format = 'pipe', booktabs = TRUE, tabular = TRUE, 
+                                     caption = "Model parameter estimates")
+
+if(knitr::is_html_output()){
+  knitr::knit_print(kableExtra::kable_styling(cycle_time_full_intx_lin_remonth_m_param_table, 
+                                              bootstrap_options = c('striped', 'hover')))
+} else {
+  knitr::knit_print(cycle_time_full_intx_lin_remonth_m_param_table)
+}
+```
+
+#### Big pairs plot
+
+```{r big pairsplot, fig.width=30, fig.height=30, eval=FALSE, include=FALSE}
+bayesplot::mcmc_pairs(cycle_time_full_intx_lin_remonth_m, pars = variables(cycle_time_full_intx_lin_remonth_m)[1:26], off_diag_fun = 'hex')
+```
+
+#### Plot model expectations
+
+```{r Plot Full growth model with predictors interacting lin, fig.width=6, fig.height=4, fig.dpi=300}
+cycle_time_full_intx_lin_remonth_quarter <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'within_quarter_month_num_c', 
+  binwidth = list(c(.1, 10)), translabels.x = list(create_label_transform(2)),
+  plot_labels = list(labs(x = 'Within-quarter month number',
+                          y = 'Median cycle time (days)'))) +
+  theme_clean + 
+  theme(axis.text.x = element_text())
+ggsave('cycle_time_full_intx_lin_remonth_quarter.png', 
+       cycle_time_full_intx_lin_remonth_quarter,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_quarter)
+
+cycle_time_full_intx_lin_remonth_month_num_c <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'month_num_c', 
+  binwidth = list(c(.25, 10)), translabels.x = list(create_label_transform(7)),
+  plot_labels = list(labs(x = 'Month',
+                          y = 'Median cycle time (days)'))) +
+  theme_clean + 
+  theme(axis.text.x = element_text())
+ggsave('cycle_time_full_intx_lin_remonth_month_num.png', 
+       cycle_time_full_intx_lin_remonth_month_num_c,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_month_num_c)
+
+yr_avg_avg_coding_days_per_week_center <- get_center(month_level_dt, 'yr_avg_avg_coding_days_per_week')
+cycle_time_full_intx_lin_remonth_coding_days <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'wi_avg_coding_days_per_week', 
+  binwidth = list(c(.5, 10)), 
+  plot_labels = list(labs(x = 'Coding days per week\n(within-person deviation)',
+                          y = 'Median cycle time (days)'))) +
+  theme_clean +
+  plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                       list('yr_avg_avg_coding_days_per_week_c' = c(1, 3, 5, 7) - yr_avg_avg_coding_days_per_week_center,
+                            'month_num_c' = c(1, 3, 6, 9, 12) - 7),
+                       binwidth = list(c(.5, 10)),
+                       translabels.x = list(create_label_transform(yr_avg_avg_coding_days_per_week_center)),
+                       translabels.fill = list(create_label_transform(7)),
+                       plot_labels = list(labs(y = 'Median cycle time (days)',
+                                               x = 'Average coding days per week\n(year average)',
+                                               fill = 'Month',
+                                               color = 'Month'))) + 
+  theme_clean + 
+  plot_layout(design = 'AB')
+ggsave('cycle_time_full_intx_lin_remonth_coding_days.png', 
+       cycle_time_full_intx_lin_remonth_coding_days,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_coding_days)
+
+yr_avg_total_merged_prs_center <- get_center(month_level_dt, 'yr_avg_total_merged_prs')
+cycle_time_full_intx_lin_remonth_merged_prs <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'wi_total_merged_prs',
+  binwidth = list(c(10, 10)), 
+  plot_labels = list(labs(x = 'Total merged PRs\n(within-person deviation)',
+                          y = 'Median cycle time (days)'))) + 
+  theme_clean +
+  plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                       list('yr_avg_total_merged_prs_c' = c(1:4, 100) - yr_avg_total_merged_prs_center,
+                            'month_num_c' = c(1, 3, 6, 9, 12) - 7),
+                       translabels.x = list(create_label_transform(yr_avg_total_merged_prs_center)),
+                       translabels.fill = list(create_label_transform(7)),
+                       plot_labels = list(labs(y = 'Median cycle time (days)\n(year average)',
+                                               x = 'Total merged PRs',
+                                               fill = 'Month',
+                                               color = 'Month'))) + 
+  theme_clean + 
+  plot_layout(design = 'AB')
+ggsave('cycle_time_full_intx_lin_remonth_merged_prs.png', 
+       cycle_time_full_intx_lin_remonth_merged_prs,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_merged_prs)
+
+yr_avg_defect_tickets_pct_indiv_center <- get_center(month_level_dt, 'yr_avg_defect_tickets_pct_indiv')
+cycle_time_full_intx_lin_remonth_defect_tickets <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'wi_defect_tickets_pct_indiv',
+  binwidth = list(c(10, 10)),
+  plot_labels = list(labs(x = 'Defect ticket percent\n(within-person deviation)',
+                          y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                       list('yr_avg_defect_tickets_pct_indiv_c' = c(0, 25, 50, 75, 100) - yr_avg_defect_tickets_pct_indiv_center,
+                            'month_num_c' = c(1, 3, 6, 9, 12) - 7),
+                       translabels.x = list(create_label_transform(yr_avg_defect_tickets_pct_indiv_center)),
+                       translabels.fill = list(create_label_transform(7)),
+                       plot_labels = list(labs(y = 'Median cycle time (days)',
+                                               x = 'Defect ticket percent\n(year average)',
+                                               fill = 'Month',
+                                               color = 'Month'))) + 
+  plot_layout(design = 'AB')
+ggsave('cycle_time_full_intx_lin_remonth_defect_tickets.png', 
+       cycle_time_full_intx_lin_remonth_defect_tickets,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_defect_tickets)
+
+
+yr_avg_degree_centrality_monthly_100_center <- get_center(month_level_dt, 'yr_avg_degree_centrality_monthly_100')
+cycle_time_full_intx_lin_remonth_degree_cent <- plot_marginal_effect(
+  cycle_time_full_intx_lin_remonth_m, 
+  'wi_degree_centrality_monthly_100',
+  binwidth = list(c(10,10)),
+  plot_labels = list(labs(x = 'Degree centrality\n(within-person deviation)',
+                          y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                       list('yr_avg_degree_centrality_monthly_100_c' = c(0, 25, 50, 75, 100) - yr_avg_degree_centrality_monthly_100_center,
+                            'month_num_c' = c(1, 3, 6, 9, 12) - 7), 
+                       translabels.x = list(create_label_transform(yr_avg_degree_centrality_monthly_100_center)),
+                       translabels.fill = list(create_label_transform(7)),
+                       plot_labels = list(labs(y = 'Median cycle time (days)',
+                                               x = 'Degree centrality\n(year average)',
+                                               fill = 'Month',
+                                               color = 'Month'))) + 
+  plot_layout(design = 'AB')
+ggsave('cycle_time_full_intx_lin_remonth_degree_cent.png', 
+       cycle_time_full_intx_lin_remonth_degree_cent,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_degree_cent)
+
+yr_avg_comments_per_pr_center <- get_center(month_level_dt, 'yr_avg_comments_per_pr')
+cycle_time_full_intx_lin_remonth_pr_comments <- plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                     'wi_comments_per_pr',
+                     binwidth = list(c(40, 10)),
+                     plot_labels = list(labs(x = 'Comments per PR\n(within-person deviation)',
+                                             y = 'Median cycle time (days)'))) + 
+  plot_marginal_effect(cycle_time_full_intx_lin_remonth_m, 
+                       list('yr_avg_comments_per_pr_c' = c(1, 5, 7, 12, 18) - yr_avg_comments_per_pr_center,
+                            'month_num_c' = c(1, 3, 6, 9, 12) - 7), 
+                       translabels.x = list(create_label_transform(yr_avg_comments_per_pr_center)),
+                       translabels.fill = list(create_label_transform(7)),
+                       plot_labels = list(labs(y = 'Median cycle time (days)',
+                                               x = 'Comments per PR\n(year average)',
+                                               fill = 'Month',
+                                               color = 'Month'))) + 
+  plot_layout(design = 'AB')
+ggsave('cycle_time_full_intx_lin_remonth_pr_comments.png', 
+       cycle_time_full_intx_lin_remonth_pr_comments,
+       units = 'in', width = 6, height = 4, dpi = 300)
+print(cycle_time_full_intx_lin_remonth_pr_comments)
+```
+
+```{r more detailed ppcheck for intx_lin prep data, fig.width=5, fig.height=10}
+cycle_time_full_intx_lin_remonth_pp_draws <- posterior_predict(cycle_time_full_intx_lin_remonth_m, re_formula = NULL, ndraws = 500)
+cycle_time_full_intx_lin_remonth_pp_draws_w_data <- cbind(as.data.table(cycle_time_full_intx_lin_remonth_m$data), 
+                                                  as.data.table(t(cycle_time_full_intx_lin_remonth_pp_draws)))
+cycle_time_full_intx_lin_remonth_pp_draws_l <- melt(cycle_time_full_intx_lin_remonth_pp_draws_w_data, 
+                                            measure.vars = c(paste0('V', 1:500)))
+cycle_time_full_intx_lin_remonth_pp_draws_l[, N := .N, by = c('org_id_fac', 'variable')]
+
+cycle_time_full_intx_lin_remonth_pp_draws_l_filtered <- cycle_time_full_intx_lin_remonth_pp_draws_l[N > 10]
+mod_trans <- scales::transform_modulus(p = .325)
+cycle_time_full_intx_lin_remonth_pp_draws_l_filtered[, transformed_value := mod_trans$transform(value)]
+cycle_time_full_intx_lin_remonth_pp_draws_l_density <- cycle_time_full_intx_lin_remonth_pp_draws_l_filtered[
+  N > 10, 
+  {
+    d <- density(transformed_value, n = 50)
+    list(x = d$x, y = d$y, median_x = suppressWarnings(approx(cumsum(d$y)/sum(d$y), d$x, xout=0.5)$y), N = unique(N))
+  }, 
+  by = c('org_id_fac', 'variable')
+]
+cycle_time_full_intx_lin_remonth_pp_draws_l_density[, median_median_x := median(median_x), by = c('org_id_fac')]
+```
+
+```{r more detailed ppcheck for intx_lin draw, fig.width=6, fig.height=4}
+
+N_col <- 4
+
+get_col <- function(ranks, n_rows, n_cols) {
+  base <- floor(n_rows/n_cols)  # base rows per column
+  extra <- n_rows %% n_cols     # how many columns need an extra row
+  
+  cutoffs <- c(0, cumsum(c(rep(base + 1, extra), rep(base, n_cols - extra))))
+  
+  # Map to columns based on ranks
+  findInterval(ranks - 1, cutoffs)
+}
+
+unique_orders <- unique(cycle_time_full_intx_lin_remonth_pp_draws_l_density[, c('org_id_fac', 'N', 'median_median_x')])
+unique_orders[, N_rank := frankv(.SD, ties.method = 'dense'), .SDcols = c('N', 'org_id_fac')]
+unique_orders[, col_num := get_col(N_rank, .N, 4) - 1]
+setorder(unique_orders, col_num, median_median_x, org_id_fac)
+unique_orders[, I := .I]
+unique_orders[, row_num := .N:1, by = col_num]
+
+cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders <- cycle_time_full_intx_lin_remonth_pp_draws_l_density[
+  unique_orders[, c('org_id_fac', 'col_num', 'row_num', 'I')], 
+  on = 'org_id_fac']
+cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders[, org_id_fac := reorder(org_id_fac, I, decreasing = FALSE)]
+
+y_separation <- max(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders$y)/4
+y_mag <- 3
+cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders[, y_ridges := (y*y_mag + y_separation*row_num)]
+cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders[, y_ridges_min := y_separation*row_num]
+
+breaks_seconds_to_days <- mod_trans$transform(c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*52))
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "1y")
+cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered <- cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders[variable %in% paste0('V', 1:50)]
+
+ggplot(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered, aes(x = x, y = y_ridges, group = interaction(org_id_fac, variable))) + 
+  geom_segment(x = breaks_seconds_to_days['4w'], xend = breaks_seconds_to_days['4w'],
+               y = 0, yend = max(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$y_ridges), 
+               color = viridis::mako(1, begin = .2),
+               linewidth = .25) +
+  geom_ribbon(aes(ymin = y_ridges_min, ymax = y_ridges, fill = N), alpha = 0.25) +
+  geom_line(linewidth = .05, alpha = .25, color = viridis::mako(1)) +
+  scale_x_continuous(breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) + 
+  coord_cartesian(x = c(0, quantile(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$x, .975))) + 
+  facet_grid(~col_num) +
+  theme_minimal() +
+  theme(
+    strip.text.y = element_blank(), 
+    axis.text.y = element_blank(),  
+    axis.ticks.x = element_line(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text = element_blank(),
+    axis.text.x = element_text(angle = 0, hjust = .5, family = font_name, size = 6)
+  ) + 
+  scale_fill_viridis_c(option = 'mako', transform = scales::transform_modulus(p = .1), 
+                       breaks = c(min(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$N), 
+                                  100, 1000, 
+                                  max(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$N)),
+                       labels = format(c(min(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$N), 
+                                  100, 1000, 
+                                  max(cycle_time_full_intx_lin_remonth_pp_draws_l_density_orders_filtered$N)), big.mark = ","),
+                       begin = .2,
+                       guide = guide_colorbar(
+                         barwidth = .5,
+                         barheight = 5
+                       )) + 
+  labs(x = "Cycle time", y = "Posterior prediction probability density")
+ggsave('cycle_time_full_intx_lin_remonth_pp_check.png', width = 6, height = 4, dpi = 300, units = 'in')
+```
+
+```{r overall detailed ppcheck summary for intx_lin, fig.width=4, fig.height=3}
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_density <- cycle_time_full_intx_lin_remonth_pp_draws_l_filtered[
+  N > 10, 
+  {
+    d <- density(transformed_value, n = 500)
+    list(x = d$x, y = d$y)
+  }, 
+  by = c('variable')
+]
+
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data <- as.data.table(cycle_time_full_intx_lin_remonth_m$data)
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data[, N := .N, by = org_id_fac]
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data <- cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data[N > 10]
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data[, median_cycle_time_s_modulus := mod_trans$transform(median_cycle_time_s)]
+
+breakpoints <- seq(min(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data$median_cycle_time_s_modulus),
+                   max(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data$median_cycle_time_s_modulus), length.out = 50)
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data[, intervals := findInterval(median_cycle_time_s_modulus, breakpoints)]
+
+bin_width <- diff(breakpoints)[1]  # Width of each bin
+total_n <- nrow(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data)
+
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist <- cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data[, .(density = .N / (bin_width*total_n)), by = intervals]
+setorder(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist, intervals)
+breakpoints_dt <- data.table(bin_value = breakpoints[-1], intervals = 1:length(breakpoints[-1]))
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist <- cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist[breakpoints_dt, on = 'intervals']
+cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist[, density := fifelse(is.na(density), 0, density)]
+
+ggplot(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_density, aes(x = x, y = y, group = variable)) + 
+  geom_col(data = cycle_time_full_intx_lin_remonth_pp_draws_l_summary_data_hist, aes(x = bin_value, y = density, group = NULL),
+           fill = viridis::mako(1, begin = .35)) + 
+  geom_ribbon(aes(ymax = y), ymin = 0, fill = viridis::mako(1, begin = .65), alpha = 0.025) +
+  geom_line(linewidth = .015, alpha = .5, color = viridis::mako(1)) +
+  scale_x_continuous(breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) + 
+  coord_cartesian(x = c(0, quantile(cycle_time_full_intx_lin_remonth_pp_draws_l_summary_density$x, .60))) + 
+  theme_minimal() +
+  theme(
+    strip.text.y = element_blank(), 
+    axis.text.y = element_blank(),  
+    axis.ticks.x = element_line(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text = element_blank(),
+    axis.text.x = element_text(angle = 0, hjust = .5, family = font_name, size = 6)
+  ) + 
+  labs(x = "Cycle time", y = "Posterior prediction\nprobability density")
+ggsave('cycle_time_full_intx_lin_remonth_pp_check_summary.png', width = 4, height = 3, dpi = 300, units = 'in')
+```
+
+```{r testing re plots lin}
+re_draws_org_fn <- 'cycle_time_full_intx_lin_remonth_draws_re_sum.rds'
+re_draws_id_fn <- 'cycle_time_full_intx_lin_remonth_draws_uidre_sum.rds'
+
+if(!file.exists(re_draws_org_fn)){
+  cycle_time_full_intx_lin_remonth_draws_re <- spread_draws(cycle_time_full_intx_lin_remonth_m, r_org_id_fac[org_id_fac,par])
+  cycle_time_full_intx_lin_remonth_draws_re_sum <- posterior::summarize_draws(cycle_time_full_intx_lin_remonth_draws_re, median, ~posterior::quantile2(.x, probs = c(1-.8, (1+.8))/2), ~posterior::quantile2(.x, probs = c(1-.5, (1+.5))/2))
+  saveRDS(cycle_time_full_intx_lin_remonth_draws_re_sum, re_draws_org_fn)
+} else {
+  cycle_time_full_intx_lin_remonth_draws_re_sum <- readRDS(re_draws_org_fn)
+}
+
+if(!file.exists(re_draws_id_fn)){
+  cycle_time_full_intx_lin_remonth_draws_uidre <- spread_draws(cycle_time_full_intx_lin_remonth_m, `r_.*user_id_fac`[org_id_fac,par], regex = TRUE)
+  cycle_time_full_intx_lin_remonth_draws_uidre_sum <- posterior::summarize_draws(cycle_time_full_intx_lin_remonth_draws_uidre, median, ~posterior::quantile2(.x, probs = c(1-.8, (1+.8))/2), ~posterior::quantile2(.x, probs = c(1-.5, (1+.5))/2))
+  cycle_time_full_intx_lin_remonth_draws_uidre_sum <- as.data.table(cycle_time_full_intx_lin_remonth_draws_uidre_sum)
+  saveRDS(cycle_time_full_intx_lin_remonth_draws_uidre_sum, re_draws_id_fn)
+} else {
+  cycle_time_full_intx_lin_remonth_draws_uidre_sum <- readRDS(re_draws_id_fn)
+}
+```
+
+```{r testing re plots plotting lin, fig.width=8, fig.height=5, eval = FALSE}
+cycle_time_full_intx_lin_remonth_draws_uidre_sum[, order := rank(median), by = 'par']
+cycle_time_full_intx_lin_remonth_draws_uidre_sum[, pp := order / (.N + 1), by = 'par']
+cycle_time_full_intx_lin_remonth_draws_uidre_sum[, qq := qnorm(pp, mean = 0, sd = sd(median)), by = 'par']
+ggplot(cycle_time_full_intx_lin_remonth_draws_uidre_sum, aes(x = order)) + 
+  geom_interval(aes(ymin = q10, ymax = q90), size = .125/4, alpha = .25, orientation = 'vertical') +
+  geom_interval(aes(ymin = q25, ymax = q75), size = .25/4, alpha = .25, orientation = 'vertical') +
+  geom_line(aes(y = qq), color = 'white', linewidth = 1, alpha = .5) +
+  facet_wrap(par~., scales = 'free_y') + 
+  theme_clean + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.x = element_text(size = 12)) + 
+  labs(y = 'Individual deviation from population parameter')
+```
+
+```{r testing re plots plotting lin 2, fig.width=5, fig.height=4}
+cycle_time_full_intx_lin_remonth_draws_uidre_sum_l <- melt(cycle_time_full_intx_lin_remonth_draws_uidre_sum[, c('median', 'q10', 'q25', 'q75', 'q90', 'par', 'org_id_fac')], 
+                                                  measure.vars = c('median', 'q10', 'q25', 'q75', 'q90'), 
+                                                  variable.name = 'quantile', value.name = 'y_hat')
+cycle_time_full_intx_lin_remonth_draws_uidre_sum_l[, var := paste0(par, '_', quantile)]
+cycle_time_full_intx_lin_remonth_draws_uidre_sum_w <- dcast(cycle_time_full_intx_lin_remonth_draws_uidre_sum_l[, -'par'], org_id_fac ~ var, value.var = 'y_hat')
+ggplot(cycle_time_full_intx_lin_remonth_draws_uidre_sum_w, aes(x = Intercept_median, y = month_num_c_median)) + 
+  geom_segment(aes(x = Intercept_q25, xend = Intercept_q75), size = .125, alpha = .35) +
+  geom_segment(aes(y = month_num_c_q25, yend = month_num_c_q75), size = .125, alpha = .35) +
+  geom_hex(bins = 120, alpha = 1) +
+  scale_fill_viridis_c(aesthetics = c('fill', 'color'), option = 'plasma', transform = scales::modulus_trans(p = -.3),
+                       breaks = c(2, 10, 100)) + 
+  theme_clean + 
+  theme(axis.text.x = element_text())
+```
+
+
+```{r getting id subsample lin}
+set.seed(34232)
+cycle_time_full_intx_lin_remonth_m_data <- as.data.table(cycle_time_full_intx_lin_remonth_m$data)
+#using frank (fast rank)
+
+quantile_labeler <- function(x, n_quantiles = 20){
+  N <- length(x)
+  (1 + (frank(x, ties.method = "min")-1) %/% (N/n_quantiles)) / n_quantiles
+}
+
+cycle_time_full_intx_lin_remonth_m_data[, yr_avg_avg_coding_days_per_week_c_quantile := quantile_labeler(yr_avg_avg_coding_days_per_week_c)]
+cycle_time_full_intx_lin_remonth_m_data[, wi_avg_coding_days_per_week_quantile := quantile_labeler(wi_avg_coding_days_per_week)]
+cycle_time_full_intx_lin_remonth_m_data[, N_obs := .N, by = 'user_id_fac']
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids <- unique(cycle_time_full_intx_lin_remonth_m_data[N_obs >= 4, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')])
+
+nsamples <- 20
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids[, yr_avg_avg_coding_days_per_week_c_subsample := 
+                                                sample(c(rep(1, nsamples), rep(0, .N-nsamples)), .N), 
+                                              by = yr_avg_avg_coding_days_per_week_c_quantile]
+
+table(cycle_time_full_intx_lin_remonth_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_subsample,
+      cycle_time_full_intx_lin_remonth_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_quantile)
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids <- cycle_time_full_intx_lin_remonth_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_subsample == 1]
+
+cycle_time_full_intx_lin_remonth_m_data_subsample <- cycle_time_full_intx_lin_remonth_m_data[cycle_time_full_intx_lin_remonth_m_data_subsample_ids, on = 'user_id_fac']
+```
+
+
+```{r a plot of individual data cycle time lin}
+raw_data_ct_example_for_plot <- cycle_time_full_intx_lin_remonth_m_data_subsample[, CJ(user_id_fac = unique(user_id_fac), 
+                                                                               month_num_c = unique(month_num_c))]
+raw_data_ct_example_for_plot <- merge(unique(cycle_time_full_intx_lin_remonth_m_data_subsample[, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')]),
+                                      raw_data_ct_example_for_plot, 
+                                      on = c('user_id_fac'))
+raw_data_ct_example_for_plot <- merge(unique(cycle_time_full_intx_lin_remonth_m_data_subsample[, c('user_id_fac', 
+                                                                                           'month_num_c', 
+                                                                                           'median_cycle_time_s',
+                                                                                           'yr_avg_avg_coding_days_per_week_c')]),
+                                      raw_data_ct_example_for_plot, 
+                                      all = TRUE)
+  
+med_med_ct <- median(raw_data_ct_example_for_plot$median_cycle_time_s, na.rm = TRUE)
+
+ggplot(raw_data_ct_example_for_plot[yr_avg_avg_coding_days_per_week_c_quantile %in% seq(.05, 1, .25)], 
+       aes(x = month_num_c, y = median_cycle_time_s)) + 
+  geom_hline(yintercept = med_med_ct) + 
+  geom_line(aes(group = user_id_fac, color = yr_avg_avg_coding_days_per_week_c), linewidth = .125, alpha = 1) + 
+  scale_y_continuous(transform = scales::modulus_trans(p = .25)) +
+  scale_color_viridis_c(option = 'plasma', end = .8) + 
+  facet_grid(~yr_avg_avg_coding_days_per_week_c_quantile) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+```{r individual trajectories lin}
+subsample_predictions <- as.data.table(predictions(cycle_time_full_intx_lin_remonth_m, 
+                                                   newdata = unique(cycle_time_full_intx_lin_remonth_m_data_subsample),
+                                                   re_formula = NULL))
+cycle_time_full_intx_lin_remonth_m_data_subsample <- as.data.table(cycle_time_full_intx_lin_remonth_m_data_subsample)
+pred_data_ct_example_for_plot <- cycle_time_full_intx_lin_remonth_m_data_subsample[, CJ(user_id_fac = unique(user_id_fac), 
+                                                                                month_num_c = unique(month_num_c))]
+pred_data_ct_example_for_plot <- merge(
+  unique(cycle_time_full_intx_lin_remonth_m_data_subsample[, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')]),
+                                      pred_data_ct_example_for_plot, 
+                                      on = c('user_id_fac'))
+pred_data_ct_example_for_plot <- merge(unique(subsample_predictions[, c('user_id_fac', 
+                                                                        'month_num_c', 
+                                                                        'estimate',
+                                                                        'conf.low', 'conf.high',
+                                                                        'yr_avg_avg_coding_days_per_week_c',
+                                                                        'wi_avg_coding_days_per_week')]),
+                                      pred_data_ct_example_for_plot, 
+                                      all = TRUE)
+  
+med_med_ct <- median(pred_data_ct_example_for_plot$estimate, na.rm = TRUE)
+
+mod_trans <- scales::transform_modulus(p = .325)
+breaks_seconds_to_days <- c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*26)
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "6m")
+
+
+pred_data_ct_example_for_plot[, quantile_name := reorder(sprintf('%.0f%% - %.0f%%', 
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100 - 5,
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100),
+                                                         yr_avg_avg_coding_days_per_week_c_quantile)]
+
+
+ggplot(pred_data_ct_example_for_plot[yr_avg_avg_coding_days_per_week_c_quantile %in% c(.1, .2, .5, .85, .95)], 
+       aes(x = month_num_c, y = estimate)) + 
+  geom_hline(yintercept = med_med_ct) + 
+  geom_ribbon(aes(group = user_id_fac, ymin = conf.low, ymax = conf.high), alpha = .025) + 
+  geom_line(aes(group = user_id_fac), linewidth = .125, alpha = 1) + 
+  scale_y_continuous(transform = mod_trans, breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  facet_grid(~quantile_name) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(size = 8),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time')
+ggsave('cycle_time_full_intx_lin_remonth_post_pred_ids.png', width = 4, height = 3, dpi = 300, units = 'in')
+
+gc()
+```
+
+```{r within-person lin}
+pred_data_ct_example_for_plot_wi <- copy(pred_data_ct_example_for_plot)
+pred_data_ct_example_for_plot_wi[, median_estimate := median(estimate, na.rm = TRUE), by = user_id_fac]
+pred_data_ct_example_for_plot_wi[, c('wi_estimate', 'wi_conf.high', 'wi_conf.low') :=
+                                   .(estimate - median_estimate, conf.high - median_estimate, conf.low - median_estimate)]
+
+pred_data_ct_example_for_plot_wi[, quantile_name := reorder(sprintf('%.0f%% - %.0f%%', 
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100 - 5,
+                                                                 yr_avg_avg_coding_days_per_week_c_quantile*100),
+                                                         yr_avg_avg_coding_days_per_week_c_quantile)]
+ggplot(pred_data_ct_example_for_plot_wi[yr_avg_avg_coding_days_per_week_c_quantile %in% c(.1, .2, .5, .85, .95)], 
+       aes(x = month_num_c, y = wi_estimate)) + 
+  geom_hline(yintercept = 0) + 
+  geom_ribbon(aes(group = user_id_fac, ymin = wi_conf.low, ymax = wi_conf.high), alpha = .025) + 
+  geom_line(aes(group = user_id_fac, color = wi_avg_coding_days_per_week), linewidth = .125, alpha = 1) + 
+  geom_point(aes(color = wi_avg_coding_days_per_week), size = .75) + 
+  scale_color_viridis_c(option = 'plasma', transform = scales::modulus_trans(p = -.5), breaks = c(-1, 0, 1),
+                        guide = guide_colorbar(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) + 
+  scale_y_continuous(transform = mod_trans, breaks = c(-rev(breaks_seconds_to_days), breaks_seconds_to_days), 
+                     labels = c(paste0('-', rev(names(breaks_seconds_to_days))), names(breaks_seconds_to_days))) +
+  facet_grid(~quantile_name) + 
+  theme_minimal() + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+  ) + 
+  labs(x = 'Calendar time', y = 'Deviation in cycle time', color = 'Within-person deviation in average coding days per week')
+
+ggsave('cycle_time_full_intx_lin_remonth_post_pred_ids_win.png', width = 6, height = 3, dpi = 300, units = 'in')
+```
+
+```{r counterfactual plots get subset id lin}
+set.seed(7331)
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids <- unique(cycle_time_full_intx_lin_remonth_m_data[N_obs == 12, c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c_quantile')])
+
+#hist(cycle_time_full_intx_lin_remonth_m_data_subsample_ids$yr_avg_avg_coding_days_per_week_c_quantile)
+
+nsamples <- 1
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids[, yr_avg_avg_coding_days_per_week_c_subsample := 
+                                                sample(c(rep(1, nsamples), rep(0, .N-nsamples)), .N), 
+                                              by = yr_avg_avg_coding_days_per_week_c_quantile]
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids <- cycle_time_full_intx_lin_remonth_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_quantile %in% c(1, .9, .8, .7, .6, .5, .4, .3, .2, .1)
+]
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_ids <- cycle_time_full_intx_lin_remonth_m_data_subsample_ids[
+  yr_avg_avg_coding_days_per_week_c_subsample == 1]
+
+cycle_time_full_intx_lin_remonth_m_data_subsample <- cycle_time_full_intx_lin_remonth_m_data[cycle_time_full_intx_lin_remonth_m_data_subsample_ids, on = 'user_id_fac']
+
+ggplot(cycle_time_full_intx_lin_remonth_m_data_subsample, 
+       aes(x = month_num_c, y = median_cycle_time_s)) + 
+  geom_line(aes(group = user_id_fac, color = yr_avg_avg_coding_days_per_week_c_quantile), linewidth = .5, alpha = 1) + 
+  scale_y_continuous(transform = scales::modulus_trans(p = .25)) +
+  theme_minimal() +
+  scale_color_viridis_c(end = .8) + 
+  theme(
+    strip.text.x = element_text(),  # Adjust text size for readability
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+```
+
+```{r get predictions lin, fig.width=5, fig.height=3}
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary <- posterior_summary(posterior_epred(cycle_time_full_intx_lin_remonth_m, 
+                                                                                                 newdata = cycle_time_full_intx_lin_remonth_m_data_subsample,
+                                                                                                 re_formula = NULL))
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds <- posterior_predict(cycle_time_full_intx_lin_remonth_m, 
+                                                                               newdata = cycle_time_full_intx_lin_remonth_m_data_subsample,
+                                                                               re_formula = NULL, ndraws = 100)
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds_data <- cbind(cycle_time_full_intx_lin_remonth_m_data_subsample,
+                                                                        as.data.table(t(cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds)))
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds_data_l <- melt(cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds_data,
+                                                                         measure.vars = paste0('V', 1:100))
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary <- cbind(cycle_time_full_intx_lin_remonth_m_data_subsample,
+                                                                     as.data.table(cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary))
+
+breaks_seconds_to_days <- c(60*60*12*1, 60*60*24*7, 60*60*24*7*4, 60*60*24*1*7*13, 60*60*24*1*7*26)
+names(breaks_seconds_to_days) <- c("12h", "1w", "4w", "1q", "6m")
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary <- month_level_dt[
+  , 
+  c('yr_avg_avg_coding_days_per_week', 'month_num_c', 'user_id_fac', 'org_id_fac')
+][
+  cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary, 
+  on = c('month_num_c', 'user_id_fac', 'org_id_fac')
+]
+
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week)]
+cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds_data_l[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c)]
+```
+
+```{r plot predictions lin, fig.width=5, fig.height=3}
+real_data_and_prediction_plot <- ggplot(cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary, 
+       aes(x = month_num_c, y = median_cycle_time_s)) +
+  geom_line(aes(y = median_cycle_time_s), linewidth = .125, alpha = .5) +
+  geom_point(aes(y = median_cycle_time_s), size = .125, alpha = .5) + 
+  geom_line(data = cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_preds_data_l,
+            aes(group = interaction(user_id_fac_sorted, variable), y = value), 
+            linewidth = .15, alpha = .0625) +
+  geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5, group = user_id_fac, fill = yr_avg_avg_coding_days_per_week), 
+              linewidth = .0625, alpha = .5, color = 'white') +
+  geom_line(aes(y = Estimate, group = user_id_fac), color = 'white', linewidth = .65, alpha = 1) +
+  geom_line(aes(y = Estimate, group = user_id_fac, color = yr_avg_avg_coding_days_per_week), linewidth = .5, alpha = 1) +
+  scale_y_continuous(transform = mod_trans,
+                     breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  theme_minimal() +
+  facet_wrap(~ user_id_fac_sorted, nrow = 2) + 
+  scale_color_viridis_c(end = .7, aesthetics = c('fill', 'color'), breaks = c(2, 3, 4),
+                     name = 'Year-average coding-days-per-week',
+                     guide = guide_colorbar(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) + 
+  theme(
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    #legend.key.width = unit(0.4, "cm"),
+    legend.key.height = unit(0.3, "cm")
+    
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time') + 
+  coord_cartesian(y = c(0, 60*60*24*7*25))
+print(real_data_and_prediction_plot)
+ggsave(real_data_and_prediction_plot, file = 'cycle_time_full_intx_lin_remonth_post_pred_samples.png', width = 6, height = 3, dpi = 300, units = 'in')
+```
+
+
+```{r get counterfactual posterior predictions lin, fig.width=6, fig.height=4}
+yr_avg_avg_coding_days_per_week_c_quantiles <- quantile(
+  unique(
+    cycle_time_full_intx_lin_remonth_m$data[
+      , c('user_id_fac', 'yr_avg_avg_coding_days_per_week_c')]
+  )[['yr_avg_avg_coding_days_per_week_c']],
+  seq(.1, .9, length.out = 3))
+
+cf_data <- rbindlist(
+  lapply(names(yr_avg_avg_coding_days_per_week_c_quantiles),
+         \(x){
+           a_dt <- copy(cycle_time_full_intx_lin_remonth_m_data_subsample)
+           a_dt[, yr_avg_avg_coding_days_per_week_c := rep(yr_avg_avg_coding_days_per_week_c_quantiles[x], .N)]
+           a_dt[, quantiles := rep(x, .N)]
+           return(a_dt)
+         })
+)
+
+ndraws = 100
+cf_post_pred <- posterior_predict(cycle_time_full_intx_lin_remonth_m, 
+                                 newdata = cf_data,
+                                 re_formula = NULL, 
+                                 ndraws = ndraws)
+cf_post_epred_sum <- posterior_summary(posterior_epred(cycle_time_full_intx_lin_remonth_m, 
+                                                       newdata = cf_data,
+                                                       re_formula = NULL))
+
+cf_data_post_pred <- cbind(cf_data,
+                           as.data.table(t(cf_post_pred)))
+cf_data_post_epred <- cbind(cf_data,
+                            as.data.table(cf_post_epred_sum))
+cf_data_post_pred[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c_quantile)]
+cf_data_post_epred[, user_id_fac_sorted := reorder(user_id_fac, yr_avg_avg_coding_days_per_week_c_quantile)]
+
+cf_data_post_pred_l <- melt(cf_data_post_pred, measure.vars = paste0('V', 1:ndraws))
+
+unique(cycle_time_full_intx_lin_remonth_m_data_subsample_posterior_summary[, .(diff = -yr_avg_avg_coding_days_per_week_c + yr_avg_avg_coding_days_per_week)])[[1]] + yr_avg_avg_coding_days_per_week_c_quantiles
+
+cf_data_post_epred[, .(diff = Estimate[quantiles == '50%'] - Estimate[quantiles == '90%']), 
+                   by = c('user_id_fac', 'month_num_c')][, .(med_diff = median(diff)), by = c('user_id_fac')][
+                     , .(med_diff = median(med_diff) / (60*60*24))
+                   ]
+```
+
+```{r plot counterfactual posterior predictions lin, fig.width=6, fig.height=4}
+real_data_and_cf_prediction_plot <- ggplot(cf_data_post_pred_l, 
+       aes(x = month_num_c, y = value)) +
+  # geom_point(aes(group = interaction(variable, quantiles), color = quantiles), size = .25, alpha = .25) +
+  geom_bin2d(aes(group = interaction(quantiles, month_num_c), fill = quantiles, alpha = after_stat(count)), binwidth = c(1, 25), 
+           position = position_dodge(width = 1, preserve = 'total')) + 
+  #geom_line(aes(group = interaction(variable, quantiles), color = quantiles), linewidth = .25, alpha = .0625) +
+  geom_line(data = cf_data_post_epred, aes(y = Estimate, group = quantiles), color = 'white', linewidth = 1) + 
+  geom_line(data = cf_data_post_epred, aes(y = Estimate, group = quantiles, color = quantiles), linewidth = .75) + 
+  scale_y_continuous(transform = mod_trans,
+                     breaks = breaks_seconds_to_days, labels = names(breaks_seconds_to_days)) +
+  scale_alpha_continuous(range = c(.4, 1), breaks = c(1, 5, 20),
+                         guide = 'none', transform = scales::transform_modulus(p = 1)) + 
+  scale_color_viridis_d(aesthetics = c('fill', 'color'), option = 'cividis', end = .7,
+                     name = 'Counterfactual year-average-coding-days quantile',
+                     guide = guide_legend(direction = "horizontal", title.position = "top",
+                                            position = 'bottom', title.hjust = 0.5)) +
+  # scale_color_manual(aesthetics = c('fill', 'color'), 
+  #                    breaks = c("10%", "50%", "90%"), 
+  #                    values = c("#29483A", "#759C44", "#DF3383"),
+  #                    name = 'Counterfactual Year Average Coding Days quantiles',
+  #                    guide = guide_legend(direction = "horizontal", title.position = "top",
+  #                                           position = 'bottom', title.hjust = 0.5)) +
+  theme_minimal() +
+  facet_wrap( ~ user_id_fac_sorted, nrow = 2) + 
+  theme(
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.key.height = unit(0.3, "cm")
+  ) + 
+  labs(x = 'Calendar time', y = 'Cycle time') + 
+  coord_cartesian(y = c(0, 60*60*24*7*25))
+print(real_data_and_cf_prediction_plot)
+ggsave(real_data_and_cf_prediction_plot, file = 'cycle_time_full_intx_lin_remonth_post_pred_counterfactual.png', width = 6, height = 4, dpi = 300, units = 'in')
+```
+
+```{r combine prediction plots lin, fig.width=7, fig.height=4}
+combined_prediction_plot <- real_data_and_prediction_plot + real_data_and_cf_prediction_plot + plot_layout(axis_titles = 'collect')
+print(combined_prediction_plot)
+ggsave(combined_prediction_plot, file = 'cycle_time_full_intx_lin_remonth_combined_post_pred_counterfactual.png', width = 7, height = 4, dpi = 300, units = 'in')
+```
+
+```{r marginal effects of changes in dev days lin}
+options("marginaleffects_posterior_interval" = "hdi")
+options("marginaleffects_posterior_center" = "median")
+
+coding_days_comparisons_90_50 <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_lin_remonth_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[3:2]),
+  newdata = cycle_time_full_intx_lin_remonth_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+coding_days_comparisons_50_10 <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_lin_remonth_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[2:1]),
+  newdata = cycle_time_full_intx_lin_remonth_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+
+convert_s_to_d <- 1/(60*60*24)
+raw_median_cycle_time <- as.data.table(cycle_time_full_intx_lin_remonth_m$data)[, .(median_users = median(median_cycle_time_s)), by = 'user_id_fac'][, .(median = median(median_users))]*convert_s_to_d
+sprintf("A difference between the 50th and 90th quantile of coding days is associated with a difference of %.2f (95%% CI = [%.2f, %.2f]) in cycle time (refer to overall median cycle time: %.2f)",
+        coding_days_comparisons_90_50$estimate*convert_s_to_d, 
+        coding_days_comparisons_90_50$conf.low*convert_s_to_d, 
+        coding_days_comparisons_90_50$conf.high*convert_s_to_d,
+        raw_median_cycle_time)
+
+sprintf("A difference between the 10th and 50th quantile of coding days is associated with a difference of %.2f (95%% CI = [%.2f, %.2f]) in cycle time (refer to overall median cycle time: %.2f)",
+        coding_days_comparisons_50_10$estimate*convert_s_to_d, 
+        coding_days_comparisons_50_10$conf.low*convert_s_to_d, 
+        coding_days_comparisons_50_10$conf.high*convert_s_to_d,
+        raw_median_cycle_time)
+
+```
+```
+[1] "A difference between the 50th and 90th quantile of coding days is associated with a difference of -2.05 (95% CI = [-2.59, -1.43]) in cycle time (refer to overall median cycle time: 13.01)"
+
+[1] "A difference between the 10th and 50th quantile of coding days is associated with a difference of -1.78 (95% CI = [-2.35, -1.20]) in cycle time (refer to overall median cycle time: 13.01)"
+```
+
+```{r comparison grid eff size coding days lin}
+coding_days_comparisons_90_50_by_month <- marginaleffects::avg_comparisons(
+  cycle_time_full_intx_lin_remonth_m,
+  variables = list(yr_avg_avg_coding_days_per_week_c = yr_avg_avg_coding_days_per_week_c_quantiles[3:2]),
+  by = c('org_id_fac', 'month_num_c'),
+  newdata = cycle_time_full_intx_lin_remonth_m$data,
+  ndraws = 250,
+  re_formula = NULL)
+```
+
+```{r plot grid of effects coding days, fig.width=2.5, fig.height=3}
+coding_days_comparisons_90_50_by_month$org_id_fac_reorder <- reorder(coding_days_comparisons_90_50_by_month$org_id_fac, coding_days_comparisons_90_50_by_month$estimate, FUN = mean)
+ggplot(coding_days_comparisons_90_50_by_month, aes(x = month_num_c, y = org_id_fac_reorder)) + 
+  geom_raster(aes(fill = estimate*convert_s_to_d)) + 
+  scale_fill_viridis_c(transform = scales::transform_modulus(p = -.1), breaks = c(-.5, -1, -2, -4, -8)) + 
+  theme_clean + 
+  theme(
+    axis.text = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, units = 'mm'),
+    strip.text = element_blank(),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.8, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.key.height = unit(0.8, "cm")
+  ) + 
+  labs(x = 'Calendar time', y = 'Organization', fill = 'Change in\ncycle time (days)')
+```
+

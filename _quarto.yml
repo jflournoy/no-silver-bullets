@@ -14,9 +14,13 @@ format:
       hypothesis: true
   docx: default
   jats: default
-  acm-pdf: 
+  pdf: 
     keep-tex: true
-    pdf-engine: lualatex
+    pdf-engine: xelatex
+    include-in-header:
+      text: |
+        \usepackage{newunicodechar}
+        \newunicodechar{λ}{\ensuremath{\lambda}}
 
 
 
