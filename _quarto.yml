@@ -1,5 +1,6 @@
 project:
   type: manuscript
+  output-dir: docs
 
 manuscript:
   meca-bundle: false
