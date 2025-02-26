@@ -697,10 +697,11 @@ similarly yield more efficient teams by breaking work down into more
 manageable chunks and reducing the amount of unplanned work from bugs
 and defects. Finally, industry reports posit that improved collaboration
 can reduce the time it takes for developers to review PRs and increase
-review rates \textbf{\emph{(Flow; Gralha, 2022; Hodges, 2021; Waydev,
-2021)}}. However, this has not yet been examined empirically. That is,
-although industry convention dictates that these practices work to
-reduce cycle time, we have yet to generate real world evidence of their
+review rates
+\citep{flowHowIncreaseSoftware, gralhaReduceCycleTime2022, waydevCycleTimeFormula2021}.
+However, this has not yet been examined empirically. That is, although
+industry convention dictates that these practices work to reduce cycle
+time, we have yet to generate real world evidence of their
 effectiveness. We focus on these three areas as possible factors that
 impact cycle time.
 
@@ -708,6 +709,12 @@ impact cycle time.
 methodology}\label{research-design-and-methodology}
 
 All code can be found in the repository for this paper.
+
+\begin{itemize}
+\tightlist
+\item[$\square$]
+  To be linked
+\end{itemize}
 
 \subsection{Data Selection and
 Characteristics}\label{data-selection-and-characteristics}
@@ -1064,21 +1071,21 @@ unlikely given the assumption of an unrealistic point-null hypothesis,
 we try to give the reader a sense of the actual probability that the
 sign of an effect is in a particular direction, and what the impact of
 the factor is on cycle times in terms that are easy to interpret
-(\citet{GelmanPowerCalculationsAssessing2014}).
+\citep{GelmanPowerCalculationsAssessing2014}.
 
 In more precise statistical terms, unless otherwise stated we describe
 the posterior of parameters and predictions using the median of the
 distribution, and characterize its variation using the highest posterior
 density interval (HDI) which is defined as the interval that contains a
 specified percentage (usually 95\%) of the most probable values of the
-parameter \citep{kruschkeRejectingAcceptingParameter}. We make general
-descriptive inferences based on the probability that a parameter has the
-sign of the posterior density's median value. For example, if 80\% of
-the posterior density of the slope of the effect of month on cycle time
-is of the same sign as the density's median, and that median is
-negative, we would say something like, ``given the model and the data,
-there is an 80\% chance that there is a decrease in cycle times across
-the year.''
+parameter \citep{kruschkeRejectingAcceptingParameter2018}. We make
+general descriptive inferences based on the probability that a parameter
+has the sign of the posterior density's median value. For example, if
+80\% of the posterior density of the slope of the effect of month on
+cycle time is of the same sign as the density's median, and that median
+is negative, we would say something like, ``given the model and the
+data, there is an 80\% chance that there is a decrease in cycle times
+across the year.''
 
 \subsection{R packages}\label{r-packages}
 
@@ -1295,11 +1302,11 @@ Notebook}}
 
 }
 
-\caption[Within-quarter month effect on cycle
-time]{\label{fig-quarter}Effect of within-quarter month. Background
-hexagons represent density of data, with darker colors indicating
-greater density. Lines are median posterior expectations, with 95\%
-credible interval ribbons.}
+\caption[Within-quarter month doesn't affect cycle
+time]{\label{fig-quarter}Within-quarter month doesn't affect cycle time.
+Background pixels represent density of data, with darker colors
+indicating greater density. Lines are median posterior expectations,
+with 95\% credible interval ribbons.}
 
 \end{figure}%
 
@@ -1311,7 +1318,8 @@ credible interval ribbons.}
 
 }
 
-\caption[Month effect on cycle time]{\label{fig-month}Effect of month.
+\caption[Slight reduction of cycle time across the
+year]{\label{fig-month}Slight reduction of cycle time across the year.
 Background hexagons represent density of data, with darker colors
 indicating greater density. Lines are median posterior expectations,
 with 95\% credible interval ribbons.}
@@ -1333,9 +1341,9 @@ in strength across months, with 97\% of the posterior in this direction.
 
 }
 
-\caption[Coding days per week effect on cycle
-time]{\label{fig-codingdays}Effect of average coding days per week on
-cycle time. Background hexagons represent density of data, with darker
+\caption[More coding days is associated with shorter cycle
+times]{\label{fig-codingdays}More coding days is associated with shorter
+cycle times. Background hexagons represent density of data, with darker
 colors indicating greater density. Lines are median posterior
 expectations, with 95\% credible interval ribbons.}
 
@@ -1354,10 +1362,11 @@ direction (Figure~\ref{fig-mergedprs}).
 
 }
 
-\caption[Merged PRs effect on cycle time]{\label{fig-mergedprs}Effect of
-merged PRs on cycle time. Background hexagons represent density of data,
-with darker colors indicating greater density. Lines are median
-posterior expectations, with 95\% credible interval ribbons.}
+\caption[More merged PRs is associated with shorter cycle
+times]{\label{fig-mergedprs}More merged PRs is associated with shorter
+cycle times. Background hexagons represent density of data, with darker
+colors indicating greater density. Lines are median posterior
+expectations, with 95\% credible interval ribbons.}
 
 \end{figure}%
 
@@ -1381,9 +1390,13 @@ fairly narrow distribution around zero (95\% HDI = {[}-0.0003,
 
 }
 
-\caption[Defect tickets effect on cycle
-time]{\label{fig-defecttickets}Effect of percent defect tickets on cycle
-time. Background hexagons represent density of data, with darker colors
+\caption[Higher-than-average proportion of defect tickets in a month is
+associated with shorter cycle times, while individuals with more defect
+tickets on average show longer cycle
+times]{\label{fig-defecttickets}Higher-than-average proportion of defect
+tickets in a month is associated with shorter cycle times, while
+individuals with more defect tickets on average show longer cycle times.
+Background hexagons represent density of data, with darker colors
 indicating greater density. Lines are median posterior expectations,
 with 95\% credible interval ribbons.}
 
@@ -1408,11 +1421,11 @@ narrow distribution around zero (95\% HDI = {[}-0.0005, 0.0002{]}).
 
 }
 
-\caption[Degree centrality effect on cycle
-time]{\label{fig-degree}Effect of degree centrality on cycle time.
-Background hexagons represent density of data, with darker colors
-indicating greater density. Lines are median posterior expectations,
-with 95\% credible interval ribbons.}
+\caption[Higher degree centrality is associated with shorter cycle
+times]{\label{fig-degree}Higher degree centrality is associated with
+shorter cycle times. Background hexagons represent density of data, with
+darker colors indicating greater density. Lines are median posterior
+expectations, with 95\% credible interval ribbons.}
 
 \end{figure}%
 
@@ -1434,11 +1447,11 @@ sign with a fairly narrow distribution around zero (95\% HDI =
 
 }
 
-\caption[Comments per PR effect on cycle
-time]{\label{fig-comments}Effect of comments per PR on cycle time.
-Background hexagons represent density of data, with darker colors
-indicating greater density. Lines are median posterior expectations,
-with 95\% credible interval ribbons.}
+\caption[More comments per PR is associated with longer cycle
+times]{\label{fig-comments}More comments per PR is associated with
+longer cycle times. Background hexagons represent density of data, with
+darker colors indicating greater density. Lines are median posterior
+expectations, with 95\% credible interval ribbons.}
 
 \end{figure}%
 
@@ -1481,9 +1494,6 @@ variable on cycle time changes across organizations and across time.
 \end{minipage}%
 %
 \begin{minipage}{0.33\linewidth}
-Avg. coding days per Week\end{minipage}%
-%
-\begin{minipage}{0.33\linewidth}
 
 \centering{
 
@@ -1491,15 +1501,9 @@ Avg. coding days per Week\end{minipage}%
 
 }
 
-\subcaption{\label{fig-heatmaps-prs}}
+\subcaption{\label{fig-heatmaps-prs}Avg. coding days per Week}
 
 \end{minipage}%
-\newline
-\begin{minipage}{0.17\linewidth}
-~\end{minipage}%
-%
-\begin{minipage}{0.33\linewidth}
-Total merged PRs\end{minipage}%
 %
 \begin{minipage}{0.33\linewidth}
 
@@ -1509,18 +1513,12 @@ Total merged PRs\end{minipage}%
 
 }
 
-\subcaption{\label{fig-heatmaps-defects}}
+\subcaption{\label{fig-heatmaps-defects}Total merged PRs}
 
 \end{minipage}%
-%
-\begin{minipage}{0.17\linewidth}
-~\end{minipage}%
 \newline
 \begin{minipage}{0.17\linewidth}
 ~\end{minipage}%
-%
-\begin{minipage}{0.33\linewidth}
-Defect tickets percentage\end{minipage}%
 %
 \begin{minipage}{0.33\linewidth}
 
@@ -1530,7 +1528,19 @@ Defect tickets percentage\end{minipage}%
 
 }
 
-\subcaption{\label{fig-heatmaps-centrality}}
+\subcaption{\label{fig-heatmaps-centrality}Defect tickets percentage}
+
+\end{minipage}%
+%
+\begin{minipage}{0.33\linewidth}
+
+\centering{
+
+\includegraphics{plots/comments_per_pr_eff_size.png}
+
+}
+
+\subcaption{\label{fig-heatmaps-comments}Degree centrality}
 
 \end{minipage}%
 %
@@ -1541,28 +1551,18 @@ Defect tickets percentage\end{minipage}%
 ~\end{minipage}%
 %
 \begin{minipage}{0.33\linewidth}
-Degree centrality\end{minipage}%
-%
-\begin{minipage}{0.33\linewidth}
-
-\centering{
-
-\includegraphics{plots/comments_per_pr_eff_size.png}
-
-}
-
-\subcaption{\label{fig-heatmaps-comments}}
-
-\end{minipage}%
+Comments per PR\end{minipage}%
 %
 \begin{minipage}{0.17\linewidth}
 ~\end{minipage}%
 
-\caption{\label{fig-heatmaps}Expected change in cycle time from 50th to
-90th percentile of each variable, by organization and month. The color
-represents the expected change in cycle time, with warm indicating an
-increase in cycle time and cool indicating a decrease. The scale is the
-same across all plots.}
+\caption{\label{fig-heatmaps}Effect sizes for each variable are
+heterogeneous across time, organizations, and values of other
+predictors. These plots show the xpected change in cycle time from 50th
+to 90th percentile of each variable, by organization and month. The
+color represents the expected change in cycle time, with warm indicating
+an increase in cycle time and cool indicating a decrease. The scale is
+the same across all plots.}
 
 \end{figure}%
 
