@@ -145,7 +145,7 @@ All code can be found in the repository for this paper.
 
 ## Data Selection and Characteristics
 
-To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we centered our analysis on a large, real-world dataset of git and ticketing data of `r scales::comma(ct_model_obs_info$nobs)` observations across 12 months in 2022 from `r scales::comma(ct_model_obs_info$nusers)` users in `r scales::comma(ct_model_obs_info$norgs)` organizations of varying sizes and industries. We chose to use longitudinal data across 12 months, as it allowed us to examine fluctuations within a person's workflow as well as different stable tendencies between people.This data was available via partnerships between a software metrics tool[^Formerly Pluralsight Flow, now Flow at Appfire. All authors were research scientists or data scientists employed at Pluralsight at the time that this data was collected and analyzed.] which was incorporated into the workflows of real working software teams, and the 216 organizations which opted in to this tool at any point during the 12 month analytic window. Notably, because this tool was adopted on an organizational level (following partnership agreements that include organizational opt-in and security audits), users themselves did not have to be active users of the software metrics tool itself in order to be included in this dataset, and git and ticketing data was available retrospectively for dates prior to the implementation of the tool in the organization. In other words, the git and ticketing data included in this analysis is not predicated on being an individual user of the software metrics tool, nor on the software metrics tool being used at the organization, as our dataset contains measures both before and after the software metric tool implementation at the organization, and implementation dates for organizations vary across the 12 month period.
+To examine coding time, task scoping, and collaboration as predictors of cycle time over time, we centered our analysis on a large, real-world dataset of git and ticketing data of `r scales::comma(ct_model_obs_info$nobs)` observations across 12 months in 2022 from `r scales::comma(ct_model_obs_info$nusers)` users in `r scales::comma(ct_model_obs_info$norgs)` organizations of varying sizes and industries. We chose to use longitudinal data across 12 months, as it allowed us to examine fluctuations within a person's workflow as well as different stable tendencies between people.This data was available via partnerships between a software metrics tool^[Formerly Pluralsight Flow, now Flow at Appfire. All authors were research scientists or data scientists employed at Pluralsight at the time that this data was collected and analyzed.] which was incorporated into the workflows of real working software teams, and the 216 organizations which opted in to this tool at any point during the 12 month analytic window. Notably, because this tool was adopted on an organizational level (following partnership agreements that include organizational opt-in and security audits), users themselves did not have to be active users of the software metrics tool itself in order to be included in this dataset, and git and ticketing data was available retrospectively for dates prior to the implementation of the tool in the organization. In other words, the git and ticketing data included in this analysis is not predicated on being an individual user of the software metrics tool, nor on the software metrics tool being used at the organization, as our dataset contains measures both before and after the software metric tool implementation at the organization, and implementation dates for organizations vary across the 12 month period.
 
 Data were selected for analysis based on whether users actively contributed code during the time frame of the study. The 216 organizations included in this dataset had between 1–2,746 individuals in the dataset, with 90% of organizations being represented by more than 12 users, and in previous pilot surveys used to inform the design of this project, professional software developer users from these organizations described their main industries as ranging from Technology, Finance, Government, Insurance, Retail, and others, indicating a wide diversity of business use cases and engineering contexts were present in this sample.
 
@@ -373,7 +373,7 @@ flextable(ct_model_pars_fe) |>
 
 ::: {#fig-quarter fig-scap="Within-quarter month doesn't affect cycle time" fig-alt="Within-quarter month doesn't affect cycle time"}
 
-![](plots/cycle_time_full_intx_lin_remonth_quarter.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_quarter.png){width=4in}
 
 Within-quarter month doesn't affect cycle time. Background pixels represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -382,7 +382,7 @@ Within-quarter month doesn't affect cycle time. Background pixels represent dens
 
 ::: {#fig-month fig-scap="Slight reduction of cycle time across the year" fig-alt="Slight reduction of cycle time across the year"}
 
-![](plots/cycle_time_full_intx_lin_remonth_month_num.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_month_num.png){width=4in}
 
 Slight reduction of cycle time across the year. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -394,7 +394,7 @@ Specifically, when individuals increased average coding days per week month-to-m
 
 ::: {#fig-codingdays fig-scap="More coding days is associated with shorter cycle times" fig-alt="More coding days is associated with shorter cycle times"}
 
-![](plots/cycle_time_full_intx_lin_remonth_coding_days.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_coding_days.png){width=4in}
 
 More coding days is associated with shorter cycle times. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -404,7 +404,7 @@ More merged PRs was associated with lower cycle time for both individual average
 
 ::: {#fig-mergedprs fig-scap="More merged PRs is associated with shorter cycle times" fig-alt="More merged PRs is associated with shorter cycle times"}
 
-![](plots/cycle_time_full_intx_lin_remonth_merged_prs.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_merged_prs.png){width=4in}
 
 More merged PRs is associated with shorter cycle times. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -414,7 +414,7 @@ The percent of defect tickets showed a negative association with cycle time for 
 
 ::: {#fig-defecttickets fig-scap="Higher-than-average proportion of defect tickets in a month is associated with shorter cycle times, while individuals with more defect tickets on average show longer cycle times"  fig-alt="Higher-than-average proportion of defect tickets in a month is associated with shorter cycle times, while individuals with more defect tickets on average show longer cycle times"}
 
-![](plots/cycle_time_full_intx_lin_remonth_defect_tickets.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_defect_tickets.png){width=4in}
 
 Higher-than-average proportion of defect tickets in a month is associated with shorter cycle times, while individuals with more defect tickets on average show longer cycle times. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -424,7 +424,7 @@ Degree centrality, both on average across the year individual differences and wi
 
 ::: {#fig-degree fig-scap="Higher degree centrality is associated with shorter cycle times" fig-alt="Higher degree centrality is associated with shorter cycle times"}
 
-![](plots/cycle_time_full_intx_lin_remonth_degree_cent.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_degree_cent.png){width=4in}
 
 Higher degree centrality is associated with shorter cycle times. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -434,7 +434,7 @@ Finally, the number of comments per PR showed a positive association with cycle 
 
 ::: {#fig-comments fig-scap="More comments per PR is associated with longer cycle times" fig-alt="More comments per PR is associated with longer cycle times"}
 
-![](plots/cycle_time_full_intx_lin_remonth_pr_comments.png){width=6in}
+![](plots/cycle_time_full_intx_lin_remonth_pr_comments.png){width=4in}
 
 More comments per PR is associated with longer cycle times. Background hexagons represent density of data, with darker colors indicating greater density. Lines are median posterior expectations, with 95% credible interval ribbons.
 
@@ -564,7 +564,7 @@ flextable(display_dt) |>
 
 ::: {#fig-pp-check-org fig-scap="Distributions of cycle time vary widely across organizations both in their central tendency and spread" fig-alt="Distributions of cycle time vary widely across organizations both in their central tendency and spread"}
 
-![](plots/cycle_time_full_intx_nlq_pp_check.png){width=6in}
+![](plots/cycle_time_full_intx_nlq_pp_check.png){width=4in}
 
 Distributions of cycle time vary widely across organizations both in their central tendency and spread. Posterior prediction densities for model-expected distributions of cycle time are shown across all organizations with at least 10 observations. Each density represents one organization, showing model-predicted cycle times from 50 posterior draws. The scale has been transformed slightly to better show the spread of data. Columns have been ordered by sample size, and rows are ordered by median predicted cycle time. Density fill colors reflect sample size. Note that distributions from larger orgs have less variability in their posterior predictions. Line at 4 weeks is set arbitrarily to aid in comparisons.
 
@@ -597,7 +597,7 @@ We can also examine the effect of month-by-month deviations in coding-days-per-w
 
 ::: {#fig-wi-ct-traj fig-scap="Individual month-to-month deviations from year-average cycle time are highly variable across the year" fig-alt="Individual month-to-month deviations from year-average cycle time are highly variable across the year"}
 
-![](plots/cycle_time_full_intx_nlq_post_pred_ids_win.png){width=6in}
+![](plots/cycle_time_full_intx_nlq_post_pred_ids_win.png){width=4in}
 
 
 Individual month-to-month deviations from year-average cycle time are highly variable across the year. Each line tracks cycle time month-to-month for one randomly sampled individual. Each facet shows the trajectories for individuals who have year-average average-coding-days-per-week in the quantile specified at the top of the facet. Shading represents prediction intervals from the model for plausible cycle time values for these individuals.
@@ -610,7 +610,7 @@ The next thing we can do with the model is ask it to give us these expectations 
 
 ::: {#fig-ct-pp-traj fig-scap="Variability in cycle time within-person across time overwhelms subtle differences in averages" fig-alt="Variability in cycle time within-person across time overwhelms subtle differences in averages"}
 
-![](plots/cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png){width=6in}
+![](plots/cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png){width=4in}
 
 Variability in cycle time within-person across time overwhelms subtle differences in averages. These plots show posterior predictions of reasonable monthly-median cycle time and counterfactual predictions. The **left** plot shows model expectations (our best guess at the central tendency) and 95% credible intervals (colored lines and ribbons) of cycle time over the year for 10 randomly selected participants. Lines and ribbons are colored by the participants observed year-average average-coding-days-per-week. Black points and the stronger black line indicates observed data for these participants. Light gray lines represent model-derived posterior predictions of cycle times we might expect to see from these participants. The **right** plot shows these same participants under three counterfactual conditions: with their year-average-coding-days set to the 10th, 50th, and 90th quantile values. Each line represents the model expectation under these conditions, all else being equal. Posterior predictions of reasonable values for observed median-monthly cycle times are binned by these quantiles and by month in the pixels behind the expectations.
 

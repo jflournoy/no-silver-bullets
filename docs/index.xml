@@ -664,25 +664,23 @@ thinking rather than individual-focused interventions.</p>
     longitudinal data across 12 months, as it allowed us to examine
     fluctuations within a person’s workflow as well as different stable
     tendencies between people.This data was available via partnerships
-    between a software metrics tool[^Formerly Pluralsight Flow, now Flow
-    at Appfire. All authors were research scientists or data scientists
-    employed at Pluralsight at the time that this data was collected and
-    analyzed.] which was incorporated into the workflows of real working
-    software teams, and the 216 organizations which opted in to this
-    tool at any point during the 12 month analytic window. Notably,
-    because this tool was adopted on an organizational level (following
-    partnership agreements that include organizational opt-in and
-    security audits), users themselves did not have to be active users
-    of the software metrics tool itself in order to be included in this
-    dataset, and git and ticketing data was available retrospectively
-    for dates prior to the implementation of the tool in the
-    organization. In other words, the git and ticketing data included in
-    this analysis is not predicated on being an individual user of the
-    software metrics tool, nor on the software metrics tool being used
-    at the organization, as our dataset contains measures both before
-    and after the software metric tool implementation at the
-    organization, and implementation dates for organizations vary across
-    the 12 month period.</p>
+    between a software metrics
+    tool<xref ref-type="fn" rid="fn3">3</xref> which was incorporated
+    into the workflows of real working software teams, and the 216
+    organizations which opted in to this tool at any point during the 12
+    month analytic window. Notably, because this tool was adopted on an
+    organizational level (following partnership agreements that include
+    organizational opt-in and security audits), users themselves did not
+    have to be active users of the software metrics tool itself in order
+    to be included in this dataset, and git and ticketing data was
+    available retrospectively for dates prior to the implementation of
+    the tool in the organization. In other words, the git and ticketing
+    data included in this analysis is not predicated on being an
+    individual user of the software metrics tool, nor on the software
+    metrics tool being used at the organization, as our dataset contains
+    measures both before and after the software metric tool
+    implementation at the organization, and implementation dates for
+    organizations vary across the 12 month period.</p>
     <p>Data were selected for analysis based on whether users actively
     contributed code during the time frame of the study. The 216
     organizations included in this dataset had between 1–2,746
@@ -3681,6 +3679,12 @@ thinking rather than individual-focused interventions.</p>
     (<xref alt="Sackman, Erikson, and Grant 1968, 6" rid="ref-sackmanExploratoryExperimentalStudies1968" ref-type="bibr">Sackman,
     Erikson, and Grant 1968, 6</xref>)</p>
   </fn>
+  <fn id="fn3">
+    <label>3</label><p>Formerly Pluralsight Flow, now Flow at Appfire.
+    All authors were research scientists or data scientists employed at
+    Pluralsight at the time that this data was collected and
+    analyzed.</p>
+  </fn>
 </fn-group>
 </back>
 
@@ -4332,25 +4336,23 @@ ct_model_obs_info &lt;- readRDS('cycle_time_full_intx_lin_remonth_obs-info.rds')
     longitudinal data across 12 months, as it allowed us to examine
     fluctuations within a person’s workflow as well as different stable
     tendencies between people.This data was available via partnerships
-    between a software metrics tool[^Formerly Pluralsight Flow, now Flow
-    at Appfire. All authors were research scientists or data scientists
-    employed at Pluralsight at the time that this data was collected and
-    analyzed.] which was incorporated into the workflows of real working
-    software teams, and the 216 organizations which opted in to this
-    tool at any point during the 12 month analytic window. Notably,
-    because this tool was adopted on an organizational level (following
-    partnership agreements that include organizational opt-in and
-    security audits), users themselves did not have to be active users
-    of the software metrics tool itself in order to be included in this
-    dataset, and git and ticketing data was available retrospectively
-    for dates prior to the implementation of the tool in the
-    organization. In other words, the git and ticketing data included in
-    this analysis is not predicated on being an individual user of the
-    software metrics tool, nor on the software metrics tool being used
-    at the organization, as our dataset contains measures both before
-    and after the software metric tool implementation at the
-    organization, and implementation dates for organizations vary across
-    the 12 month period.</p>
+    between a software metrics
+    tool<xref ref-type="fn" rid="fn3-nb-article">3</xref> which was incorporated
+    into the workflows of real working software teams, and the 216
+    organizations which opted in to this tool at any point during the 12
+    month analytic window. Notably, because this tool was adopted on an
+    organizational level (following partnership agreements that include
+    organizational opt-in and security audits), users themselves did not
+    have to be active users of the software metrics tool itself in order
+    to be included in this dataset, and git and ticketing data was
+    available retrospectively for dates prior to the implementation of
+    the tool in the organization. In other words, the git and ticketing
+    data included in this analysis is not predicated on being an
+    individual user of the software metrics tool, nor on the software
+    metrics tool being used at the organization, as our dataset contains
+    measures both before and after the software metric tool
+    implementation at the organization, and implementation dates for
+    organizations vary across the 12 month period.</p>
     <p>Data were selected for analysis based on whether users actively
     contributed code during the time frame of the study. The 216
     organizations included in this dataset had between 1–2,746
@@ -7532,6 +7534,12 @@ flextable(display_dt) |&gt;
     10, or 20 good ones.”
     (<xref alt="Sackman, Erikson, and Grant 1968, 6" rid="ref-sackmanExploratoryExperimentalStudies1968-nb-article" ref-type="bibr">Sackman,
     Erikson, and Grant 1968, 6</xref>)</p>
+  </fn>
+  <fn id="fn3-nb-article">
+    <label>3</label><p>Formerly Pluralsight Flow, now Flow at Appfire.
+    All authors were research scientists or data scientists employed at
+    Pluralsight at the time that this data was collected and
+    analyzed.</p>
   </fn>
 </fn-group>
 </back>
