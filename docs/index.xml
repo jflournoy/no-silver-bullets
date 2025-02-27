@@ -1346,8 +1346,8 @@ thinking rather than individual-focused interventions.</p>
     <fig id="fig-heatmaps">
       <caption><p>Figure 8: Effect sizes for each variable are
       heterogeneous across time, organizations, and values of other
-      predictors. These plots show the xpected change in cycle time from
-      50th to 90th percentile of each variable, by organization and
+      predictors. These plots show the expected change in cycle time
+      from 50th to 90th percentile of each variable, by organization and
       month. The color represents the expected change in cycle time,
       with warm indicating an increase in cycle time and cool indicating
       a decrease. The scale is the same across all plots.</p></caption>
@@ -1484,21 +1484,26 @@ thinking rather than individual-focused interventions.</p>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-re-1.png" />
     </fig>
     <fig id="fig-pp-check-org">
-      <caption><p>Figure 9: Posterior prediction densities for
-      model-expected distributions of cycle time across all orgs with at
-      least 10 observations. Each row is one organization, showing the
-      density of predicted cycle times from 50 model simulations. The
-      scale has been transformed to better show the spread of data.
+      <caption><p>Figure 9: Distributions of cycle time vary widely
+      across organizations both in their central tendency and spread.
+      Posterior prediction densities for model-expected distributions of
+      cycle time are shown across all organizations with at least 10
+      observations. Each density represents one organization, showing
+      model-predicted cycle times from 50 posterior draws. The scale has
+      been transformed slightly to better show the spread of data.
       Columns have been ordered by sample size, and rows are ordered by
       median predicted cycle time. Density fill colors reflect sample
       size. Note that distributions from larger orgs have less
       variability in their posterior predictions. Line at 4 weeks is set
-      arbitrarily to allow comparisons</p></caption>
+      arbitrarily to aid in comparisons.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_pp_check.png" />
     </fig>
     <fig id="fig-pp-check-sum">
-      <caption><p>Figure 10: Posterior Prediction Distributions of Cycle
-      Time for all data</p></caption>
+      <caption><p>Figure 10: Model-predicted posterior distributions of
+      cycle time captures the data distribution well. The posterior
+      prediction density for cycle time is shown across all data points.
+      The scale has been transformed slightly to better show the spread
+      of data.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_pp_check_summary.png" />
     </fig>
     <p>Variation across individuals’ scale parameter after accounting
@@ -1529,8 +1534,13 @@ thinking rather than individual-focused interventions.</p>
     when examining the amount to which the trajectories occur below the
     thick black median-cycle-time line.</p>
     <fig id="fig-bw-ct-traj">
-      <caption><p>Figure 11: Between-person effects on cycle-time
-      trajectories across the year for randomly-sampled
+      <caption><p>Figure 11: Individual observations of cycle time are
+      highly variable across the year. Each line tracks cycle time
+      month-to-month for one randomly sampled individual. Each facet
+      shows the trajectories for individuals who have year-average
+      average-coding-days-per-week in the quantile specified at the top
+      of the facet. Shading represents prediction intervals from the
+      model for plausible cycle time values for these
       individuals.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_lin_remonth_post_pred_ids.png" />
     </fig>
@@ -1557,8 +1567,13 @@ thinking rather than individual-focused interventions.</p>
     considerable variation still, with many yellow-colored points above
     the 0 line and darker points below the zero line.</p>
     <fig id="fig-wi-ct-traj">
-      <caption><p>Figure 12: Within-person effects on cycle-time
-      trajectories across the year for randomly-sampled
+      <caption><p>Figure 12: Individual month-to-month deviations from
+      year-average cycle time are highly variable across the year. Each
+      line tracks cycle time month-to-month for one randomly sampled
+      individual. Each facet shows the trajectories for individuals who
+      have year-average average-coding-days-per-week in the quantile
+      specified at the top of the facet. Shading represents prediction
+      intervals from the model for plausible cycle time values for these
       individuals.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_post_pred_ids_win.png" />
     </fig>
@@ -1600,24 +1615,25 @@ thinking rather than individual-focused interventions.</p>
     changes at the individual level, even when inducing changes that do
     scale to desired impact at the organizational level.</p>
     <fig id="fig-ct-pp-traj">
-      <caption><p>Figure 13: Posterior predictions of reasonable
-      monthly-median cycle time and counterfactual predictions. The
-      <bold>left</bold> plot shows model expectations (our best guess at
-      the central tendency) and 95% credible intervals (colored lines
-      and ribbons) of cycle time over the year for 10 randomly selected
-      participants. Lines and ribbons are colored by the participants
-      observed year-average average-coding-days-per-week. Black points
-      and the stronger black line indicates observed data for these
-      participants. Light gray lines represent model-derived posterior
-      predictions of cycle times we might expect to see from these
-      participants. The <bold>right</bold> plot shows these same
-      participants under three counterfactual conditions: with their
-      year-average-coding-days set to the 10th, 50th, and 90th quantile
-      values. Each line represents the model expectation under these
-      conditions, all else being equal. Posterior predictions of
-      reasonable values for observed median-monthly cycle times are
-      binned by these quantiles and by month in the pixels behind the
-      expectations.</p></caption>
+      <caption><p>Figure 13: Variability in cycle time within-person
+      across time overwhelms subtle differences in averages. These plots
+      show posterior predictions of reasonable monthly-median cycle time
+      and counterfactual predictions. The <bold>left</bold> plot shows
+      model expectations (our best guess at the central tendency) and
+      95% credible intervals (colored lines and ribbons) of cycle time
+      over the year for 10 randomly selected participants. Lines and
+      ribbons are colored by the participants observed year-average
+      average-coding-days-per-week. Black points and the stronger black
+      line indicates observed data for these participants. Light gray
+      lines represent model-derived posterior predictions of cycle times
+      we might expect to see from these participants. The
+      <bold>right</bold> plot shows these same participants under three
+      counterfactual conditions: with their year-average-coding-days set
+      to the 10th, 50th, and 90th quantile values. Each line represents
+      the model expectation under these conditions, all else being
+      equal. Posterior predictions of reasonable values for observed
+      median-monthly cycle times are binned by these quantiles and by
+      month in the pixels behind the expectations.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png" />
     </fig>
   </sec>
@@ -3648,7 +3664,7 @@ thinking rather than individual-focused interventions.</p>
 </fn-group>
 </back>
 
-<sub-article article-type="notebook" id="nb-5-nb-article">
+<sub-article article-type="notebook" id="nb-6-nb-article">
 <front-stub>
 <title-group>
 <article-title>Understanding Technology Team Velocity at
@@ -5089,8 +5105,8 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
     <fig id="fig-heatmaps-nb-article">
       <caption><p>Figure 8: Effect sizes for each variable are
       heterogeneous across time, organizations, and values of other
-      predictors. These plots show the xpected change in cycle time from
-      50th to 90th percentile of each variable, by organization and
+      predictors. These plots show the expected change in cycle time
+      from 50th to 90th percentile of each variable, by organization and
       month. The color represents the expected change in cycle time,
       with warm indicating an increase in cycle time and cool indicating
       a decrease. The scale is the same across all plots.</p></caption>
@@ -5301,21 +5317,26 @@ flextable(display_dt) |&gt;
     </fig>
     </sec>
     <fig id="fig-pp-check-org-nb-article">
-      <caption><p>Figure 9: Posterior prediction densities for
-      model-expected distributions of cycle time across all orgs with at
-      least 10 observations. Each row is one organization, showing the
-      density of predicted cycle times from 50 model simulations. The
-      scale has been transformed to better show the spread of data.
+      <caption><p>Figure 9: Distributions of cycle time vary widely
+      across organizations both in their central tendency and spread.
+      Posterior prediction densities for model-expected distributions of
+      cycle time are shown across all organizations with at least 10
+      observations. Each density represents one organization, showing
+      model-predicted cycle times from 50 posterior draws. The scale has
+      been transformed slightly to better show the spread of data.
       Columns have been ordered by sample size, and rows are ordered by
       median predicted cycle time. Density fill colors reflect sample
       size. Note that distributions from larger orgs have less
       variability in their posterior predictions. Line at 4 weeks is set
-      arbitrarily to allow comparisons</p></caption>
+      arbitrarily to aid in comparisons.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_pp_check.png" />
     </fig>
     <fig id="fig-pp-check-sum-nb-article">
-      <caption><p>Figure 10: Posterior Prediction Distributions of Cycle
-      Time for all data</p></caption>
+      <caption><p>Figure 10: Model-predicted posterior distributions of
+      cycle time captures the data distribution well. The posterior
+      prediction density for cycle time is shown across all data points.
+      The scale has been transformed slightly to better show the spread
+      of data.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_pp_check_summary.png" />
     </fig>
     <p>Variation across individuals’ scale parameter after accounting
@@ -5346,8 +5367,13 @@ flextable(display_dt) |&gt;
     when examining the amount to which the trajectories occur below the
     thick black median-cycle-time line.</p>
     <fig id="fig-bw-ct-traj-nb-article">
-      <caption><p>Figure 11: Between-person effects on cycle-time
-      trajectories across the year for randomly-sampled
+      <caption><p>Figure 11: Individual observations of cycle time are
+      highly variable across the year. Each line tracks cycle time
+      month-to-month for one randomly sampled individual. Each facet
+      shows the trajectories for individuals who have year-average
+      average-coding-days-per-week in the quantile specified at the top
+      of the facet. Shading represents prediction intervals from the
+      model for plausible cycle time values for these
       individuals.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_lin_remonth_post_pred_ids.png" />
     </fig>
@@ -5374,8 +5400,13 @@ flextable(display_dt) |&gt;
     considerable variation still, with many yellow-colored points above
     the 0 line and darker points below the zero line.</p>
     <fig id="fig-wi-ct-traj-nb-article">
-      <caption><p>Figure 12: Within-person effects on cycle-time
-      trajectories across the year for randomly-sampled
+      <caption><p>Figure 12: Individual month-to-month deviations from
+      year-average cycle time are highly variable across the year. Each
+      line tracks cycle time month-to-month for one randomly sampled
+      individual. Each facet shows the trajectories for individuals who
+      have year-average average-coding-days-per-week in the quantile
+      specified at the top of the facet. Shading represents prediction
+      intervals from the model for plausible cycle time values for these
       individuals.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_post_pred_ids_win.png" />
     </fig>
@@ -5417,24 +5448,25 @@ flextable(display_dt) |&gt;
     changes at the individual level, even when inducing changes that do
     scale to desired impact at the organizational level.</p>
     <fig id="fig-ct-pp-traj-nb-article">
-      <caption><p>Figure 13: Posterior predictions of reasonable
-      monthly-median cycle time and counterfactual predictions. The
-      <bold>left</bold> plot shows model expectations (our best guess at
-      the central tendency) and 95% credible intervals (colored lines
-      and ribbons) of cycle time over the year for 10 randomly selected
-      participants. Lines and ribbons are colored by the participants
-      observed year-average average-coding-days-per-week. Black points
-      and the stronger black line indicates observed data for these
-      participants. Light gray lines represent model-derived posterior
-      predictions of cycle times we might expect to see from these
-      participants. The <bold>right</bold> plot shows these same
-      participants under three counterfactual conditions: with their
-      year-average-coding-days set to the 10th, 50th, and 90th quantile
-      values. Each line represents the model expectation under these
-      conditions, all else being equal. Posterior predictions of
-      reasonable values for observed median-monthly cycle times are
-      binned by these quantiles and by month in the pixels behind the
-      expectations.</p></caption>
+      <caption><p>Figure 13: Variability in cycle time within-person
+      across time overwhelms subtle differences in averages. These plots
+      show posterior predictions of reasonable monthly-median cycle time
+      and counterfactual predictions. The <bold>left</bold> plot shows
+      model expectations (our best guess at the central tendency) and
+      95% credible intervals (colored lines and ribbons) of cycle time
+      over the year for 10 randomly selected participants. Lines and
+      ribbons are colored by the participants observed year-average
+      average-coding-days-per-week. Black points and the stronger black
+      line indicates observed data for these participants. Light gray
+      lines represent model-derived posterior predictions of cycle times
+      we might expect to see from these participants. The
+      <bold>right</bold> plot shows these same participants under three
+      counterfactual conditions: with their year-average-coding-days set
+      to the 10th, 50th, and 90th quantile values. Each line represents
+      the model expectation under these conditions, all else being
+      equal. Posterior predictions of reasonable values for observed
+      median-monthly cycle times are binned by these quantiles and by
+      month in the pixels behind the expectations.</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="plots/cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png" />
     </fig>
   </sec>
