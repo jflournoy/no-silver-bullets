@@ -4,6 +4,9 @@
 
 /.quarto/
 /_manuscript
+/_freeze
+/analyses_cache
+/index_files
 
 /agujournal2019.cls
 /trackchanges.sty
