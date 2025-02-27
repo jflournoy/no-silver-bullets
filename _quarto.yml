@@ -15,7 +15,7 @@ format:
       hypothesis: true
   docx: default
   jats: default
-  acm-pdf: 
+  nature-pdf: 
     keep-tex: true
     pdf-engine: xelatex
     include-in-header:
