@@ -16,12 +16,19 @@ format:
   docx: default
   jats: default
   nature-pdf: 
+    journal: 
+      cite-style: sn-mathphys-ay
+    cite-method: natbib
     keep-tex: true
+    equal-margins: true
     pdf-engine: xelatex
     include-in-header:
       text: |
+        \usepackage{dblfloatfix}
         \usepackage{newunicodechar}
         \newunicodechar{λ}{\ensuremath{\lambda}}
+        \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
+
 
 
 

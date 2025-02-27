@@ -1,5 +1,5 @@
 ---
-title: Understanding Technology Team Velocity at Scale
+title: "No Silver Bullets: Why Understanding Software Cycle Time is Messy, Not Magic"
 author:
   - name: John C. Flournoy
     degrees:
@@ -45,40 +45,13 @@ author:
       country: USA
 abstract: |
   Understanding factors that influence software development velocity is crucial for engineering teams and organizations, yet empirical evidence at scale remains limited. We analyze cycle time—a widely-used metric measuring time from ticket creation to completion—using a dataset of over 55,000 observations across 216 organizations. Through Bayesian hierarchical modeling that appropriately separates individual and organizational variation, we examine how coding time, task scoping, and collaboration patterns affect cycle time while characterizing its substantial variability across contexts. We find precise but modest associations between cycle time and factors including coding days per week, number of merged pull requests, and degree of collaboration. However, these effects are set against considerable unexplained variation both between and within individuals. Our findings suggest that while common workplace factors do influence cycle time in expected directions, any single observation provides limited signal about typical performance. This work demonstrates methods for analyzing complex operational metrics at scale while highlighting potential pitfalls in using such measurements to drive decision-making. We conclude that improving software delivery velocity likely requires systems-level thinking rather than individual-focused interventions.
-
-plain-language-summary: |
-  More text
-key-points:
-  - A point
-date: last-modified
+  
+acknowledgements: |
+  We would like to thank Kristen Foster-Marks, Bennet Cook, and Mike Hoye for their helpful advice on this research.
+keywords: [cycle time, productivity, software engineering, collaboration, coding time, task scoping, hierarchical modeling]
 bibliography: references.bib
 number-sections: true
-acm-metadata:
-  final: false
-  copyright-year: 2024
-  acm-year: 2024
-  copyright: none
-  shortauthors: Flournoy et al.
-  acks: |
-    We would like to thank Kristen Foster-Marks, Bennet Cook, and Mike Hoye for their helpful advice on this research.
-  ccs: |
-        \begin{CCSXML}
-        <ccs2012>
-           <concept>
-               <concept_id>10002944.10011123.10010912</concept_id>
-               <concept_desc>General and reference~Empirical studies</concept_desc>
-               <concept_significance>500</concept_significance>
-               </concept>
-         </ccs2012>
-        \end{CCSXML}
-        
-        \ccsdesc[500]{General and reference~Empirical studies}
-  keywords:
-    - productivity
-    - cycle time
-    - collaboration
-    - individual differences
-    - within-person variation
+license: "CC BY 4.0"
 
 editor: 
   markdown: 
@@ -216,6 +189,8 @@ We measured collaboration by calculating degree centrality. To evaluate degree c
 
 Another indicator of collaboration is the frequency of comments within PRs. We undertook a comprehensive examination of all PRs that were successfully merged in the year 2022 and, for each user, calculated the average number of comments per PR that they authored each month. This served as a measure to gauge the depth of collaboration exhibited during the development and review process.
 
+
+
 |                 | Variable                          | Variable Description                                                 |
 |:----------------|:----------------------------------|:---------------------------------------------------------------------|
 | Productivity    | Cycle Time                        | Avg time from ticket start to end                                    |
@@ -230,6 +205,8 @@ Another indicator of collaboration is the frequency of comments within PRs. We u
 |                 | Comments per PR                   | Number of comments per pr a developer is the author on               |
 
 : Variable descriptions {#tbl-variables}
+
+
 
 ## Analytic Approach
 
@@ -353,11 +330,12 @@ We find that all measured factors, both individual-difference and within-person 
 #| tbl-cap: Fixed effects 
 #| label: tbl-results-fe
 
+
 flextable(ct_model_pars_fe) |>
   colformat_double(digits = 4) |>
-  set_table_properties(layout = 'fixed', opts_pdf = list(float = 'float')) |>
-  width(j = 1, 1.5, unit = 'in') |> 
-  width(j = 2:5, 1.1, unit = 'in') |>
+  set_table_properties(layout = 'fixed') |>
+  width(j = 1, 1.25, unit = 'in') |> 
+  width(j = 2:5, .75, unit = 'in') |>
   theme_booktabs(bold_header = TRUE) |>
   align(j = 5, align = 'right', part = 'all') |>
   footnote(i = 1, j = 2,
@@ -387,11 +365,9 @@ flextable(ct_model_pars_fe) |>
            inline = TRUE,
            sep = '. '
   ) |> 
-  fontsize(size = 9, part = "all")
+  fontsize(size = 8, part = "all")
 
 ```
-
-
 
 
 
@@ -510,9 +486,9 @@ ct_model_pars_dt <- as.data.table(ct_model_pars_re)
 ct_model_pars_dt[, `:=`(
   Stat = fifelse(grepl("^sd_", Parameter), "SD", 
                      fifelse(grepl("^cor_", Parameter), "Correlation", NA_character_)),
-  `Grouping` = fifelse(grepl("org_id_fac:user_id_fac", Parameter), "org:user", "org"),
+  Grp = fifelse(grepl("org_id_fac:user_id_fac", Parameter), "org:user", "org"),
   Par = fifelse(grepl('__shape_', Parameter), 'log(k)', 'log(\u03BB)'),
-  Predictor = fifelse(
+  Pred = fifelse(
     grepl("^cor_", Parameter),
     "Intercept-Month",
     fifelse(grepl("month_num_c", Parameter), "Month", 
@@ -520,36 +496,41 @@ ct_model_pars_dt[, `:=`(
                     NA_character_)))
 )]
 
-ct_model_pars_dt[is.na(Par) & Predictor == "Month" & Stat == "SD", Parameter := "λ"]
+ct_model_pars_dt[, `95% HDI` := sprintf('[%.3f, %.3f]', CI_low, CI_high)]
 
 setnames(ct_model_pars_dt, 
-         c("Median", "CI_low", "CI_high", "pd"),
-         c("Posterior Median", "Lower 95% HDI", "Upper 95% HDI", "Sign Probability"))
+         c("Median", "pd"),
+         c("Post Med", "Sign Prob"))
 
-ct_model_pars_dt[, `Sign Probability` := paste0(round(`Sign Probability` * 100, 2), "%")]
+ct_model_pars_dt[, `Sign Prob` := paste0(round(`Sign Prob` * 100, 2), "%")]
 
-setorder(ct_model_pars_dt, -Par, Grouping, -Stat, Predictor)
+setorder(ct_model_pars_dt, -Par, Grp, -Stat, Pred)
 
-final_cols <- c("Par", "Grouping", "Stat", "Predictor",
-                "Posterior Median", "Lower 95% HDI", "Upper 95% HDI", "Sign Probability")
+final_cols <- c("Par", "Grp", "Stat", "Pred",
+                "Post Med", "95% HDI", "Sign Prob")
 display_dt <- ct_model_pars_dt[, ..final_cols]
 
 flextable(display_dt) |>
-  colformat_double(j = c("Posterior Median", "Lower 95% HDI", "Upper 95% HDI"), digits = 3) |>
-  set_table_properties(layout = 'fixed', opts_pdf = list(float = 'float')) |>
-  width(j = 1:3, .5, unit = 'in') |>
-  width(j = 4, 1, unit = 'in') |>
-  width(j = 5:8, .75, unit = 'in') |>
+  colformat_double(j = c("Post Med"), digits = 3) |>
+  set_table_properties(layout = 'fixed', 
+                       opts_pdf = list(float = 'float')) |>
+  width(j = 1, .4, unit = 'in') |>
+  width(j = 2, .4, unit = 'in') |>
+  width(j = 3, .5, unit = 'in') |>
+  width(j = 4, .5, unit = 'in') |>
+  width(j = 5, .5, unit = 'in') |>
+  width(j = 6, .75, unit = 'in') |>
+  width(j = 7, .5, unit = 'in') |>
   theme_booktabs(bold_header = TRUE) |>
-  align(j = 5:8, align = 'right', part = 'all') |> 
-  merge_v(j = c("Par", 'Grouping', 'Stat')) |> 
-  valign(j = c("Par", 'Grouping', 'Stat'), valign = "top") |> 
+  align(j = 5:7, align = 'right', part = 'all') |> 
+  merge_v(j = c("Par", 'Grp', 'Stat')) |> 
+  valign(j = c("Par", 'Grp', 'Stat'), valign = "top") |> 
   footnote(
     i = 1, j = 1:5,
     value = as_paragraph(
       c('Response distribution parameter (λ: rate parameter, k: shape parameter)',
-        'Grouping: Random effects grouping structure',
-        'Parameter type (SD: standard deviation of random effect, Correlation: correlation between random effects)',
+        'Random effects grouping structure',
+        'Statistic type (SD: standard deviation of random effect, Correlation: correlation between random effects)',
         'Fixed or random effect term',
         'Median of the posterior distribution, used as point estimate')
     ),
@@ -558,7 +539,7 @@ flextable(display_dt) |>
     inline = TRUE,
     sep = '. '
   ) |> 
-  footnote(i = 1, j = 6:7,
+  footnote(i = 1, j = 6,
            value = as_paragraph(
              '95% Highest Density Interval, containing the most probable parameter values with 95% posterior probability mass'
            ),
@@ -567,7 +548,7 @@ flextable(display_dt) |>
            sep = '. ',
            ref_symbols = '6'
   ) |> 
-  footnote(i = 1, j = 8,
+  footnote(i = 1, j = 7,
            value = as_paragraph(
                'Probability that the effect is in the reported direction, calculated as the proportion of posterior samples with the same sign as the point estimate'
              ),
@@ -576,9 +557,10 @@ flextable(display_dt) |>
            sep = '. ',
            ref_symbols = '7'
   ) |> 
-  fontsize(size = 9, part = "all")
+  fontsize(size = 8, part = "all")
 
 ```
+
 
 ::: {#fig-pp-check-org fig-scap="Distributions of cycle time vary widely across organizations both in their central tendency and spread" fig-alt="Distributions of cycle time vary widely across organizations both in their central tendency and spread"}
 
@@ -694,6 +676,25 @@ We have emphasized in this work the small size of these observed associations, a
 
 Looking forward, our findings suggest two primary directions for future research. In the domain of observational studies, increased attention to a ticket's lifecycle, and process analysis appears. There are a number of measurable properties of tickets and code contributions that would be useful for distinguishing between different kinds of work and different interactions. For example, determining the expected scope or difficulty of tickets would allow for important statistical control, ensuring we compare like with like. Different kinds of work may also show different pitfalls and benefits, and could plausibly be determined from the content of a ticket or by assignment by those creating the tickets (for example, not all tickets will have a programming solution). Understanding and quantifying the type of content in PR comments would be useful in determining the causes and consequences of this avenue for collaboration. Ticket scope may also be contrasted with the ultimate complexity of the work that closes that ticket. Because of the creative and complex nature of software development, understanding what gets it stuck and what helps it flow will almost certainly have to wrestle with this complexity.
 
+# Acknowledgements
+
+`r rmarkdown::metadata$acknowledgements`
+
+# Contributions
+
+Contribution roles listed are defined in @nisocreditworkinggroupANSINISOZ3910420222022.
+
+```{r}
+#| results: asis
+cat(
+  paste(
+    lapply(rmarkdown::metadata$author, \(x){
+      sprintf('%s: %s.', x$name, paste(x$roles, collapse = ', '))
+    }),
+  collapse = ' '
+  )
+)
+```
 
 # References {.unnumbered}
 

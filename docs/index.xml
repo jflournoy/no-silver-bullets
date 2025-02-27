@@ -11,8 +11,8 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
 
 
 <title-group>
-<article-title>Understanding Technology Team Velocity at
-Scale</article-title>
+<article-title>No Silver Bullets: Why Understanding Software Cycle Time
+is Messy, Not Magic</article-title>
 </title-group>
 
 <contrib-group>
@@ -140,6 +140,13 @@ analysis</role>
 
 <history></history>
 
+<permissions>
+
+<license license-type="creative-commons">
+<ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">https://creativecommons.org/licenses/by/4.0/</ali:license_ref>
+
+</license>
+</permissions>
 
 <abstract>
 <p>Understanding factors that influence software development velocity is
@@ -163,6 +170,15 @@ using such measurements to drive decision-making. We conclude that
 improving software delivery velocity likely requires systems-level
 thinking rather than individual-focused interventions.</p>
 </abstract>
+<kwd-group kwd-group-type="author">
+<kwd>cycle time</kwd>
+<kwd>productivity</kwd>
+<kwd>software engineering</kwd>
+<kwd>collaboration</kwd>
+<kwd>coding time</kwd>
+<kwd>task scoping</kwd>
+<kwd>hierarchical modeling</kwd>
+</kwd-group>
 
 
 
@@ -2036,6 +2052,26 @@ thinking rather than individual-focused interventions.</p>
     to wrestle with this complexity.</p>
   </sec>
 </sec>
+<sec id="acknowledgements">
+  <title>7. Acknowledgements</title>
+  <p>We would like to thank Kristen Foster-Marks, Bennet Cook, and Mike
+  Hoye for their helpful advice on this research.</p>
+</sec>
+<sec id="contributions">
+  <title>8. Contributions</title>
+  <p>Contribution roles listed are defined in Group
+  (<xref alt="2022" rid="ref-nisocreditworkinggroupANSINISOZ3910420222022" ref-type="bibr">2022</xref>).</p>
+  <p>John C. Flournoy: Conceptualization, Data curation, Formal
+  analysis, Investigation, Methodology, Visualization, Writing –
+  original draft, Writing – review &amp; editing. Carol S. Lee:
+  Conceptualization, Data curation, Formal analysis, Investigation,
+  Methodology, Writing – original draft, Writing – review &amp; editing.
+  Catherine M. Hicks: Conceptualization, Funding acquisition,
+  Investigation, Methodology, Project administration, Resources,
+  Supervision, Writing – review &amp; editing. Maggie Wu:
+  Conceptualization, Data curation, Formal analysis, Investigation,
+  Methodology.</p>
+</sec>
 </body>
 
 <back>
@@ -2992,6 +3028,19 @@ thinking rather than individual-focused interventions.</p>
       <lpage>75</lpage>
     </element-citation>
   </ref>
+  <ref id="ref-nisocreditworkinggroupANSINISOZ3910420222022">
+    <element-citation>
+      <person-group person-group-type="author">
+        <name><surname>Group</surname><given-names>NISO CRediT Working</given-names></name>
+      </person-group>
+      <article-title>ANSI/NISO Z39.104-2022, CRediT, Contributor Roles Taxonomy</article-title>
+      <publisher-name>NISO</publisher-name>
+      <publisher-loc>3600 Clipper Mill Road Suite 302 Baltimore, MD 21211</publisher-loc>
+      <year iso-8601-date="2022-01">2022</year><month>01</month>
+      <date-in-citation content-type="access-date"><year iso-8601-date="2025-01-08">2025</year><month>01</month><day>08</day></date-in-citation>
+      <pub-id pub-id-type="doi">10.3789/ansi.niso.z39.104-2022</pub-id>
+    </element-citation>
+  </ref>
   <ref id="ref-obstbaumOngoingResearchSoftware">
     <element-citation publication-type="article-journal">
       <person-group person-group-type="author">
@@ -3638,8 +3687,8 @@ thinking rather than individual-focused interventions.</p>
 <sub-article article-type="notebook" id="nb-6-nb-article">
 <front-stub>
 <title-group>
-<article-title>Understanding Technology Team Velocity at
-Scale</article-title>
+<article-title>No Silver Bullets: Why Understanding Software Cycle Time
+is Messy, Not Magic</article-title>
 </title-group>
 <contrib-group>
 <contrib contrib-type="author" corresp="yes">
@@ -4908,9 +4957,9 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
     <sec specific-use="notebook-content">
     <code language="r script">flextable(ct_model_pars_fe) |&gt;
   colformat_double(digits = 4) |&gt;
-  set_table_properties(layout = 'fixed', opts_pdf = list(float = 'float')) |&gt;
-  width(j = 1, 1.5, unit = 'in') |&gt; 
-  width(j = 2:5, 1.1, unit = 'in') |&gt;
+  set_table_properties(layout = 'fixed') |&gt;
+  width(j = 1, 1.25, unit = 'in') |&gt; 
+  width(j = 2:5, .75, unit = 'in') |&gt;
   theme_booktabs(bold_header = TRUE) |&gt;
   align(j = 5, align = 'right', part = 'all') |&gt;
   footnote(i = 1, j = 2,
@@ -4940,7 +4989,7 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
            inline = TRUE,
            sep = '. '
   ) |&gt; 
-  fontsize(size = 9, part = &quot;all&quot;)</code>
+  fontsize(size = 8, part = &quot;all&quot;)</code>
     <fig id="tbl-results-fe-nb-article">
       <caption><p>Table 2: Fixed effects</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-fe-1.png" />
@@ -5186,9 +5235,9 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
 ct_model_pars_dt[, `:=`(
   Stat = fifelse(grepl(&quot;^sd_&quot;, Parameter), &quot;SD&quot;, 
                      fifelse(grepl(&quot;^cor_&quot;, Parameter), &quot;Correlation&quot;, NA_character_)),
-  `Grouping` = fifelse(grepl(&quot;org_id_fac:user_id_fac&quot;, Parameter), &quot;org:user&quot;, &quot;org&quot;),
+  Grp = fifelse(grepl(&quot;org_id_fac:user_id_fac&quot;, Parameter), &quot;org:user&quot;, &quot;org&quot;),
   Par = fifelse(grepl('__shape_', Parameter), 'log(k)', 'log(\u03BB)'),
-  Predictor = fifelse(
+  Pred = fifelse(
     grepl(&quot;^cor_&quot;, Parameter),
     &quot;Intercept-Month&quot;,
     fifelse(grepl(&quot;month_num_c&quot;, Parameter), &quot;Month&quot;, 
@@ -5196,36 +5245,41 @@ ct_model_pars_dt[, `:=`(
                     NA_character_)))
 )]
 
-ct_model_pars_dt[is.na(Par) &amp; Predictor == &quot;Month&quot; &amp; Stat == &quot;SD&quot;, Parameter := &quot;λ&quot;]
+ct_model_pars_dt[, `95% HDI` := sprintf('[%.3f, %.3f]', CI_low, CI_high)]
 
 setnames(ct_model_pars_dt, 
-         c(&quot;Median&quot;, &quot;CI_low&quot;, &quot;CI_high&quot;, &quot;pd&quot;),
-         c(&quot;Posterior Median&quot;, &quot;Lower 95% HDI&quot;, &quot;Upper 95% HDI&quot;, &quot;Sign Probability&quot;))
+         c(&quot;Median&quot;, &quot;pd&quot;),
+         c(&quot;Post Med&quot;, &quot;Sign Prob&quot;))
 
-ct_model_pars_dt[, `Sign Probability` := paste0(round(`Sign Probability` * 100, 2), &quot;%&quot;)]
+ct_model_pars_dt[, `Sign Prob` := paste0(round(`Sign Prob` * 100, 2), &quot;%&quot;)]
 
-setorder(ct_model_pars_dt, -Par, Grouping, -Stat, Predictor)
+setorder(ct_model_pars_dt, -Par, Grp, -Stat, Pred)
 
-final_cols &lt;- c(&quot;Par&quot;, &quot;Grouping&quot;, &quot;Stat&quot;, &quot;Predictor&quot;,
-                &quot;Posterior Median&quot;, &quot;Lower 95% HDI&quot;, &quot;Upper 95% HDI&quot;, &quot;Sign Probability&quot;)
+final_cols &lt;- c(&quot;Par&quot;, &quot;Grp&quot;, &quot;Stat&quot;, &quot;Pred&quot;,
+                &quot;Post Med&quot;, &quot;95% HDI&quot;, &quot;Sign Prob&quot;)
 display_dt &lt;- ct_model_pars_dt[, ..final_cols]
 
 flextable(display_dt) |&gt;
-  colformat_double(j = c(&quot;Posterior Median&quot;, &quot;Lower 95% HDI&quot;, &quot;Upper 95% HDI&quot;), digits = 3) |&gt;
-  set_table_properties(layout = 'fixed', opts_pdf = list(float = 'float')) |&gt;
-  width(j = 1:3, .5, unit = 'in') |&gt;
-  width(j = 4, 1, unit = 'in') |&gt;
-  width(j = 5:8, .75, unit = 'in') |&gt;
+  colformat_double(j = c(&quot;Post Med&quot;), digits = 3) |&gt;
+  set_table_properties(layout = 'fixed', 
+                       opts_pdf = list(float = 'float')) |&gt;
+  width(j = 1, .4, unit = 'in') |&gt;
+  width(j = 2, .4, unit = 'in') |&gt;
+  width(j = 3, .5, unit = 'in') |&gt;
+  width(j = 4, .5, unit = 'in') |&gt;
+  width(j = 5, .5, unit = 'in') |&gt;
+  width(j = 6, .75, unit = 'in') |&gt;
+  width(j = 7, .5, unit = 'in') |&gt;
   theme_booktabs(bold_header = TRUE) |&gt;
-  align(j = 5:8, align = 'right', part = 'all') |&gt; 
-  merge_v(j = c(&quot;Par&quot;, 'Grouping', 'Stat')) |&gt; 
-  valign(j = c(&quot;Par&quot;, 'Grouping', 'Stat'), valign = &quot;top&quot;) |&gt; 
+  align(j = 5:7, align = 'right', part = 'all') |&gt; 
+  merge_v(j = c(&quot;Par&quot;, 'Grp', 'Stat')) |&gt; 
+  valign(j = c(&quot;Par&quot;, 'Grp', 'Stat'), valign = &quot;top&quot;) |&gt; 
   footnote(
     i = 1, j = 1:5,
     value = as_paragraph(
       c('Response distribution parameter (λ: rate parameter, k: shape parameter)',
-        'Grouping: Random effects grouping structure',
-        'Parameter type (SD: standard deviation of random effect, Correlation: correlation between random effects)',
+        'Random effects grouping structure',
+        'Statistic type (SD: standard deviation of random effect, Correlation: correlation between random effects)',
         'Fixed or random effect term',
         'Median of the posterior distribution, used as point estimate')
     ),
@@ -5234,7 +5288,7 @@ flextable(display_dt) |&gt;
     inline = TRUE,
     sep = '. '
   ) |&gt; 
-  footnote(i = 1, j = 6:7,
+  footnote(i = 1, j = 6,
            value = as_paragraph(
              '95% Highest Density Interval, containing the most probable parameter values with 95% posterior probability mass'
            ),
@@ -5243,7 +5297,7 @@ flextable(display_dt) |&gt;
            sep = '. ',
            ref_symbols = '6'
   ) |&gt; 
-  footnote(i = 1, j = 8,
+  footnote(i = 1, j = 7,
            value = as_paragraph(
                'Probability that the effect is in the reported direction, calculated as the proportion of posterior samples with the same sign as the point estimate'
              ),
@@ -5252,7 +5306,7 @@ flextable(display_dt) |&gt;
            sep = '. ',
            ref_symbols = '7'
   ) |&gt; 
-  fontsize(size = 9, part = &quot;all&quot;)</code>
+  fontsize(size = 8, part = &quot;all&quot;)</code>
     <fig id="tbl-results-re-nb-article">
       <caption><p>Table 3: Random effects</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-re-1.png" />
@@ -5839,6 +5893,34 @@ flextable(display_dt) |&gt;
     what gets it stuck and what helps it flow will almost certainly have
     to wrestle with this complexity.</p>
   </sec>
+</sec>
+<sec id="acknowledgements-nb-article">
+  <title>7. Acknowledgements</title>
+  <p>We would like to thank Kristen Foster-Marks, Bennet Cook, and Mike
+  Hoye for their helpful advice on this research.</p>
+</sec>
+<sec id="contributions-nb-article">
+  <title>8. Contributions</title>
+  <p>Contribution roles listed are defined in Group
+  (<xref alt="2022" rid="ref-nisocreditworkinggroupANSINISOZ3910420222022-nb-article" ref-type="bibr">2022</xref>).</p>
+  <code language="r script">cat(
+  paste(
+    lapply(rmarkdown::metadata$author, \(x){
+      sprintf('%s: %s.', x$name, paste(x$roles, collapse = ', '))
+    }),
+  collapse = ' '
+  )
+)</code>
+  <p>John C. Flournoy: Conceptualization, Data curation, Formal
+  analysis, Investigation, Methodology, Visualization, Writing –
+  original draft, Writing – review &amp; editing. Carol S. Lee:
+  Conceptualization, Data curation, Formal analysis, Investigation,
+  Methodology, Writing – original draft, Writing – review &amp; editing.
+  Catherine M. Hicks: Conceptualization, Funding acquisition,
+  Investigation, Methodology, Project administration, Resources,
+  Supervision, Writing – review &amp; editing. Maggie Wu:
+  Conceptualization, Data curation, Formal analysis, Investigation,
+  Methodology.</p>
 </sec>
 </body>
 
@@ -6796,6 +6878,19 @@ flextable(display_dt) |&gt;
       <pub-id pub-id-type="doi">10.1109/MS.2019.2908576</pub-id>
       <fpage>71</fpage>
       <lpage>75</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-nisocreditworkinggroupANSINISOZ3910420222022-nb-article">
+    <element-citation>
+      <person-group person-group-type="author">
+        <name><surname>Group</surname><given-names>NISO CRediT Working</given-names></name>
+      </person-group>
+      <article-title>ANSI/NISO Z39.104-2022, CRediT, Contributor Roles Taxonomy</article-title>
+      <publisher-name>NISO</publisher-name>
+      <publisher-loc>3600 Clipper Mill Road Suite 302 Baltimore, MD 21211</publisher-loc>
+      <year iso-8601-date="2022-01">2022</year><month>01</month>
+      <date-in-citation content-type="access-date"><year iso-8601-date="2025-01-08">2025</year><month>01</month><day>08</day></date-in-citation>
+      <pub-id pub-id-type="doi">10.3789/ansi.niso.z39.104-2022</pub-id>
     </element-citation>
   </ref>
   <ref id="ref-obstbaumOngoingResearchSoftware-nb-article">
