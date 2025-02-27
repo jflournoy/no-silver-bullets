@@ -1362,16 +1362,16 @@ thinking rather than individual-focused interventions.</p>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-coding">
-                    <caption><p>(a)</p></caption>
-                    <graphic id="fig-heatmaps-coding" mimetype="image" mime-subtype="png" xlink:href="plots/avg_coding_days_per_week_eff_size.png" />
+                    <caption><p>(a) Avg. coding days per
+                    Week</p></caption>
+                    <graphic mimetype="image" mime-subtype="png" xlink:href="plots/avg_coding_days_per_week_eff_size.png" />
                   </fig>
                 </boxed-text>
               </p></td>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-prs">
-                    <caption><p>(b) Avg. coding days per
-                    Week</p></caption>
+                    <caption><p>(b) Total merged PRs</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/total_merged_prs_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -1379,7 +1379,8 @@ thinking rather than individual-focused interventions.</p>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-defects">
-                    <caption><p>(c) Total merged PRs</p></caption>
+                    <caption><p>(c) Defect tickets
+                    percentage</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/defect_tickets_pct_indiv_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -1406,8 +1407,7 @@ thinking rather than individual-focused interventions.</p>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-centrality">
-                    <caption><p>(d) Defect tickets
-                    percentage</p></caption>
+                    <caption><p>(d) Degree centrality</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/degree_centrality_monthly_100_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -1415,37 +1415,9 @@ thinking rather than individual-focused interventions.</p>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-comments">
-                    <caption><p>(e) Degree centrality</p></caption>
+                    <caption><p>(e) Comments per PR</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/comments_per_pr_eff_size.png" />
                   </fig>
-                </boxed-text>
-              </p></td>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p> </p>
-                </boxed-text>
-              </p></td>
-            </tr>
-          </tbody>
-        </table>
-      </table-wrap>
-      <table-wrap>
-        <table>
-          <colgroup>
-            <col width="17%" />
-            <col width="33%" />
-            <col width="17%" />
-          </colgroup>
-          <tbody>
-            <tr>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p> </p>
-                </boxed-text>
-              </p></td>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p>Comments per PR</p>
                 </boxed-text>
               </p></td>
               <td align="left"><p specific-use="wrapper">
@@ -5120,16 +5092,16 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-coding-nb-article">
-                    <caption><p>(a)</p></caption>
-                    <graphic id="fig-heatmaps-coding-nb-article" mimetype="image" mime-subtype="png" xlink:href="plots/avg_coding_days_per_week_eff_size.png" />
+                    <caption><p>(a) Avg. coding days per
+                    Week</p></caption>
+                    <graphic mimetype="image" mime-subtype="png" xlink:href="plots/avg_coding_days_per_week_eff_size.png" />
                   </fig>
                 </boxed-text>
               </p></td>
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-prs-nb-article">
-                    <caption><p>(b) Avg. coding days per
-                    Week</p></caption>
+                    <caption><p>(b) Total merged PRs</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/total_merged_prs_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -5137,7 +5109,8 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-defects-nb-article">
-                    <caption><p>(c) Total merged PRs</p></caption>
+                    <caption><p>(c) Defect tickets
+                    percentage</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/defect_tickets_pct_indiv_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -5164,8 +5137,7 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-centrality-nb-article">
-                    <caption><p>(d) Defect tickets
-                    percentage</p></caption>
+                    <caption><p>(d) Degree centrality</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/degree_centrality_monthly_100_eff_size.png" />
                   </fig>
                 </boxed-text>
@@ -5173,37 +5145,9 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
               <td align="left"><p specific-use="wrapper">
                 <boxed-text>
                   <fig id="fig-heatmaps-comments-nb-article">
-                    <caption><p>(e) Degree centrality</p></caption>
+                    <caption><p>(e) Comments per PR</p></caption>
                     <graphic mimetype="image" mime-subtype="png" xlink:href="plots/comments_per_pr_eff_size.png" />
                   </fig>
-                </boxed-text>
-              </p></td>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p> </p>
-                </boxed-text>
-              </p></td>
-            </tr>
-          </tbody>
-        </table>
-      </table-wrap>
-      <table-wrap>
-        <table>
-          <colgroup>
-            <col width="17%" />
-            <col width="33%" />
-            <col width="17%" />
-          </colgroup>
-          <tbody>
-            <tr>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p> </p>
-                </boxed-text>
-              </p></td>
-              <td align="left"><p specific-use="wrapper">
-                <boxed-text>
-                  <p>Comments per PR</p>
                 </boxed-text>
               </p></td>
               <td align="left"><p specific-use="wrapper">

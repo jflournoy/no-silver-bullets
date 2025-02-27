@@ -472,25 +472,25 @@ To give the reader a sense for how these associations play out across organizati
 
 ::: {#fig-heatmaps layout="[[333,333,333],[-166,333,333,-166]]" fig-scap="Effect sizes for each variable are heterogeneous across time, organizations, and values of other predictors" fig-alt="Effect sizes for each variable are heterogeneous across time, organizations, and values of other predictors"}
 
-![](plots/avg_coding_days_per_week_eff_size.png){#fig-heatmaps-coding}
+![Avg. coding days per Week](plots/avg_coding_days_per_week_eff_size.png){#fig-heatmaps-coding}
 
 
 
-![Avg. coding days per Week](plots/total_merged_prs_eff_size.png){#fig-heatmaps-prs}
+![Total merged PRs](plots/total_merged_prs_eff_size.png){#fig-heatmaps-prs}
 
 
 
-![Total merged PRs](plots/defect_tickets_pct_indiv_eff_size.png){#fig-heatmaps-defects}
+![Defect tickets percentage](plots/defect_tickets_pct_indiv_eff_size.png){#fig-heatmaps-defects}
 
 
 
-![Defect tickets percentage](plots/degree_centrality_monthly_100_eff_size.png){#fig-heatmaps-centrality}
+![Degree centrality](plots/degree_centrality_monthly_100_eff_size.png){#fig-heatmaps-centrality}
 
 
 
-![Degree centrality](plots/comments_per_pr_eff_size.png){#fig-heatmaps-comments}
+![Comments per PR](plots/comments_per_pr_eff_size.png){#fig-heatmaps-comments}
 
-Comments per PR
+
 
 Effect sizes for each variable are heterogeneous across time, organizations, and values of other predictors. These plots show the expected change in cycle time from 50th to 90th percentile of each variable, by organization and month. The color represents the expected change in cycle time, with warm indicating an increase in cycle time and cool indicating a decrease. The scale is the same across all plots.
 :::
