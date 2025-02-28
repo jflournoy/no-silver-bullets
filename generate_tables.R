@@ -5,12 +5,11 @@ is_github_action <- function() {
 
 # Set custom library path if running locally
 if (!is_github_action()) {
-  .libPaths('/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3/')
+  .libPaths("/home/rstudio/R/aarch64-unknown-linux-gnu-library/4.3")
 }
 
-library(rstan)
-library(brms)
 library(posterior)
+library(brms)
 library(kableExtra)
 library(memoise)
 
@@ -72,5 +71,36 @@ ct_model_draws_sds <- make_ct_model_draws('cycle_time_full_intx_lin_remonth.rds'
 ct_model_draws_allre <- make_ct_model_draws('cycle_time_full_intx_lin_remonth.rds', variable_indices = 37:length(ct_model_varnames), id='allre')
 ct_model_obs_info <- make_ct_model_obs_info('cycle_time_full_intx_lin_remonth.rds')
 
+library(ggplot2)
+library(showtext)
+library(data.table)
+font_name <- "Roboto"
+font_add_google(font_name)
 
+theme_clean <- theme_minimal() + 
+  theme(
+    text = element_text(family = font_name),
+    strip.text.x = element_blank(),  # Adjust text size for readability
+    axis.text.x = element_blank(),            # Remove axis text for clarity
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),            # Remove grid lines for simplicity
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(), 
+    panel.spacing = unit(0, 'lines')
+  )
 
+amod <- load_model('cycle_time_full_intx_lin_remonth.rds')
+
+#Plot a histogram of organization sizes
+dat <- as.data.table(amod$data)
+org_size <- dat[, .(org_size = nrow(.SD)), by = org_id_fac]
+
+ggplot(org_size, aes(x = org_size)) +
+  geom_histogram(binwidth = 20, fill = 'red') +
+  labs(x = 'Organization Size',
+       y = 'Number of\norganizations') +
+  scale_x_continuous(breaks = c(100, 1000, 2000)) + 
+  theme_clean + 
+  theme(axis.text.x = element_text())
+ggsave('plots/org_size_hist.png', width = 3, height = 2, dpi = 300)

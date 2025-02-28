@@ -1,4 +1,6 @@
-*rds
+/*.bst
+/*.rds
+/*.cls
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
@@ -8,7 +10,6 @@
 /analyses_cache
 /index_files
 
-/agujournal2019.cls
 /trackchanges.sty
 .Rproj.user
 .Rhistory

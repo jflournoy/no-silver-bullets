@@ -206,8 +206,10 @@ Time is Messy, Not Magic}
 
 \abstract{Understanding factors that influence software development
 velocity is crucial for engineering teams and organizations, yet
-empirical evidence at scale remains limited. We analyze cycle time---a
-widely-used metric measuring time from ticket creation to
+empirical evidence at scale remains limited. A more robust understanding
+of the dynamics of cycle time may help practitioners avoid pitfalls in
+relying on velocity measures while evaluating software work. We analyze
+cycle time---a widely-used metric measuring time from ticket creation to
 completion---using a dataset of over 55,000 observations across 216
 organizations. Through Bayesian hierarchical modeling that appropriately
 separates individual and organizational variation, we examine how coding
@@ -253,11 +255,11 @@ se, the concept of productivity remains poorly specified in software
 engineering contexts, where outputs fundamentally differ from the more
 readily quantifiable measures used in traditional industrial production.
 Specific units of work are rarely identical across time for a person,
-within a team, or across teams. The interpretation of cycle time
-therefore presents particular challenges because variations could
-reflect differences in work patterns, task assignment, and
-organizational contexts rather than differences in some underlying rate
-of task completion.
+within a team, or across teams. The interpretation of cycle time as a
+proxy for productivity therefore presents particular challenges because
+variations could reflect differences in work patterns, task assignment,
+task scoping, and organizational contexts rather than differences in
+some underlying rate of task completion.
 
 Nevertheless, the intuitive appeal of cycle time and its widespread use
 in practice make it a valuable focus for empirical investigation. The
@@ -319,9 +321,9 @@ objective quantitative windows we have into the process of software
 production (but note that self-reports of perceived productivity are
 also potentially valid measures of this process). For this reason, it
 behooves us to discuss the literature on productivity, even as we
-position this analysis as specifically analyzing what we consider to be
-at best a very distal indicator of whatever it is people mean when they
-use the word ``productivity.''
+position the analyses in this report as specifically analyzing what we
+consider to be at best a very distal indicator of whatever it is people
+mean when they use the word ``productivity.''
 
 Defining software team productivity and performance is a highly
 contentious exercise and many different definitions are given by both
@@ -376,7 +378,8 @@ demonstrate how one might approach an in-depth analysis of either
 performance}\label{evaluating-individual-developer-performance}
 
 Given the difficulty of appropriately defining productivity, the many
-choices in measuring it, and the potential cost of being measured, it is
+metrics that purport to measure it, and the potential cost to an
+individual (e.g., career, reputation) of being measured, it is
 understandable that software developers have an ambivalent stance about
 the measurement of both work activity and productivity, that metrics
 adoption can be fraught with failure
@@ -387,8 +390,8 @@ software team experience beyond project and technical metrics
 \citep{hicksDeveloperThrivingFour2023, murphy-hillWhatPredictsSoftware2021}.
 
 Developers whose teams use metrics generally see those metrics as
-helpful, and developers who report agreement with team-level metrics
-tend to report higher perceived productivity
+helpful, and developers who report agreement which team-level metrics
+are measured tend to report higher perceived productivity
 \citep{hicksDeveloperThrivingFour2023, hicksDeveloperThrivingFour2024}.
 However, paired with this are some indicators of uncertainty in whether
 and how metrics are being tracked or used
@@ -486,12 +489,13 @@ engineer's inverse\footnote{in fact, the original paper perhaps even
   part which shows that one poor performer can consume as much time or
   cost as 5, 10, or 20 good ones.''
   \citep[6]{sackmanExploratoryExperimentalStudies1968}}\citep{obstbaumOngoingResearchSoftware}.
-The measure of productivity used is something half-way between the
-objective and self-report: an unspecified machine-learning model trained
-on expert ratings of the quality and work necessary to complete 70
-commits \citep{denisov-blanchPredictingExpertEvaluations2024}. Unlike
-prior work, this method lacks both the transparency of ``objective''
-measures and the temperance of self-report measures.
+The measure of productivity used is something half-way between an
+objective measurement and self-report: an unspecified machine-learning
+model trained on expert ratings of the quality of, and work necessary to
+complete, 70 commits
+\citep{denisov-blanchPredictingExpertEvaluations2024}. Unlike prior
+work, this method lacks both the transparency of ``objective'' measures
+and the temperance of self-report measures.
 
 In taking a deep dive into cycle time, this project does not address
 every implementation challenge and organizational affordance that may
@@ -505,9 +509,9 @@ developers in practice.
 
 \subsection{Cycle Time}\label{cycle-time}
 
-Because lower cycle times typically indicate faster delivery times and
-more efficient software processes, cycle time has long been taken as a
-key indicator of team health, developer productivity, and team
+Because lower cycle times are thought to indicate faster delivery times
+and more efficient software processes, cycle time has long been taken as
+a key indicator of team health, developer productivity, and team
 efficiency
 \citep{clincySoftwareDevelopmentProductivity2003, agrawalSoftwareEffortQuality2007, carmelCycleTimePackaged1995, eversImprovingEngineeringProductivity1998, guptaKeyDriversReduced1998, nanImpactBudgetSchedule2009, ruvimovaExploratoryStudyProductivity2022, sadowskiRethinkingProductivitySoftware2019, trendowiczChapter6Factors2009}.
 This suggests that understanding factors that influence cycle time may
@@ -564,12 +568,14 @@ collect.
 The utility of cycle time has subsequently led to numerous industry
 experts recommending that engineering managers and leaders track their
 teams' cycle times. However, leaders are provided less guidance on how
-to decrease cycle time. As such, leaders are left with the dilemma of
-being aware of their cycle times, but not understanding how to improve
-their cycle times in an evidence based way. Four major areas have been
-proposed to impact cycle time: (1) organizational structure and climate,
-(2) reward system, (3) software development process and (4) the use of
-software design and testing tools
+to analyze and decrease cycle time. As such, leaders are left with the
+dilemma of being aware of their cycle times, but not understanding how
+to improve their cycle times in an evidence-based way.
+
+In the literature that does directly address this question, four major
+areas have been proposed to impact cycle time: (1) organizational
+structure and climate, (2) reward system, (3) software development
+process and (4) the use of software design and testing tools
 \citep{clincySoftwareDevelopmentProductivity2003}. We focus in this
 paper on factors from (3) software development processes, in part
 because measurements of these processes continue to gather significant
@@ -631,40 +637,53 @@ Characteristics}\label{data-selection-and-characteristics}
 
 To examine coding time, task scoping, and collaboration as predictors of
 cycle time over time, we centered our analysis on a large, real-world
-dataset of git and ticketing data of 55,619 observations across 12
-months in 2022 from 11,398 users in 216 organizations of varying sizes
-and industries. We chose to use longitudinal data across 12 months, as
-it allowed us to examine fluctuations within a person's workflow as well
-as different stable tendencies between people.This data was available
-via partnerships between a software metrics tool\footnote{Formerly
-  Pluralsight Flow, now Flow at Appfire. All authors were research
-  scientists or data scientists employed at Pluralsight at the time that
-  this data was collected and analyzed.} which was incorporated into the
-workflows of real working software teams, and the 216 organizations
-which opted in to this tool at any point during the 12 month analytic
-window. Notably, because this tool was adopted on an organizational
-level (following partnership agreements that include organizational
-opt-in and security audits), users themselves did not have to be active
-users of the software metrics tool itself in order to be included in
-this dataset, and git and ticketing data was available retrospectively
-for dates prior to the implementation of the tool in the organization.
-In other words, the git and ticketing data included in this analysis is
-not predicated on being an individual user of the software metrics tool,
-nor on the software metrics tool being used at the organization, as our
-dataset contains measures both before and after the software metric tool
+dataset of git and ticketing data. This dataset includes 55,619
+observations across 12 months in 2022 from 11,398 users in 216
+organizations of varying sizes and industries. We chose to use
+longitudinal data across 12 months, as it allowed us to examine
+fluctuations within a person's workflow as well as different stable
+tendencies between people.This data was available via partnerships
+between a software metrics tool\footnote{Formerly Pluralsight Flow, now
+  Flow at Appfire. All authors were research scientists or data
+  scientists employed at Pluralsight at the time that this data was
+  collected and analyzed.} which was incorporated into the workflows of
+real working software teams, and the 216 organizations which opted in to
+this tool at any point during the 12 month analytic window. Notably,
+because this tool was adopted on an organizational level (following
+partnership agreements that include organizational opt-in and security
+audits), users themselves did not have to be active users of the
+software metrics tool itself in order to be included in this dataset,
+and git and ticketing data was available retrospectively for dates prior
+to the implementation of the tool in the organization. In other words,
+the git and ticketing data included in this analysis is not predicated
+on being an individual user of the software metrics tool, nor on the
+software metrics tool being used at the organization, as our dataset
+contains measures both before and after the software metric tool
 implementation at the organization, and implementation dates for
 organizations vary across the 12 month period.
 
 Data were selected for analysis based on whether users actively
 contributed code during the time frame of the study. The 216
-organizations included in this dataset had between 1--2,746 individuals
-in the dataset, with 90\% of organizations being represented by more
-than 12 users, and in previous pilot surveys used to inform the design
-of this project, professional software developer users from these
-organizations described their main industries as ranging from
+organizations each had between 1--2,746 individuals in the dataset, with
+90\% of organizations being represented by more than 12 users (Median =
+130; Figure~\ref{fig-org-size}). In previous pilot surveys used to
+inform the design of this project, professional software developer users
+from these organizations described their main industries as ranging from
 Technology, Finance, Government, Insurance, Retail, and others,
 indicating a wide diversity of business use cases and engineering
 contexts were present in this sample.
+
+\begin{figure}
+
+\centering{
+
+\includegraphics[width=0.03125in,height=\textheight]{plots/org_size_hist.png}
+
+}
+
+\caption{\label{fig-org-size}}
+
+\end{figure}%
 
 \subsection{Computing study variables}\label{computing-study-variables}
 
@@ -778,7 +797,7 @@ Another potentially beneficial signal in software activity data is the
 reduction of unplanned work on bugs and defect tickets, which is also
 proposed as a bottleneck on improving cycle time
 \citep{paudelMeasuringImpactTechnical2024, paudelMeasuringImpactTechnical2024, rosserSystemsPerspectiveTechnical2021, toxboeCycleTime2023}.
-As such, we used the percentage of defect ticks as another measure of
+As such, we used the percentage of defect tickets as another measure of
 task scoping to represent unplanned work that may interfere with timely
 completion of planned work. This may also be a downstream signal of
 individuals' opportunity for focused work time and code quality. To
@@ -788,14 +807,15 @@ the percent of tickets that were defect tickets.
 \subsubsection{Degree centrality}\label{degree-centrality}
 
 We measured collaboration by calculating degree centrality. To evaluate
-degree centrality, a metric derived from network analysis, we employed a
-framework where developers were treated as nodes within the network, and
-their interactions in the form of Pull Requests (PRs) were regarded as
-connections. In other words, any contribution of code to the same pull
-request constituted a collaboration edge between developers. We
-normalized each centrality value by dividing by the total number of
-developers constituting the organizational network. The calculations
-were executed using the Python package Networkx
+degree centrality, a metric derived from network analysis and often used
+in the analysis of social networks \citep{wattsNewScienceNetworks2004},
+we employed a framework where developers were treated as nodes within
+the network, and their interactions in the form of Pull Requests (PRs)
+were regarded as connections. In other words, any contribution of code
+to the same pull request constituted a collaboration edge between
+developers. We normalized each centrality value by dividing by the total
+number of developers constituting the organizational network. The
+calculations were executed using the Python package Networkx
 \citep{SciPyProceedings_11}. This particular variable serves as an
 effective proxy for quantifying the extent of collaboration among
 developers. We multiply the normalized degree centrality, which is
@@ -1050,11 +1070,11 @@ the same sign (see Table~\ref{tbl-results-fe} for point estimates and
 uncertainty intervals). Within-quarter month showed a very small
 (relative to other effects shown below) negative association with cycle
 time, indicating that time to ticket completion is shorter at the end of
-quarters (Figure~\ref{fig-quarter}). Team size had almost to no effect
-on cycle time (Table~\ref{tbl-results-fe}). Cycle times tended to
-decrease slightly over the year (Figure~\ref{fig-month}). The proportion
-of unclosed tickets, an important control variable, on average had close
-to no effect on our measure of average monthly cycle time but interacted
+quarters (Figure~\ref{fig-quarter}). Team size had almost no effect on
+cycle time (Table~\ref{tbl-results-fe}). Cycle times tended to decrease
+slightly over the year (Figure~\ref{fig-month}). The proportion of
+unclosed tickets, an important control variable, on average had close to
+no effect on our measure of average monthly cycle time but interacted
 with month.
 
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
@@ -1330,7 +1350,7 @@ with 95\% credible interval ribbons.}
 
 \end{figure}%
 
-Degree centrality, both on average across the year individual
+Degree centrality, as measured both by year-averaged individual
 differences and within-person deviations, showed a negative association
 with cycle time (Figure~\ref{fig-degree}). In other words, individuals
 who on average contribute code to PRs that have a lot of other
@@ -1783,7 +1803,10 @@ quality of task performance, and perceived value of software development
 work. Nevertheless, monitoring cycle time is frequently recommended as a
 measurement practice for software management. Below, we elaborate on
 four key limitations of the current findings in greater detail, which
-are of course also opportunities for future research.
+are of course also opportunities for future research. In general, these
+limitations point to the need for more and better empirical evidence for
+software engineering
+\citep{devanbuBeliefEvidenceEmpirical2016, kitchenhamEvidencebasedSoftwareEngineering2004, sjobergFutureEmpiricalMethods2007}.
 
 First, measurement validity challenges in ticket data and sample
 representativeness constrain our analysis. A primary contribution of
@@ -1805,7 +1828,9 @@ timeliness and accuracy of ticket entries may be an important factor
 complicating our ability to understand cycle time. This context
 limitation also applies to our sample of organizations which is
 non-random and reflects organizations that invested in the software
-metrics tool that provided that data.
+metrics tool that provided that data, and does threaten the
+generalizability of these results
+\citep{baltesSamplingSoftwareEngineering2021a}.
 
 Second, systematic differences in ticket assignment patterns may
 complicate cycle time interpretations. In this analysis, we have
@@ -1828,8 +1853,8 @@ disruptions.
 Third, our simplified measurement of team structures fails to capture
 the complex collaborative reality of software development. In this
 analysis, given limitations in our dataset about contexts such as
-internal team structures within organizations, we have explored team
-size with a generous attribution of team belonging across shared
+internal team structures within organizations, we have operationalized
+team size with a generous attribution of team membership across shared
 activity, which almost certainly represents a very rough estimate of
 team size. We have also calculated team size as averaged in a static
 measure for the entire year, rather than captured over time. Given that
@@ -1868,8 +1893,8 @@ use the term software developer broadly.
 
 \section{Discussion}\label{discussion}
 
-\subsection{Take-aways for practitioners and Anti
-Patterns}\label{take-aways-for-practitioners-and-anti-patterns}
+\subsection{Take-aways for practitioners and
+anti-patterns}\label{take-aways-for-practitioners-and-anti-patterns}
 
 In this section, we summarize parts of our more thorough discussion
 (below) in plain language that we hope will be useful for software
@@ -1894,8 +1919,8 @@ data at scale.
   what is typical. Again, remember that each ticket's time-to-close is
   influenced by myriad factors, most of which are beyond the individual
   contributor's control. Ensuring a standard and repeatable practice
-  around how tickets are created and managed across teams may also be a
-  necessary precondition to relying on ticket data to make valid
+  around how tickets are created and managed across teams is likely to
+  be a necessary precondition to relying on ticket data to make valid
   comparisons.
 \item
   Practitioners can use this research to feel justified in seeking more
@@ -1911,8 +1936,15 @@ data at scale.
   understanding software work requires studying diverse contexts across
   industries and companies. This broad scope also creates opportunities
   for natural experiments. While organizations may hesitate to share
-  data, these ``secrets'' typically diffuse naturally, and free
-  revealing may ultimately prove more profitable, as described by
+  data, these ``secrets'' typically diffuse naturally, and ``free
+  revealing\footnote{''When we suggest that an innovator---be it an
+    individual or a firm---`freely reveals' proprietary information, we
+    mean that all intellectual property rights to that information are
+    voluntarily given up by that innovator and all parties are given
+    equal access to it---the information becomes a public good (Harhoff
+    et al., 2003).''
+    \citep[295]{vonhippelFreeRevealingPrivatecollective2006}}'' may
+  ultimately prove more profitable, as described by
   \citet{vonhippelFreeRevealingPrivatecollective2006}.
 \item
   We should understand that cycle time is still quite distant from the
@@ -1973,7 +2005,7 @@ effect of more PRs for the same amount of coding time, and vice versa
 (we discuss this benefit of our modeling approach more below).
 
 Perhaps not as obviously, contributing code to a PR that is being
-contributed by others (what is captured by our degree centrality
+contributed to by others (what is captured by our degree centrality
 measure) also benefits cycle time. Contrary to the possibility that
 there are too many cooks in the kitchen, we show that on average cycle
 time is lower when people work together on a shared problem. Again, this
@@ -2174,8 +2206,8 @@ this complexity.
 
 \section{Acknowledgements}\label{acknowledgements}
 
-We would like to thank Kristen Foster-Marks, Bennet Cook, and Mike Hoye
-for their helpful advice on this research.
+We would like to thank Kristen Foster-Marks, and Bennet Cook for their
+helpful advice on this research.
 
 \section{Contributions}\label{contributions}
 
