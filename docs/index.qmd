@@ -28,7 +28,6 @@ author:
     orcid: 0009-0007-5657-1661
     roles: [Conceptualization, Funding acquisition, Investigation, Methodology, Project administration, Resources, Supervision, Writing – review & editing]
     corresponding: false
-    email: cat-hicks@pluralsight.com
     affiliation:
       name: Pluralsight
       city: Draper, UT
@@ -38,7 +37,6 @@ author:
       - M.S.
     roles: [Conceptualization, Data curation, Formal analysis, Investigation, Methodology]
     corresponding: false
-    email: maggie-wu@pluralsight.com
     affiliation:
       name: Pluralsight
       city: Draper, UT
@@ -141,9 +139,7 @@ Industry convention rationalizes that increased coding times increases the amoun
 
 # Research design and methodology
 
-All code can be found in the repository for this paper.
-
-- [ ] To be linked
+Please see "ancillary files" for the text of analysis code as a Qmd file.
 
 ## Data Selection and Characteristics
 

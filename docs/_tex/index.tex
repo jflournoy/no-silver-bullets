@@ -4,11 +4,7 @@
 \PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 %
 \documentclass[
-  sn-mathphys-ay,
-]{sn-jnl}
-
-\setlength\evensidemargin{\oddsidemargin}
-
+]{article}
 
 \usepackage{amsmath,amssymb}
 \usepackage{iftex}
@@ -24,6 +20,8 @@
 \usepackage{lmodern}
 \ifPDFTeX\else  
     % xetex/luatex font selection
+    \setmainfont[]{Latin Modern Roman}
+  \setmathfont[]{Latin Modern Math}
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -93,27 +91,40 @@
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
-%%%% Standard Packages
-
-\usepackage{graphicx}%
-\usepackage{multirow}%
-\usepackage{amsmath,amssymb,amsfonts}%
-\usepackage{amsthm}%
-\usepackage{mathrsfs}%
-\usepackage[title]{appendix}%
-\usepackage{xcolor}%
-\usepackage{textcomp}%
-\usepackage{manyfoot}%
-\usepackage{booktabs}%
-\usepackage{algorithm}%
-\usepackage{algorithmicx}%
-\usepackage{algpseudocode}%
-\usepackage{listings}%
-
-%%%%
-
-\raggedbottom
 \usepackage{fontspec}
 \usepackage{multirow}
 \usepackage{multicol}
@@ -132,6 +143,10 @@
 \newunicodechar{λ}{\ensuremath{\lambda}}
 \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
 \newcommand{\xfnm}[1][]{\ifx!#1!\else\unskip,\space#1\fi}
+\usepackage{arxiv}
+\usepackage{orcidlink}
+\usepackage{amsmath}
+\usepackage[T1]{fontenc}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -195,23 +210,29 @@ modeling},
   pdfcreator={LaTeX via pandoc}}
 
 
-\title[No Silver Bullets: Why Understanding Software Cycle Time is
-Messy, Not Magic]{No Silver Bullets: Why Understanding Software Cycle
-Time is Messy, Not Magic}
-
-% author setup
-\author*[aff-1]{\fnm{John C.} \sur{Flournoy}}\email{jcflournoyphd@pm.me}\author[aff-1]{\fnm{Carol S.} \sur{Lee}}\author[aff-1]{\fnm{Catherine M.} \sur{Hicks}}\email{cat-hicks@pluralsight.com}\author[aff-1]{\fnm{Maggie} \sur{Wu}}\email{maggie-wu@pluralsight.com}
-% affil setup
-\affil[aff-1]{, \orgname{Pluralsight}}
-
-% abstract 
-
-\abstract{Understanding factors that influence software development
-velocity is crucial for engineering teams and organizations, yet
-empirical evidence at scale remains limited. A more robust understanding
-of the dynamics of cycle time may help practitioners avoid pitfalls in
-relying on velocity measures while evaluating software work. We analyze
-cycle time---a widely-used metric measuring time from ticket creation to
+\newcommand{\runninghead}{A Preprint }
+\renewcommand{\runninghead}{preprint: No Silver Bullets for Cycle Time }
+\title{No Silver Bullets: Why Understanding Software Cycle Time is
+Messy, Not Magic}
+\def\asep{\\\\\\ } % default: all authors on same column
+\def\asep{\And }
+\author{\textbf{John C.
+Flournoy}~\orcidlink{0000-0003-1735-1221}\\\\Pluralsight\\Draper,
+UT\\\href{mailto:jcflournoyphd@pm.me}{jcflournoyphd@pm.me}\asep\textbf{Carol
+S. Lee}~\orcidlink{0000-0002-6909-6157}\\\\Pluralsight\\Draper,
+UT\\\asep\textbf{Catherine M.
+Hicks}~\orcidlink{0009-0007-5657-1661}\\\\Pluralsight\\Draper,
+UT\\\asep\textbf{Maggie Wu}\\\\Pluralsight\\Draper, UT\\}
+\date{}
+\begin{document}
+\maketitle
+\begin{abstract}
+Understanding factors that influence software development velocity is
+crucial for engineering teams and organizations, yet empirical evidence
+at scale remains limited. A more robust understanding of the dynamics of
+cycle time may help practitioners avoid pitfalls in relying on velocity
+measures while evaluating software work. We analyze cycle time---a
+widely-used metric measuring time from ticket creation to
 completion---using a dataset of over 55,000 observations across 216
 organizations. Through Bayesian hierarchical modeling that appropriately
 separates individual and organizational variation, we examine how coding
@@ -227,15 +248,14 @@ about typical performance. This work demonstrates methods for analyzing
 complex operational metrics at scale while highlighting potential
 pitfalls in using such measurements to drive decision-making. We
 conclude that improving software delivery velocity likely requires
-systems-level thinking rather than individual-focused interventions.}
+systems-level thinking rather than individual-focused interventions.
+\end{abstract}
+{\bfseries \emph Keywords}
+\def\sep{\textbullet\ }
+cycle time \sep productivity \sep software
+engineering \sep collaboration \sep coding time \sep task scoping \sep 
+hierarchical modeling
 
-% keywords
-\keywords{cycle time,  productivity,  software
-engineering,  collaboration,  coding time,  task scoping,  hierarchical
-modeling}
-
-\begin{document}
-\maketitle
 
 
 \section{Introduction}\label{introduction}
@@ -249,8 +269,8 @@ takes for task completion---has emerged as a focal point of empirical
 investigation, particularly through measures like cycle time which
 captures the duration between ticket opening and ticket closing.
 Moreover, cycle-time is seen by engineers as the most useful metric of
-engineering productivity according to a prominent industry report
-\citep{careyWhy70Engineers2024}.
+engineering productivity according to a prominent industry report (Carey
+2024).
 
 While cycle time is often treated as an indicator of productivity per
 se, the concept of productivity remains poorly specified in software
@@ -329,44 +349,42 @@ mean when they use the word ``productivity.''
 
 Defining software team productivity and performance is a highly
 contentious exercise and many different definitions are given by both
-practitioners and researchers
-\citep{fraserNoSilverBullet2007, hicksDeveloperThrivingFour2023, hicksDeveloperThrivingFour2024, murphy-hillWhatPredictsSoftware2021, sadowskiSoftwareDevelopmentProductivity2019}.
-Perceptions of what counts as successful software work can meaningfully
-differ across individuals and roles, as when engineering managers tend
-to focus on long-term outcomes and individual developers focus on
-activity, for example
-\citep{hicksDeveloperThrivingFour2023, storeyHowDevelopersManagers2022b}.
-Across workplaces, measures of time have been frequently used to assess
+practitioners and researchers (Fraser et al. 2007; C. Hicks, Lee, and
+Ramsey 2023; C. M. Hicks, Lee, and Ramsey 2024; Murphy-Hill et al. 2021;
+Sadowski, Storey, and Feldt 2019). Perceptions of what counts as
+successful software work can meaningfully differ across individuals and
+roles, as when engineering managers tend to focus on long-term outcomes
+and individual developers focus on activity, for example (C. Hicks, Lee,
+and Ramsey 2023; Storey, Houck, and Zimmermann 2022b). Across
+workplaces, measures of time have been frequently used to assess
 productivity even while the shortcomings of these measures are also
-widely acknowledged \citep{griffinMetricsMeasuringProduct1993}.
-Alternative measures include self-ratings or peer evaluations
-\citep{murphy-hillWhatPredictsSoftware2021, ramirezMeasuringKnowledgeWorker2004}
-and in software engineering, operationalizations of code work such as
-lines of code
-\citep{blackburnImprovingSpeedProductivity1996, maxwellSoftwareDevelopmentProductivity1996}.
-These have obvious limitations in that the meaning of a particular unit
-for any of these metrics may be different depending on context
-\citep{sadowskiSoftwareDevelopmentProductivity2019}. Some researchers
-have sought solutions to this problem by asking individuals to rate
-their own level of, or satisfaction with, productivity
-\citep{hicksDeveloperThrivingFour2023, storeyTheorySoftwareDeveloper2021}.
-While it is plausible that perceived productivity could be a good
-indicator of productivity, it is still not free of the context effects
-that are often levied as critiques of more ``objective'' metrics, and
-self-report, while perhaps overcoming some shortcomings of other
-methods, bring with them another set of measurement issues.
+widely acknowledged (Griffin 1993). Alternative measures include
+self-ratings or peer evaluations (Murphy-Hill et al. 2021; Ramírez and
+Nembhard 2004) and in software engineering, operationalizations of code
+work such as lines of code (Blackburn, Scudder, and Van Wassenhove 1996;
+Maxwell, Van Wassenhove, and Dutta 1996). These have obvious limitations
+in that the meaning of a particular unit for any of these metrics may be
+different depending on context (Sadowski, Storey, and Feldt 2019). Some
+researchers have sought solutions to this problem by asking individuals
+to rate their own level of, or satisfaction with, productivity (C.
+Hicks, Lee, and Ramsey 2023; Storey et al. 2021). While it is plausible
+that perceived productivity could be a good indicator of productivity,
+it is still not free of the context effects that are often levied as
+critiques of more ``objective'' metrics, and self-report, while perhaps
+overcoming some shortcomings of other methods, bring with them another
+set of measurement issues.
 
 The difficulty of quantifying productivity arises even prior to the step
 of choosing one or several indicators. There is often a lack of clear
 distinction between production (quantity of output regardless of
 resources provided), productivity (quantity of output given the
 resources provided), and performance (flexibility, adaptability,
-dependability, sustainability, and quality of output over time)
-\citep{hicksDeveloperThrivingFour2023}. As any software developer will
-be aware, this conceptual complexity is likely the result of the various
-ways their work counts for professional development, for the success of
-the product, and for simply meeting deadlines. This piece of research
-does not aim to solve the issue of how we conceive of productivity but
+dependability, sustainability, and quality of output over time) (C.
+Hicks, Lee, and Ramsey 2023). As any software developer will be aware,
+this conceptual complexity is likely the result of the various ways
+their work counts for professional development, for the success of the
+product, and for simply meeting deadlines. This piece of research does
+not aim to solve the issue of how we conceive of productivity but
 instead seeks to take a deep look at a single popular metric in order to
 showcase, first, the many factors (themselves, a subset of possible
 influences of productivity) that affect cycle time, and second, how
@@ -384,50 +402,45 @@ metrics that purport to measure it, and the potential cost to an
 individual (e.g., career, reputation) of being measured, it is
 understandable that software developers have an ambivalent stance about
 the measurement of both work activity and productivity, that metrics
-adoption can be fraught with failure
-\citep{bouwersSoftwareMetricsPitfalls2013}, and that social or
-socio-technical affordances can be strongly associated with
-self-reported productivity and necessary to obtain a full picture of
-software team experience beyond project and technical metrics
-\citep{hicksDeveloperThrivingFour2023, murphy-hillWhatPredictsSoftware2021}.
+adoption can be fraught with failure (Bouwers, van Deursen, and Visser
+2013), and that social or socio-technical affordances can be strongly
+associated with self-reported productivity and necessary to obtain a
+full picture of software team experience beyond project and technical
+metrics (C. Hicks, Lee, and Ramsey 2023; Murphy-Hill et al. 2021).
 
 Developers whose teams use metrics generally see those metrics as
 helpful, and developers who report agreement which team-level metrics
-are measured tend to report higher perceived productivity
-\citep{hicksDeveloperThrivingFour2023, hicksDeveloperThrivingFour2024}.
-However, paired with this are some indicators of uncertainty in whether
-and how metrics are being tracked or used
-\citep{hicksDeveloperThrivingFour2023}, there is often backlash against
-any attempt to define or popularize such metrics
-\citep{bruneauxWhatMcKinseyHas2024, chhunejaWhy50Developers2024, coteOnlyPeopleWho2023, finster5MinuteDevOps2023, oroszMeasuringDeveloperProductivity2024, oroszMeasuringDeveloperProductivity2024a, rigginsWhatMcKinseyGot2023, terhorst-northMcKinseyDeveloperProductivity2023, terhorst-northWorstProgrammerKnow2023, walkerConsUsingSPACE2023, walkerEverythingWrongDORA2023},
-and there is concern about mismeasurement by managers inside of
-organizations \citep{hicksDeveloperThrivingFour2023}, which is part of a
+are measured tend to report higher perceived productivity (C. Hicks,
+Lee, and Ramsey 2023; C. M. Hicks, Lee, and Ramsey 2024). However,
+paired with this are some indicators of uncertainty in whether and how
+metrics are being tracked or used (C. Hicks, Lee, and Ramsey 2023),
+there is often backlash against any attempt to define or popularize such
+metrics (Bruneaux 2024; Chhuneja 2024; Coté 2023; Finster 2023; Orosz
+2024a, 2024b; Riggins 2023; Terhorst-North 2023b, 2023a; Walker 2023b,
+2023a), and there is concern about mismeasurement by managers inside of
+organizations (C. Hicks, Lee, and Ramsey 2023), which is part of a
 broader discussion of surveillance and the discontent it can generate
-for workers
-\citep{ballWorkplaceSurveillanceOverview2010, grisoldDigitalSurveillanceOrganizations2024, mettlerConnectedWorkplaceCharacteristics2024}.
-More troublingly, recent scholarship on sociocognitive experiences in
-the workplace has proposed that severe experiences of employees being
+for workers (Ball 2010; Grisold et al. 2024; Mettler 2024). More
+troublingly, recent scholarship on sociocognitive experiences in the
+workplace has proposed that severe experiences of employees being
 treated by an organization as a ``mere tool'' or a resource may create
 organizational dehumanization leading to many negative impacts on both
-well-being measures and on work outcomes
-\citep{caesensPerceivedOrganizationalSupport2017, lagiosExplainingNegativeConsequences2022}.
-Moreover, there is evidence that metrics might be used differently
-depending on a person's visible identities
-\citep[e.g,][]{quadlinMarkWomansRecord2018}.
+well-being measures and on work outcomes (Caesens et al. 2017; Lagios et
+al. 2022). Moreover, there is evidence that metrics might be used
+differently depending on a person's visible identities (e.g, Quadlin
+2018).
 
 Likewise, scholarship on employee perceptions of organizational and
 procedural justice have long documented that when employees perceive a
 context of organizational injustice, this can exacerbate or redefine
 experiences of organizational decision-making and performance
-evaluations
-\citep{brocknerInteractiveEffectsProcedural1994, brocknerProceduralFairnessOutcome2007}.
-Given such larger organizational dynamics, it is likely that whether or
-not software metrics adoptions are successful is impacted not only by
-the choice of metric but also by larger contextual factors such as
-teams' sociocognitive experiences and expectations around measurement,
-and the psychological affordances of their environments which may or may
-not allow them to address measurement concerns
-\citep{hicksPsychologicalAffordancesCan2024}.
+evaluations (Brockner et al. 1994, 2007). Given such larger
+organizational dynamics, it is likely that whether or not software
+metrics adoptions are successful is impacted not only by the choice of
+metric but also by larger contextual factors such as teams'
+sociocognitive experiences and expectations around measurement, and the
+psychological affordances of their environments which may or may not
+allow them to address measurement concerns (C. M. Hicks 2024).
 
 We lack holistic evidence about what practitioners in software
 development believe about developer performance and ability; some
@@ -435,29 +448,28 @@ reports from researchers with samples at large technology companies have
 suggested both that definitions of productivity can vary widely between
 managers and developers, and that software developers perceive many
 potential trade-offs between types of technical goals, e.g.~that quality
-and speed may be unattainable together
-\citep{storeyHowDevelopersManagers2022}.
+and speed may be unattainable together (Storey, Houck, and Zimmermann
+2022a).
 
 One ``industry myth'' which is referenced frequently in practitioner
 commentary is the idea of a ``10x engineer'': this position alleges that
 some small outlier population of software developers consistently
 outperform others on key development tasks. Potentially springing from
 small case studies examining a handful of developers' time spent solving
-small laboratory tasks
-\citetext{\citealp{sackmanExploratoryExperimentalStudies1968}; \citealp[discussed
-in][]{nicholsEndMythIndividual2019}}, this ``law'' was generalized from
-only twelve individuals, uses time spent on the tasks as an estimate of
-both effort and cost, has failed to replicate in larger examinations of
-developer performance on similar tasks, and failed to acknowledge large
-within-individual variation in task performance
-\citep{nicholsEndMythIndividual2019, shrikanthAssessingPractitionerBeliefs2021}.
+small laboratory tasks (Sackman, Erikson, and Grant 1968; discussed in
+Nichols 2019), this ``law'' was generalized from only twelve
+individuals, uses time spent on the tasks as an estimate of both effort
+and cost, has failed to replicate in larger examinations of developer
+performance on similar tasks, and failed to acknowledge large
+within-individual variation in task performance (Nichols 2019; Shrikanth
+et al. 2021).
 
 Nevertheless, the idea that ``10x engineers'' exist and that some
 individuals in software engineering outperform others by a ``rule'' of
-10x has been cited often and codified in industry commentary,
-\citep[e.g.,][]{brooksMythicalManmonthEssays1975}. Modern commentary on
-this idea frequently refers to it as a myth, but it is also discussed as
-a potentially real phenomenon\footnote{For example, see this
+10x has been cited often and codified in industry commentary, (e.g.,
+Brooks 1975). Modern commentary on this idea frequently refers to it as
+a myth, but it is also discussed as a potentially real
+phenomenon\footnote{For example, see this
   \href{https://news.ycombinator.com/item?id=22349531}{ycombinator
   thread}
   (\href{http://web.archive.org/web/20240917164935/https://stackoverflow.blog/2024/06/19/the-real-10x-developer-makes-their-whole-team-better/}{internet
@@ -471,11 +483,11 @@ development success and productivity is attributable to a quality of
 ``innate brilliance'', and that this belief among practitioners may
 create a higher likelihood of experiencing threat and anxiety in the
 face of rapid role change and technological shifts to developer
-workflows \citep{hicksNewDeveloperAI2024}. Broad reviews on drivers of
-software development outcomes, particularly frictions in the form of
-team ``debt,'' also suggest that social-psychological aspects of shared
-work processes may be a significant contributor to these outcomes
-separate from individual performance \citep{ahmadPandorasBoxSocial2024}.
+workflows (C. M. Hicks, Lee, and Foster-Marks 2024). Broad reviews on
+drivers of software development outcomes, particularly frictions in the
+form of team ``debt,'' also suggest that social-psychological aspects of
+shared work processes may be a significant contributor to these outcomes
+separate from individual performance (Ahmad and Gustavsson 2024).
 
 Despite some recognition that the 10x engineer is a problematic concept,
 the conflictual measurement of productivity and its use as a tool of
@@ -489,15 +501,14 @@ engineer's inverse\footnote{in fact, the original paper perhaps even
   stating, ``the `horrid' portion of the performance frequency
   distribution is the long tail at the high end, the positively skewed
   part which shows that one poor performer can consume as much time or
-  cost as 5, 10, or 20 good ones.''
-  \citep[6]{sackmanExploratoryExperimentalStudies1968}}\citep{obstbaumOngoingResearchSoftware}.
-The measure of productivity used is something half-way between an
-objective measurement and self-report: an unspecified machine-learning
-model trained on expert ratings of the quality of, and work necessary to
-complete, 70 commits
-\citep{denisov-blanchPredictingExpertEvaluations2024}. Unlike prior
-work, this method lacks both the transparency of ``objective'' measures
-and the temperance of self-report measures.
+  cost as 5, 10, or 20 good ones.'' (Sackman, Erikson, and Grant 1968,
+  6)}(Obstbaum and Denisov-Blanch, n.d.). The measure of productivity
+used is something half-way between an objective measurement and
+self-report: an unspecified machine-learning model trained on expert
+ratings of the quality of, and work necessary to complete, 70 commits
+(Denisov-Blanch et al. 2024). Unlike prior work, this method lacks both
+the transparency of ``objective'' measures and the temperance of
+self-report measures.
 
 In taking a deep dive into cycle time, this project does not address
 every implementation challenge and organizational affordance that may
@@ -514,58 +525,58 @@ developers in practice.
 Because lower cycle times are thought to indicate faster delivery times
 and more efficient software processes, cycle time has long been taken as
 a key indicator of team health, developer productivity, and team
-efficiency
-\citep{clincySoftwareDevelopmentProductivity2003, agrawalSoftwareEffortQuality2007, carmelCycleTimePackaged1995, eversImprovingEngineeringProductivity1998, guptaKeyDriversReduced1998, nanImpactBudgetSchedule2009, ruvimovaExploratoryStudyProductivity2022, sadowskiRethinkingProductivitySoftware2019, trendowiczChapter6Factors2009}.
-This suggests that understanding factors that influence cycle time may
-lead to insights into factors that are important to understand for
-understanding productivity in general. At minimum, examining cycle time
-can provide a description of the complexity of factors that impact this
-popular metric.
+efficiency (Clincy 2003; Agrawal and Chari 2007; Carmel 1995; Evers,
+Oehler, and Tucker 1998; Gupta and Souder 1998; Nan and Harter 2009;
+Ruvimova et al. 2022; Sadowski and Zimmermann 2019; Trendowicz and Münch
+2009). This suggests that understanding factors that influence cycle
+time may lead to insights into factors that are important to understand
+for understanding productivity in general. At minimum, examining cycle
+time can provide a description of the complexity of factors that impact
+this popular metric.
 
 Cycle time examines one aspect of the speed of software delivery by
 measuring the time between task start and task delivery. It has
 consistently been described by industry research as one of the best and
-most trusted metrics for software productivity
-\citep{careyWhy70Engineers2024}. In this same report, similar metrics
-also showed preference, such as lead time, deploy frequency, and change
-failure rate. The common thread across these metrics is that the unit of
-work is defined by the team or company in relation to goals that serve
-the strategic interests of the project. While there is a good deal of
-nuance with respect to what goes into setting these units up, they are
-both discrete (and so ``objective''-feeling) but also defined, often
-collaboratively, with respect to the outcomes that matter. This is in
-contrast to lines of code, for example, which may or may not be relevant
-to the goals of the engineering teams, and which is avoided by 70\% of
-respondents in the same industry report. Cycle time may also be
-considered an important part of developer experience as a component of
-what leads to a fluid-feeling development and release cycle
-\citep{greilerActionableFrameworkUnderstanding2022a}.
+most trusted metrics for software productivity (Carey 2024). In this
+same report, similar metrics also showed preference, such as lead time,
+deploy frequency, and change failure rate. The common thread across
+these metrics is that the unit of work is defined by the team or company
+in relation to goals that serve the strategic interests of the project.
+While there is a good deal of nuance with respect to what goes into
+setting these units up, they are both discrete (and so
+``objective''-feeling) but also defined, often collaboratively, with
+respect to the outcomes that matter. This is in contrast to lines of
+code, for example, which may or may not be relevant to the goals of the
+engineering teams, and which is avoided by 70\% of respondents in the
+same industry report. Cycle time may also be considered an important
+part of developer experience as a component of what leads to a
+fluid-feeling development and release cycle (Greiler, Storey, and Noda
+2022).
 
 In calls to re-examine the complexity of developer productivity,
 researchers have argued that velocity measures are highly
 task-dependent, and do not represent the quality of work done or other,
-longer-term measures of the impact of work
-\citep{sadowskiSoftwareDevelopmentProductivity2019}. It is also possible
-for velocity measures to have multiple directional relationships with
-desired outcomes depending on software developers' larger context. For
-instance, hypothetically speaking, an increase in velocity may associate
-with more success for a software team when this increase arises because
-the team engages in process improvements, creating processes that help
-them to move more quickly through development tasks, and thereby meet a
-critical deadline for a product launch, leading to business outcomes
-which then lead to more resources for the team. However in a different
-scenario, an increase in velocity may be associated with more failures
-for a software team, for instance, if velocity changes arise because the
-team begins to eschew quality control processes, eventually leading to
-costly critical business failures.
+longer-term measures of the impact of work (Sadowski, Storey, and Feldt
+2019). It is also possible for velocity measures to have multiple
+directional relationships with desired outcomes depending on software
+developers' larger context. For instance, hypothetically speaking, an
+increase in velocity may associate with more success for a software team
+when this increase arises because the team engages in process
+improvements, creating processes that help them to move more quickly
+through development tasks, and thereby meet a critical deadline for a
+product launch, leading to business outcomes which then lead to more
+resources for the team. However in a different scenario, an increase in
+velocity may be associated with more failures for a software team, for
+instance, if velocity changes arise because the team begins to eschew
+quality control processes, eventually leading to costly critical
+business failures.
 
 Nevertheless, time and output-based measures are frequently used as an
 outcome measure to make recommendations for software engineering
 practices, e.g.~in evaluating the perceived impact of technical debt
-\citep{beskerTechnicalDebtCripples2018}. These measures have the added
-benefit of having a concrete referent that is simple to measure and
-inexpensive and convenient for teams trying to track productivity to
-collect.
+(Besker, Martini, and Bosch 2018). These measures have the added benefit
+of having a concrete referent that is simple to measure and inexpensive
+and convenient for teams trying to track productivity to collect.
 
 The utility of cycle time has subsequently led to numerous industry
 experts recommending that engineering managers and leaders track their
@@ -577,21 +588,20 @@ to improve their cycle times in an evidence-based way.
 In the literature that does directly address this question, four major
 areas have been proposed to impact cycle time: (1) organizational
 structure and climate, (2) reward system, (3) software development
-process and (4) the use of software design and testing tools
-\citep{clincySoftwareDevelopmentProductivity2003}. We focus in this
-paper on factors from (3) software development processes, in part
-because measurements of these processes continue to gather significant
-interest from the technology industry and are plausibly mobile levers
-that can be manipulated at the level of an engineering team. They are
-also themselves relatively easy to measure and track at the team level
-if a software team within a larger organization were to decide they
-wanted to try to shift their processes and take measurements to make
-sure they were successful. We have argued elsewhere that organizational
-structure and climate are also relatively easy to measure and are
-powerful levers that should be more often targeted
-\citep{hicksCumulativeCultureTheory2024, hicksDeveloperThrivingFour2023, hicksDeveloperThrivingFour2024},
-though for the present work we focus on (3) also in part to keep the
-scope of this analysis manageable.
+process and (4) the use of software design and testing tools (Clincy
+2003). We focus in this paper on factors from (3) software development
+processes, in part because measurements of these processes continue to
+gather significant interest from the technology industry and are
+plausibly mobile levers that can be manipulated at the level of an
+engineering team. They are also themselves relatively easy to measure
+and track at the team level if a software team within a larger
+organization were to decide they wanted to try to shift their processes
+and take measurements to make sure they were successful. We have argued
+elsewhere that organizational structure and climate are also relatively
+easy to measure and are powerful levers that should be more often
+targeted (C. M. Hicks and Hevesi 2024; C. Hicks, Lee, and Ramsey 2023;
+C. M. Hicks, Lee, and Ramsey 2024), though for the present work we focus
+on (3) also in part to keep the scope of this analysis manageable.
 
 To reduce cycle times at the level of software development process, the
 software industry currently recommends strategies centered around three
@@ -615,24 +625,17 @@ similarly yield more efficient teams by breaking work down into more
 manageable chunks and reducing the amount of unplanned work from bugs
 and defects. Finally, industry reports posit that improved collaboration
 can reduce the time it takes for developers to review PRs and increase
-review rates
-\citep{flowHowIncreaseSoftware, gralhaReduceCycleTime2022, waydevCycleTimeFormula2021}.
-However, this has not yet been examined empirically. That is, although
-industry convention dictates that these practices work to reduce cycle
-time, we have yet to generate real world evidence of their
-effectiveness. We focus on these three areas as possible factors that
-impact cycle time.
+review rates (Flow, n.d.; Gralha 2022; Waydev 2021). However, this has
+not yet been examined empirically. That is, although industry convention
+dictates that these practices work to reduce cycle time, we have yet to
+generate real world evidence of their effectiveness. We focus on these
+three areas as possible factors that impact cycle time.
 
 \section{Research design and
 methodology}\label{research-design-and-methodology}
 
-All code can be found in the repository for this paper.
-
-\begin{itemize}
-\tightlist
-\item[$\square$]
-  To be linked
-\end{itemize}
+Please see ``ancillary files'' for the text of analysis code as a Qmd
+file.
 
 \subsection{Data Selection and
 Characteristics}\label{data-selection-and-characteristics}
@@ -697,27 +700,27 @@ level (see below for more details specific to each variable). For each
 predictor, we then subtracted each person's yearly average from their
 monthly data to produce a within-person deviation variable. This allowed
 us to disaggregate effects on the outcome due to yearly-level individual
-differences and within-person, month-to-month fluctuations
-\citep{curranDisaggregationPersonPerson2011}. This also allowed us to
-avoid averaging between-person and within-person differences into a
-single effect estimate. These effects can be different even in the sign
-of the effect, for example with a positive relationship between some
-time-invariant factor and the outcome of interest at the between-person
-level, and a negative relationship between the same factor measured
-across time and within-person variation over time. A common example that
-is highly relevant to most technical and knowledge workers is typing
-speed and errors. Imagine someone trying to type as fast as they can; it
-is obvious that they will make more errors the faster they type,
-evincing a negative association between speed and errors. However, if
-one simply measures the typing speed and error rate of many people, it
-should be clear that we would see that faster typists tend to make fewer
-errors, perhaps because of differences in typing experience. In this
-study, we want to be able to examine average differences between
-people's cycle time aggregated at the year while also examining what is
-associated with cycle time deviations from that yearly trend
-month-to-month. All year-level individual differences variables were
-centered at their mean. Exceptions or addenda are mentioned below. See
-Table~\ref{tbl-variables} for a brief list of variables.
+differences and within-person, month-to-month fluctuations (Curran and
+Bauer 2011). This also allowed us to avoid averaging between-person and
+within-person differences into a single effect estimate. These effects
+can be different even in the sign of the effect, for example with a
+positive relationship between some time-invariant factor and the outcome
+of interest at the between-person level, and a negative relationship
+between the same factor measured across time and within-person variation
+over time. A common example that is highly relevant to most technical
+and knowledge workers is typing speed and errors. Imagine someone trying
+to type as fast as they can; it is obvious that they will make more
+errors the faster they type, evincing a negative association between
+speed and errors. However, if one simply measures the typing speed and
+error rate of many people, it should be clear that we would see that
+faster typists tend to make fewer errors, perhaps because of differences
+in typing experience. In this study, we want to be able to examine
+average differences between people's cycle time aggregated at the year
+while also examining what is associated with cycle time deviations from
+that yearly trend month-to-month. All year-level individual differences
+variables were centered at their mean. Exceptions or addenda are
+mentioned below. See Table~\ref{tbl-variables} for a brief list of
+variables.
 
 \subsubsection{Cycle Time}\label{cycle-time-1}
 
@@ -789,41 +792,39 @@ seven to aid in interpretation.
 One frequently proposed best practice in software work, intended to lead
 to outcomes such as improved task scoping, involves breaking work into
 smaller and more manageable chunks or pull requests that can be finished
-more quickly
-\citep{kudrjavetsSmallCodeChanges2022, linesWhyEliteDev2023, riosaWrittenUnwrittenGuide2019, zhangPullRequestLatency2022}.
-As such, we used the number of total merged pull requests as one measure
-of task scoping. To calculate this, we counted the number of merged pull
-requests for each user for each month.
+more quickly (Kudrjavets, Nagappan, and Rastogi 2022; Lines 2023; Riosa
+2019; Zhang et al. 2022). As such, we used the number of total merged
+pull requests as one measure of task scoping. To calculate this, we
+counted the number of merged pull requests for each user for each month.
 
 \subsubsection{Percent Defect Tickets}\label{percent-defect-tickets}
 
 Another potentially beneficial signal in software activity data is the
 reduction of unplanned work on bugs and defect tickets, which is also
-proposed as a bottleneck on improving cycle time
-\citep{paudelMeasuringImpactTechnical2024, paudelMeasuringImpactTechnical2024, rosserSystemsPerspectiveTechnical2021, toxboeCycleTime2023}.
-As such, we used the percentage of defect tickets as another measure of
-task scoping to represent unplanned work that may interfere with timely
-completion of planned work. This may also be a downstream signal of
-individuals' opportunity for focused work time and code quality. To
-account for this possibility, for each user, for each month, we computed
-the percent of tickets that were defect tickets.
+proposed as a bottleneck on improving cycle time (Paudel et al. 2024,
+2024; Rosser and Norton 2021; Toxboe 2023). As such, we used the
+percentage of defect tickets as another measure of task scoping to
+represent unplanned work that may interfere with timely completion of
+planned work. This may also be a downstream signal of individuals'
+opportunity for focused work time and code quality. To account for this
+possibility, for each user, for each month, we computed the percent of
+tickets that were defect tickets.
 
 \subsubsection{Degree centrality}\label{degree-centrality}
 
 We measured collaboration by calculating degree centrality. To evaluate
 degree centrality, a metric derived from network analysis and often used
-in the analysis of social networks \citep{wattsNewScienceNetworks2004},
-we employed a framework where developers were treated as nodes within
-the network, and their interactions in the form of Pull Requests (PRs)
-were regarded as connections. In other words, any contribution of code
-to the same pull request constituted a collaboration edge between
-developers. We normalized each centrality value by dividing by the total
-number of developers constituting the organizational network. The
-calculations were executed using the Python package Networkx
-\citep{SciPyProceedings_11}. This particular variable serves as an
-effective proxy for quantifying the extent of collaboration among
-developers. We multiply the normalized degree centrality, which is
-between 0 and 1, by 100.
+in the analysis of social networks (Watts 2004), we employed a framework
+where developers were treated as nodes within the network, and their
+interactions in the form of Pull Requests (PRs) were regarded as
+connections. In other words, any contribution of code to the same pull
+request constituted a collaboration edge between developers. We
+normalized each centrality value by dividing by the total number of
+developers constituting the organizational network. The calculations
+were executed using the Python package Networkx (Hagberg, Schult, and
+Swart 2008). This particular variable serves as an effective proxy for
+quantifying the extent of collaboration among developers. We multiply
+the normalized degree centrality, which is between 0 and 1, by 100.
 
 \subsubsection{Comments per PR}\label{comments-per-pr}
 
@@ -880,12 +881,10 @@ on \\
 
 \subsection{Analytic Approach}\label{analytic-approach}
 
-The models described below are fit using \texttt{brms}
-\citep[v2.21.6,][]{burknerAdvancedBayesianMultilevel2018, burknerBrmsPackageBayesian2017},
-interface the the Stan probabilistic programming language for Bayesian
-sampling \citep[v2.35.0,][]{gelman}, with the \texttt{cmdstanr} backend
-\citep[v0.8.0,][]{gabryCmdstanrInterfaceCmdStan2024}, in R
-\citep[v4.3.2,][]{rcoreteamLanguageEnvironmentStatistical2023}.
+The models described below are fit using \texttt{brms} (v2.21.6, Bürkner
+2018, 2017), interface the the Stan probabilistic programming language
+for Bayesian sampling (v2.35.0, Team 2024), with the \texttt{cmdstanr}
+backend (v0.8.0, Gabry et al. 2024), in R (v4.3.2, R Core Team 2023).
 
 We developed a model of monthly average ticket cycle time conditional on
 the following predictors: within-quarter month number, team size,
@@ -894,13 +893,12 @@ month-level deviations for coding days per week, total merged PRs,
 defect ticket percentage, degree centrality, and comments per PR.
 Specifically, we modeled cycle time as distributed Weibull with two
 parameters, \(\lambda\) (scale), and \emph{k} (shape). The Weibull
-distribution is often used to model time-to-event data
-\citep{harrellRegressionModelingStrategies2015, rummelAverageWeibullAnalysis2017},
-where \emph{k} determines the change over time in the probability of an
-event occurring (often called the ``hazard rate''), and where
-\(\lambda\) determines the time-to-event for some proportion of the
-cases (or in other words, how spread out the distribution is). For
-simplicity, we assume that the shape (hazard rate, \emph{k}) is not
+distribution is often used to model time-to-event data (Harrell 2015;
+Rummel 2017), where \emph{k} determines the change over time in the
+probability of an event occurring (often called the ``hazard rate''),
+and where \(\lambda\) determines the time-to-event for some proportion
+of the cases (or in other words, how spread out the distribution is).
+For simplicity, we assume that the shape (hazard rate, \emph{k}) is not
 influenced by the factors considered, and focus on how these factors
 affect the scale (time-to-event, \(\lambda\)) of ticket closures, though
 we did allow the shape, \emph{k}, to vary across organizations. In
@@ -965,19 +963,19 @@ introduction about developer performance.
 
 We model the effect of proportion of unclosed tickets and month number
 as smooth functions of the covariate using thin-plate splines for
-increased flexibility \citep{woodGeneralizedAdditiveModels2017}.
-Briefly, thin plate splines (functions made up of smoothly connected
-segments) allow for flexible, non-linear relationships between
-predictors and the response variable. These splines are penalized to
-prevent overfitting, balancing model flexibility and complexity. The
-interactions between month number and our control variables are
-parameterized as additional smooth functions of month number multiplied
-by these variables. While our focal model parameterizes the interactions
-between year-level means and month number as linear coefficients on
-multiplicative combinations between the two variables, we also examined
-a model that uses additional smooth functions of month number multiplied
-by these variables to allow for additional complexity. We provide the
-model output for this sensitivity analysis in a supplement.
+increased flexibility (Wood 2017). Briefly, thin plate splines
+(functions made up of smoothly connected segments) allow for flexible,
+non-linear relationships between predictors and the response variable.
+These splines are penalized to prevent overfitting, balancing model
+flexibility and complexity. The interactions between month number and
+our control variables are parameterized as additional smooth functions
+of month number multiplied by these variables. While our focal model
+parameterizes the interactions between year-level means and month number
+as linear coefficients on multiplicative combinations between the two
+variables, we also examined a model that uses additional smooth
+functions of month number multiplied by these variables to allow for
+additional complexity. We provide the model output for this sensitivity
+analysis in a supplement.
 
 We set weakly-informative priors centered at zero for all parameters,
 except for the intercept for \(\lambda\) and \emph{k} which were
@@ -1004,47 +1002,37 @@ fraught frequentist approach of describing whether an effect size is
 unlikely given the assumption of an unrealistic point-null hypothesis,
 we try to give the reader a sense of the actual probability that the
 sign of an effect is in a particular direction, and what the impact of
-the factor is on cycle times in terms that are easy to interpret
-\citep{GelmanPowerCalculationsAssessing2014}.
+the factor is on cycle times in terms that are easy to interpret (Gelman
+and Carlin 2014).
 
 In more precise statistical terms, unless otherwise stated we describe
 the posterior of parameters and predictions using the median of the
 distribution, and characterize its variation using the highest posterior
 density interval (HDI) which is defined as the interval that contains a
 specified percentage (usually 95\%) of the most probable values of the
-parameter \citep{kruschkeRejectingAcceptingParameter2018}. We make
-general descriptive inferences based on the probability that a parameter
-has the sign of the posterior density's median value. For example, if
-80\% of the posterior density of the slope of the effect of month on
-cycle time is of the same sign as the density's median, and that median
-is negative, we would say something like, ``given the model and the
-data, there is an 80\% chance that there is a decrease in cycle times
-across the year.''
+parameter (Kruschke 2018). We make general descriptive inferences based
+on the probability that a parameter has the sign of the posterior
+density's median value. For example, if 80\% of the posterior density of
+the slope of the effect of month on cycle time is of the same sign as
+the density's median, and that median is negative, we would say
+something like, ``given the model and the data, there is an 80\% chance
+that there is a decrease in cycle times across the year.''
 
 \subsection{R packages}\label{r-packages}
 
 R packages explicitly loaded in this analysis and manuscript preparation
-include brms
-\citep[v2.22.7,][]{burknerAdvancedBayesianMultilevel2018, burknerBayesianItemResponse2021, burknerBrmsPackageBayesian2017},
-cmdstanr \citep[v0.8.0,][]{gabryCmdstanrInterfaceCmdStan2024},
-data.table \citep[v1.15.4,][]{barrettDatatableExtensionDataframe2024},
-ggplot2 \citep[v3.5.0,][]{wickhamGgplot2ElegantGraphics2016}, flextable
-\citep[v0.9.5,][]{gohelFlextableFunctionsTabular2024}, knitr
-\citep[v1.46,][]{xieDynamicDocumentsKnitr2015, xieKnitrComprehensiveTool2014, xieKnitrGeneralpurposePackage2024},
-marginaleffects
-\citep[v0.19.0,][]{arel-bundockMarginaleffectsPredictionsComparisons2024},
-mgcv
-\citep[v1.9.0,][]{woodFastStableRestricted2011, woodGeneralizedAdditiveModels2017, woodSmoothingParameterModel2016, woodStableEfficientMultiple2004, woodThinplateRegressionSplines2003},
-parameters \citep[v0.21.6,][]{ludeckeExtractingComputingExploring2020},
-patchwork \citep[v1.2.0,][]{pedersenPatchworkComposerPlots2024},
-posterior
-\citep[v1.5.0,][]{burknerPosteriorToolsWorking2023, vehtariRanknormalizationFoldingLocalization2021},
-rlang \citep[v1.1.3,][]{henryRlangFunctionsBase2024}, scales
-\citep[v1.3.0,][]{wickhamScalesScaleFunctions2023}, scico
-\citep[v1.5.0.9000,][]{pedersenScicoColourPalettes2025}, showtext
-\citep[v0.9.7,][]{qiuShowtextUsingFonts2024}, StanHeaders
-\citep[v2.36.0.9000,][]{standevelopmentteamStanHeadersHeadersInterface2020},
-and tidybayes \citep[v3.0.6,][]{kayTidybayesTidyData2023}.
+include brms (v2.22.7, Bürkner 2018, 2021, 2017), cmdstanr (v0.8.0,
+Gabry et al. 2024), data.table (v1.15.4, Barrett et al. 2024), ggplot2
+(v3.5.0, Wickham 2016), flextable (v0.9.5, Gohel and Skintzos 2024),
+knitr (v1.46, Xie 2015, 2014, 2024), marginaleffects (v0.19.0,
+Arel-Bundock 2024), mgcv (v1.9.0, Wood 2011, 2017, 2004, 2003; Wood,
+Pya, and Saefken 2016), parameters (v0.21.6, Lüdecke et al. 2020),
+patchwork (v1.2.0, Pedersen 2024), posterior (v1.5.0, Bürkner et al.
+2023; Vehtari et al. 2021), rlang (v1.1.3, Henry and Wickham 2024),
+scales (v1.3.0, Wickham, Pedersen, and Seidel 2023), scico (v1.5.0.9000,
+Pedersen and Crameri 2025), showtext (v0.9.7, Qiu and details. 2024),
+StanHeaders (v2.36.0.9000, Stan Development Team 2020), and tidybayes
+(v3.0.6, Kay 2023).
 
 \section{Results}\label{results}
 
@@ -1814,8 +1802,8 @@ measurement practice for software management. Below, we elaborate on
 four key limitations of the current findings in greater detail, which
 are of course also opportunities for future research. In general, these
 limitations point to the need for more and better empirical evidence for
-software engineering
-\citep{devanbuBeliefEvidenceEmpirical2016, kitchenhamEvidencebasedSoftwareEngineering2004, sjobergFutureEmpiricalMethods2007}.
+software engineering (Devanbu, Zimmermann, and Bird 2016; Kitchenham,
+Dyba, and Jorgensen 2004; Sjoberg, Dyba, and Jorgensen 2007).
 
 First, measurement validity challenges in ticket data and sample
 representativeness constrain our analysis. A primary contribution of
@@ -1838,8 +1826,7 @@ complicating our ability to understand cycle time. This context
 limitation also applies to our sample of organizations which is
 non-random and reflects organizations that invested in the software
 metrics tool that provided that data, and does threaten the
-generalizability of these results
-\citep{baltesSamplingSoftwareEngineering2021a}.
+generalizability of these results (Baltes and Ralph 2021).
 
 Second, systematic differences in ticket assignment patterns may
 complicate cycle time interpretations. In this analysis, we have
@@ -1852,12 +1839,11 @@ be impacted by many factors. For example, after an initial assignment to
 a developer, bugs may frequently be reassigned due to diverse factors
 such as determining ownership, time constraints, and identifying
 developers who may have a particular view into the root cause of the bug
-\citep{guoNotMyBug2011}. Some individuals may get assigned defect
-tickets systematically more often than others, and changes in the
-proportion of work that consists of defect tickets may change how fast
-someone is able to work in general, either because defect tickets tend
-to be larger or smaller in scope than other tickets, or because of
-disruptions.
+(Guo et al. 2011). Some individuals may get assigned defect tickets
+systematically more often than others, and changes in the proportion of
+work that consists of defect tickets may change how fast someone is able
+to work in general, either because defect tickets tend to be larger or
+smaller in scope than other tickets, or because of disruptions.
 
 Third, our simplified measurement of team structures fails to capture
 the complex collaborative reality of software development. In this
@@ -1877,10 +1863,10 @@ typical, and collaborations across software projects may frequently not
 match explicit organizational hierarchies. In our previous research
 using self-reports from software teams, we have found that over 60\% of
 individual contributors on software teams report working closely with
-other individual collaborators who do not share their same manager
-\citep{hicksDeveloperThrivingFour2023}. In short, software development
-is a collaborative exercise that is embedded in an ecosystem with
-history and many actors \citep{hicksCumulativeCultureTheory2024}.
+other individual collaborators who do not share their same manager (C.
+Hicks, Lee, and Ramsey 2023). In short, software development is a
+collaborative exercise that is embedded in an ecosystem with history and
+many actors (C. M. Hicks and Hevesi 2024).
 
 Fourth, invisible collaborative activities and contributor role
 ambiguity limit interpretations of cycle time variations. Developers
@@ -1951,10 +1937,9 @@ data at scale.
     mean that all intellectual property rights to that information are
     voluntarily given up by that innovator and all parties are given
     equal access to it---the information becomes a public good (Harhoff
-    et al., 2003).''
-    \citep[295]{vonhippelFreeRevealingPrivatecollective2006}}'' may
-  ultimately prove more profitable, as described by
-  \citet{vonhippelFreeRevealingPrivatecollective2006}.
+    et al., 2003).'' (Von Hippel and Von Krogh 2006, 295)}'' may
+  ultimately prove more profitable, as described by Von Hippel and Von
+  Krogh (2006).
 \item
   We should understand that cycle time is still quite distant from the
   ultimate objective: efficient delivery of value in a context that
@@ -2145,8 +2130,8 @@ centered symmetrically about the mean. Attempting to represent the
 influence of various factors on cycle-time data using an inappropriate
 distribution will have unintended consequences on the observed
 relationships, which may be biased, and can lead to mode predictions
-outside the range of possible values
-\citep{collettModellingSurvivalData1994, lawlessStatisticalModelsMethods2003, mcelreathStatisticalRethinkingBayesian2020, nelsonAppliedLifeData1982}.
+outside the range of possible values (Collett 1994; Lawless 2003;
+McElreath 2020; Nelson 1982).
 
 Another strength that is relevant to both researchers and practitioners
 is the inclusion, simultaneously, of multiple factors in the same
@@ -2184,12 +2169,12 @@ average may mean a lot. It is also worth noting that in the software
 literature, developers have reported substantial social-psychological
 benefits from increases to focus time, deep work, and days spent coding
 that may provide real and meaningful impacts on the quality of software
-work whether or not they result in cycle time change
-\citep{meyerTodayWasGood2021}. As the findings of the current work have
-demonstrated, moving toward a greater understanding of how to improve
-software development will likely require a plurality of methods,
-measurements, and thoughtful experimental practices within software
-engineering organizations, rather than silver bullet, isolated metrics.
+work whether or not they result in cycle time change (Meyer et al.
+2021). As the findings of the current work have demonstrated, moving
+toward a greater understanding of how to improve software development
+will likely require a plurality of methods, measurements, and thoughtful
+experimental practices within software engineering organizations, rather
+than silver bullet, isolated metrics.
 
 \subsection{Future Research
 Directions}\label{future-research-directions}
@@ -2221,8 +2206,7 @@ navigating many databases.
 
 \section{Contributions}\label{contributions}
 
-Contribution roles listed are defined in
-\citet{nisocreditworkinggroupANSINISOZ3910420222022}.
+Contribution roles listed are defined in Group (2022).
 
 John C. Flournoy: Conceptualization, Data curation, Formal analysis,
 Investigation, Methodology, Visualization, Writing -- original draft,
@@ -2234,9 +2218,613 @@ Project administration, Resources, Supervision, Writing -- review \&
 editing. Maggie Wu: Conceptualization, Data curation, Formal analysis,
 Investigation, Methodology.
 
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
 
-\renewcommand\refname{References}
-  \bibliography{references.bib}
+\phantomsection\label{refs}
+\begin{CSLReferences}{1}{0}
+\bibitem[\citeproctext]{ref-agrawalSoftwareEffortQuality2007}
+Agrawal, Manish, and Kaushal Chari. 2007. {``Software {Effort},
+{Quality}, and {Cycle Time}: {A Study} of {CMM Level} 5 {Projects}.''}
+\emph{IEEE Transactions on Software Engineering} 33 (3): 145--56.
+\url{https://doi.org/10.1109/TSE.2007.29}.
+
+\bibitem[\citeproctext]{ref-ahmadPandorasBoxSocial2024}
+Ahmad, Muhammad Ovais, and Tomas Gustavsson. 2024. {``The {Pandora}'s
+Box of Social, Process, and People Debts in Software Engineering.''}
+\emph{Journal of Software: Evolution and Process} 36 (2): e2516.
+\url{https://doi.org/10.1002/smr.2516}.
+
+\bibitem[\citeproctext]{ref-arel-bundockMarginaleffectsPredictionsComparisons2024}
+Arel-Bundock, Vincent. 2024. \emph{Marginaleffects: {Predictions},
+Comparisons, Slopes, Marginal Means, and Hypothesis Tests}. Manual.
+
+\bibitem[\citeproctext]{ref-ballWorkplaceSurveillanceOverview2010}
+Ball, Kirstie. 2010. {``Workplace Surveillance: An Overview.''}
+\emph{Labor History} 51 (1): 87--106.
+\url{https://doi.org/10.1080/00236561003654776}.
+
+\bibitem[\citeproctext]{ref-baltesSamplingSoftwareEngineering2021a}
+Baltes, Sebastian, and Paul Ralph. 2021. {``Sampling in {Software
+Engineering Research}: {A Critical Review} and {Guidelines}.''} arXiv.
+\url{https://doi.org/10.48550/arXiv.2002.07764}.
+
+\bibitem[\citeproctext]{ref-barrettDatatableExtensionDataframe2024}
+Barrett, Tyson, Matt Dowle, Arun Srinivasan, Jan Gorecki, Michael
+Chirico, and Toby Hocking. 2024. \emph{Data.table: {Extension} of
+`Data.frame`}. Manual.
+
+\bibitem[\citeproctext]{ref-beskerTechnicalDebtCripples2018}
+Besker, Terese, Antonio Martini, and Jan Bosch. 2018. {``Technical Debt
+Cripples Software Developer Productivity: A Longitudinal Study on
+Developers' Daily Software Development Work.''} In \emph{Proceedings of
+the 2018 {International Conference} on {Technical Debt}}, 105--14.
+Gothenburg Sweden: ACM. \url{https://doi.org/10.1145/3194164.3194178}.
+
+\bibitem[\citeproctext]{ref-blackburnImprovingSpeedProductivity1996}
+Blackburn, J. D., G. D. Scudder, and L. N. Van Wassenhove. 1996.
+{``Improving Speed and Productivity of Software Development: A Global
+Survey of Software Developers.''} \emph{IEEE Transactions on Software
+Engineering} 22 (12): 875--85. \url{https://doi.org/10.1109/32.553636}.
+
+\bibitem[\citeproctext]{ref-bouwersSoftwareMetricsPitfalls2013}
+Bouwers, Eric, Arie van Deursen, and Joost Visser. 2013. {``Software
+Metrics: {Pitfalls} and Best Practices.''} In \emph{2013 35th
+{International Conference} on {Software Engineering} ({ICSE})},
+1491--92. \url{https://doi.org/10.1109/ICSE.2013.6606755}.
+
+\bibitem[\citeproctext]{ref-brocknerProceduralFairnessOutcome2007}
+Brockner, Joel, Ariel Y. Fishman, Jochen Reb, Barry Goldman, Scott
+Spiegel, and Charlee Garden. 2007. {``Procedural Fairness, Outcome
+Favorability, and Judgments of an Authority's Responsibility.''}
+\emph{Journal of Applied Psychology} 92 (6): 1657--71.
+\url{https://doi.org/10.1037/0021-9010.92.6.1657}.
+
+\bibitem[\citeproctext]{ref-brocknerInteractiveEffectsProcedural1994}
+Brockner, Joel, Mary Konovsky, Rochelle Cooper-Schneider, Robert Folger,
+Christopher Martin, and Robert J. Bies. 1994. {``Interactive {Effects}
+of {Procedural Justice} and {Outcome Negativity} on {Victims} and
+{Survivors} of {Job Loss}.''} \emph{Academy of Management Journal} 37
+(2): 397--409. \url{https://doi.org/10.5465/256835}.
+
+\bibitem[\citeproctext]{ref-brooksMythicalManmonthEssays1975}
+Brooks, Frederick P. 1975. \emph{The Mythical Man-Month: Essays on
+Software Engineering}. Reading, Mass.: Addison-Wesley Pub. Co.
+
+\bibitem[\citeproctext]{ref-bruneauxWhatMcKinseyHas2024}
+Bruneaux, Taylor. 2024. {``What {McKinsey} Has to Say about Developer
+Productivity.''}
+https://getdx.com/blog/mckinsey-developer-productivity/.
+
+\bibitem[\citeproctext]{ref-burknerBrmsPackageBayesian2017}
+Bürkner, Paul-Christian. 2017. {``Brms: {An R Package} for {Bayesian
+Multilevel Models Using Stan}.''} \emph{Journal of Statistical Software}
+80 (1): 1--28. \url{https://doi.org/10.18637/jss.v080.i01}.
+
+\bibitem[\citeproctext]{ref-burknerAdvancedBayesianMultilevel2018}
+---------. 2018. {``Advanced {Bayesian} Multilevel Modeling with the {R}
+Package {brms}.''} \emph{The R Journal} 10 (1): 395--411.
+\url{https://doi.org/10.32614/RJ-2018-017}.
+
+\bibitem[\citeproctext]{ref-burknerBayesianItemResponse2021}
+---------. 2021. {``Bayesian {Item Response Modeling} in {R} with Brms
+and {Stan}.''} \emph{Journal of Statistical Software} 100 (November):
+1--54. \url{https://doi.org/10.18637/jss.v100.i05}.
+
+\bibitem[\citeproctext]{ref-burknerPosteriorToolsWorking2023}
+Bürkner, Paul-Christian, Jonah Gabry, Matthew Kay, and Aki Vehtari.
+2023. {``Posterior: {Tools} for Working with Posterior Distributions.''}
+
+\bibitem[\citeproctext]{ref-caesensPerceivedOrganizationalSupport2017}
+Caesens, Gaëtane, Florence Stinglhamber, Stéphanie Demoulin, and
+Matthias De Wilde. 2017. {``Perceived Organizational Support and
+Employees' Well-Being: The Mediating Role of Organizational
+Dehumanization.''} \emph{European Journal of Work and Organizational
+Psychology} 26 (4): 527--40.
+\url{https://doi.org/10.1080/1359432X.2017.1319817}.
+
+\bibitem[\citeproctext]{ref-careyWhy70Engineers2024}
+Carey, Scott. 2024. {``Why 70\% of Engineers Avoid Measuring Lines of
+Code.''} \emph{LeadDev}.
+https://leaddev.com/reporting/why-70-of-engineers-avoid-measuring-lines-of-code.
+
+\bibitem[\citeproctext]{ref-carmelCycleTimePackaged1995}
+Carmel, Erran. 1995. {``Cycle {Time} in {Packaged Software Firms}.''}
+\emph{Journal of Product Innovation Management} 12 (2): 110--23.
+\url{https://doi.org/10.1111/j.1540-5885.1995.jpim122_0110.xml.x}.
+
+\bibitem[\citeproctext]{ref-chhunejaWhy50Developers2024}
+Chhuneja, Shivam. 2024. {``Why 50\% {Developers Hate DORA Metrics}?''}
+https://middlewarehq.com/blog/why-50-developers-hate-dora-metrics.
+
+\bibitem[\citeproctext]{ref-clincySoftwareDevelopmentProductivity2003}
+Clincy, Victor. 2003. {``Software {Development Productivity} and {Cycle
+Time Reduction}.''} \emph{Journal of Computing Sciences in Colleges} 19
+(2): 278--87.
+
+\bibitem[\citeproctext]{ref-collettModellingSurvivalData1994}
+Collett, D. 1994. \emph{Modelling Survival Data in Medical Research}.
+1st ed. Texts in Statistical Science. London ; New York: Chapman \&
+Hall.
+
+\bibitem[\citeproctext]{ref-coteOnlyPeopleWho2023}
+Coté. 2023. {``The Only People Who Don't Like Metrics Are the People
+Being Measured, or, Developer Productivity Metrics Quicksand.''}
+https://newsletter.cote.io/p/the-only-people-who-dont-like-metrics.
+
+\bibitem[\citeproctext]{ref-curranDisaggregationPersonPerson2011}
+Curran, Patrick J., and Daniel J. Bauer. 2011. {``The {Disaggregation}
+of {Within-Person} and {Between-Person Effects} in {Longitudinal Models}
+of {Change}.''} \emph{Annual Review of Psychology} 62 (1): 583--619.
+\url{https://doi.org/10.1146/annurev.psych.093008.100356}.
+
+\bibitem[\citeproctext]{ref-denisov-blanchPredictingExpertEvaluations2024}
+Denisov-Blanch, Yegor, Igor Ciobanu, Simon Obstbaum, and Michal
+Kosinski. 2024. {``Predicting {Expert Evaluations} in {Software Code
+Reviews}.''} arXiv. \url{https://doi.org/10.48550/arXiv.2409.15152}.
+
+\bibitem[\citeproctext]{ref-devanbuBeliefEvidenceEmpirical2016}
+Devanbu, Prem, Thomas Zimmermann, and Christian Bird. 2016. {``Belief \&
+Evidence in Empirical Software Engineering.''} In \emph{Proceedings of
+the 38th {International Conference} on {Software Engineering}}, 108--19.
+{ICSE} '16. New York, NY, USA: Association for Computing Machinery.
+\url{https://doi.org/10.1145/2884781.2884812}.
+
+\bibitem[\citeproctext]{ref-eversImprovingEngineeringProductivity1998}
+Evers, J. H., G. M. Oehler, and M. G. Tucker. 1998. {``Improving
+Engineering Productivity: A Time Study of an Engineer's Typical Work
+Day.''} In \emph{{IEMC} '98 {Proceedings}. {International Conference} on
+{Engineering} and {Technology Management}. {Pioneering New
+Technologies}: {Management Issues} and {Challenges} in the {Third
+Millennium} ({Cat}. {No}.{98CH36266})}, 377--83.
+\url{https://doi.org/10.1109/IEMC.1998.727789}.
+
+\bibitem[\citeproctext]{ref-finster5MinuteDevOps2023}
+Finster, Bryan. 2023. {``5 {Minute DevOps}: {McKinsey Gets Developer
+Productivity Wrong}.''} \emph{Medium}.
+
+\bibitem[\citeproctext]{ref-flowHowIncreaseSoftware}
+Flow. n.d. {``How to Increase Software Delivery Speeds by Reducing Cycle
+Time.''}
+
+\bibitem[\citeproctext]{ref-fraserNoSilverBullet2007}
+Fraser, Steven D., Frederick P. Brooks, Martin Fowler, Ricardo Lopez,
+Aki Namioka, Linda Northrop, David Lorge Parnas, and David Thomas. 2007.
+{``"{No} Silver Bullet" Reloaded: Retrospective on "Essence and
+Accidents of Software Engineering".''} In \emph{Companion to the 22nd
+{ACM SIGPLAN} Conference on {Object-oriented} Programming Systems and
+Applications Companion}, 1026--30. {OOPSLA} '07. New York, NY, USA:
+Association for Computing Machinery.
+\url{https://doi.org/10.1145/1297846.1297973}.
+
+\bibitem[\citeproctext]{ref-gabryCmdstanrInterfaceCmdStan2024}
+Gabry, Jonah, Rok Češnovar, Andrew Johnson, and Steve Bronder. 2024.
+\emph{Cmdstanr: {R Interface} to '{CmdStan}'}. Manual.
+
+\bibitem[\citeproctext]{ref-GelmanPowerCalculationsAssessing2014}
+Gelman, Andrew, and John Carlin. 2014. {``Beyond {Power Calculations
+Assessing Type S} ({Sign}) and {Type M} ({Magnitude}) {Errors}.''}
+\emph{Perspectives on Psychological Science} 9 (6): 641--51.
+\url{https://doi.org/10.1177/1745691614551642}.
+
+\bibitem[\citeproctext]{ref-gohelFlextableFunctionsTabular2024}
+Gohel, David, and Panagiotis Skintzos. 2024. \emph{Flextable:
+{Functions} for Tabular Reporting}. Manual.
+
+\bibitem[\citeproctext]{ref-gralhaReduceCycleTime2022}
+Gralha, Catarina. 2022. {``Reduce Cycle Time - Best Practices.''}
+
+\bibitem[\citeproctext]{ref-greilerActionableFrameworkUnderstanding2022a}
+Greiler, Michaela, Margaret-Anne Storey, and Abi Noda. 2022. {``An
+{Actionable Framework} for {Understanding} and {Improving Developer
+Experience}.''} arXiv. \url{https://doi.org/10.48550/arXiv.2205.06352}.
+
+\bibitem[\citeproctext]{ref-griffinMetricsMeasuringProduct1993}
+Griffin, Abbie. 1993. {``Metrics for {Measuring Product Development
+Cycle Time}.''} \emph{Journal of Product Innovation Management} 10 (2):
+112--25. \url{https://doi.org/10.1111/1540-5885.1020112}.
+
+\bibitem[\citeproctext]{ref-grisoldDigitalSurveillanceOrganizations2024}
+Grisold, Thomas, Stefan Seidel, Markus Heck, and Nicholas Berente. 2024.
+{``Digital {Surveillance} in {Organizations}.''} \emph{Business \&
+Information Systems Engineering} 66 (3): 401--10.
+\url{https://doi.org/10.1007/s12599-024-00866-7}.
+
+\bibitem[\citeproctext]{ref-nisocreditworkinggroupANSINISOZ3910420222022}
+Group, NISO CRediT Working. 2022. {``{ANSI}/{NISO Z39}.104-2022,
+{CRediT}, {Contributor Roles Taxonomy}.''} 3600 Clipper Mill Road Suite
+302 Baltimore, MD 21211: NISO.
+\url{https://doi.org/10.3789/ansi.niso.z39.104-2022}.
+
+\bibitem[\citeproctext]{ref-guoNotMyBug2011}
+Guo, Philip J., Thomas Zimmermann, Nachiappan Nagappan, and Brendan
+Murphy. 2011. {``"{Not} My Bug!" and Other Reasons for Software Bug
+Report Reassignments.''} In \emph{Proceedings of the {ACM} 2011
+Conference on {Computer} Supported Cooperative Work}, 395--404. Hangzhou
+China: ACM. \url{https://doi.org/10.1145/1958824.1958887}.
+
+\bibitem[\citeproctext]{ref-guptaKeyDriversReduced1998}
+Gupta, Ashok K., and William E. Souder. 1998. {``Key {Drivers} of
+{Reduced Cycle Time}.''} \emph{Research-Technology Management} 41 (4):
+38--43. \url{https://doi.org/10.1080/08956308.1998.11671221}.
+
+\bibitem[\citeproctext]{ref-SciPyProceedings_11}
+Hagberg, Aric A., Daniel A. Schult, and Pieter J. Swart. 2008.
+{``Exploring Network Structure, Dynamics, and Function Using
+{NetworkX}.''} In \emph{Proceedings of the 7th Python in Science
+Conference}, edited by Gaël Varoquaux, Travis Vaught, and Jarrod
+Millman, 11--15. Pasadena, CA USA.
+
+\bibitem[\citeproctext]{ref-harrellRegressionModelingStrategies2015}
+Harrell, Frank E. 2015. \emph{Regression {Modeling Strategies}: {With
+Applications} to {Linear Models}, {Logistic} and {Ordinal Regression},
+and {Survival Analysis}}. Springer {Series} in {Statistics}. Cham:
+Springer International Publishing.
+\url{https://doi.org/10.1007/978-3-319-19425-7}.
+
+\bibitem[\citeproctext]{ref-henryRlangFunctionsBase2024}
+Henry, Lionel, and Hadley Wickham. 2024. \emph{Rlang: {Functions} for
+Base Types and Core {R} and 'Tidyverse' Features}. Manual.
+
+\bibitem[\citeproctext]{ref-hicksPsychologicalAffordancesCan2024}
+Hicks, Catherine M. 2024. {``Psychological {Affordances Can Provide} a
+{Missing Explanatory Layer} for {Why Interventions} to {Improve
+Developer Experience Take Hold} or {Fail}.''} OSF.
+\url{https://doi.org/10.31234/osf.io/qz43x}.
+
+\bibitem[\citeproctext]{ref-hicksCumulativeCultureTheory2024}
+Hicks, Catherine M., and Ana Hevesi. 2024. {``A {Cumulative Culture
+Theory} for {Developer Problem-Solving}.''} PsyArXiv.
+\url{https://doi.org/10.31234/osf.io/tfjyw}.
+
+\bibitem[\citeproctext]{ref-hicksDeveloperThrivingFour2024}
+Hicks, Catherine M., Carol S. Lee, and Morgan Ramsey. 2024. {``Developer
+{Thriving}: {Four Sociocognitive Factors That Create Resilient
+Productivity} on {Software Teams}.''} \emph{IEEE Software} 41 (4):
+68--77. \url{https://doi.org/10.1109/MS.2024.3382957}.
+
+\bibitem[\citeproctext]{ref-hicksNewDeveloperAI2024}
+Hicks, Catherine M., Carol Lee, and Kristen Foster-Marks. 2024. {``The
+{New Developer}: {AI Skill Threat}, {Identity Change} \& {Developer
+Thriving} in the {Transition} to {AI-Assisted Software Development}.''}
+OSF. \url{https://doi.org/10.31234/osf.io/2gej5}.
+
+\bibitem[\citeproctext]{ref-hicksDeveloperThrivingFour2023}
+Hicks, Catherine, Carol S. Lee, and Morgan Ramsey. 2023. {``Developer
+{Thriving}: {The} Four Factors That Drive {Software Developer
+Productivity} Across {Industries}.''} Developer Success Lab at
+Pluralsight.
+
+\bibitem[\citeproctext]{ref-kayTidybayesTidyData2023}
+Kay, Matthew. 2023. \emph{{tidybayes}: {Tidy} Data and Geoms for
+{Bayesian} Models}. Manual.
+\url{https://doi.org/10.5281/zenodo.1308151}.
+
+\bibitem[\citeproctext]{ref-kitchenhamEvidencebasedSoftwareEngineering2004}
+Kitchenham, B. A., T. Dyba, and M. Jorgensen. 2004. {``Evidence-Based
+Software Engineering.''} In \emph{Proceedings. 26th {International
+Conference} on {Software Engineering}}, 273--81.
+\url{https://doi.org/10.1109/ICSE.2004.1317449}.
+
+\bibitem[\citeproctext]{ref-kruschkeRejectingAcceptingParameter2018}
+Kruschke, John K. 2018. {``Rejecting or {Accepting Parameter Values} in
+{Bayesian Estimation}.''} \emph{Advances in Methods and Practices in
+Psychological Science} 1 (2): 270--80.
+\url{https://doi.org/10.1177/2515245918771304}.
+
+\bibitem[\citeproctext]{ref-kudrjavetsSmallCodeChanges2022}
+Kudrjavets, Gunnar, Nachiappan Nagappan, and Ayushi Rastogi. 2022. {``Do
+Small Code Changes Merge Faster?: A Multi-Language Empirical
+Investigation.''} In \emph{Proceedings of the 19th {International
+Conference} on {Mining Software Repositories}}, 537--48. Pittsburgh
+Pennsylvania: ACM. \url{https://doi.org/10.1145/3524842.3528448}.
+
+\bibitem[\citeproctext]{ref-lagiosExplainingNegativeConsequences2022}
+Lagios, Constantin, Gaëtane Caesens, Nathan Nguyen, and Florence
+Stinglhamber. 2022. {``Explaining the {Negative Consequences} of
+{Organizational} {Dehumanization}.''} \emph{Journal of Personnel
+Psychology} 21 (2): 86--93.
+\url{https://doi.org/10.1027/1866-5888/a000286}.
+
+\bibitem[\citeproctext]{ref-lawlessStatisticalModelsMethods2003}
+Lawless, Jerald F. 2003. \emph{Statistical Models and Methods for
+Lifetime Data}. 2nd ed. Wiley Series in Probability and Statistics.
+Hoboken, N.J.: Wiley-Interscience.
+
+\bibitem[\citeproctext]{ref-linesWhyEliteDev2023}
+Lines, Dan. 2023. {``Why Elite Dev Teams Focus on Pull-Request
+Metrics.''} \emph{LeadDev}.
+https://leaddev.com/reporting/why-elite-dev-teams-focus-pull-request-metrics.
+
+\bibitem[\citeproctext]{ref-ludeckeExtractingComputingExploring2020}
+Lüdecke, Daniel, Mattan S. Ben-Shachar, Indrajeet Patil, and Dominique
+Makowski. 2020. {``Extracting, Computing and Exploring the Parameters of
+Statistical Models Using {R}.''} \emph{Journal of Open Source Software}
+5 (53): 2445. \url{https://doi.org/10.21105/joss.02445}.
+
+\bibitem[\citeproctext]{ref-maxwellSoftwareDevelopmentProductivity1996}
+Maxwell, K. D., L. Van Wassenhove, and S. Dutta. 1996. {``Software
+Development Productivity of {European} Space, Military, and Industrial
+Applications.''} \emph{IEEE Transactions on Software Engineering} 22
+(10): 706--18. \url{https://doi.org/10.1109/32.544349}.
+
+\bibitem[\citeproctext]{ref-mcelreathStatisticalRethinkingBayesian2020}
+McElreath, Richard. 2020. \emph{Statistical {Rethinking}: {A Bayesian
+Course} with {Examples} in {R} and {Stan}}. 2nd ed. Boca Raton: {Chapman
+and Hall/CRC}. \url{https://doi.org/10.1201/9780429029608}.
+
+\bibitem[\citeproctext]{ref-mettlerConnectedWorkplaceCharacteristics2024}
+Mettler, Tobias. 2024. {``The Connected Workplace: {Characteristics} and
+Social Consequences of Work Surveillance in the Age of Datification,
+Sensorization, and Artificial Intelligence.''} \emph{Journal of
+Information Technology} 39 (3): 547--67.
+\url{https://doi.org/10.1177/02683962231202535}.
+
+\bibitem[\citeproctext]{ref-meyerTodayWasGood2021}
+Meyer, Andre N., Earl T. Barr, Christian Bird, and Thomas Zimmermann.
+2021. {``Today {Was} a {Good Day}: {The Daily Life} of {Software
+Developers}.''} \emph{IEEE Transactions on Software Engineering} 47 (5):
+863--80. \url{https://doi.org/10.1109/TSE.2019.2904957}.
+
+\bibitem[\citeproctext]{ref-murphy-hillWhatPredictsSoftware2021}
+Murphy-Hill, Emerson, Ciera Jaspan, Caitlin Sadowski, David Shepherd,
+Michael Phillips, Collin Winter, Andrea Knight, Edward Smith, and
+Matthew Jorde. 2021. {``What {Predicts Software Developers}'
+{Productivity}?''} \emph{IEEE Transactions on Software Engineering} 47
+(3): 582--94. \url{https://doi.org/10.1109/TSE.2019.2900308}.
+
+\bibitem[\citeproctext]{ref-nanImpactBudgetSchedule2009}
+Nan, Ning, and Donald E. Harter. 2009. {``Impact of {Budget} and
+{Schedule Pressure} on {Software Development Cycle Time} and
+{Effort}.''} \emph{IEEE Transactions on Software Engineering} 35 (5):
+624--37. \url{https://doi.org/10.1109/TSE.2009.18}.
+
+\bibitem[\citeproctext]{ref-nelsonAppliedLifeData1982}
+Nelson, Wayne. 1982. \emph{Applied Life Data Analysis}. Wiley Series in
+Probability and Mathematical Statistics. {Applied} Probability and
+Statistics. New York: Wiley.
+
+\bibitem[\citeproctext]{ref-nicholsEndMythIndividual2019}
+Nichols, William R. 2019. {``The {End} to the {Myth} of {Individual
+Programmer Productivity}.''} \emph{IEEE Software} 36 (5): 71--75.
+\url{https://doi.org/10.1109/MS.2019.2908576}.
+
+\bibitem[\citeproctext]{ref-obstbaumOngoingResearchSoftware}
+Obstbaum, Simon, and Yegor Denisov-Blanch. n.d. {``Ongoing {Research} on
+{Software Engineering Productivity}.''}
+
+\bibitem[\citeproctext]{ref-oroszMeasuringDeveloperProductivity2024}
+Orosz, Gergely. 2024a. {``Measuring Developer Productivity? {A} Response
+to {McKinsey}.''}
+https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity.
+
+\bibitem[\citeproctext]{ref-oroszMeasuringDeveloperProductivity2024a}
+---------. 2024b. {``Measuring Developer Productivity? {A} Response to
+{McKinsey}, {Part} 2.''}
+https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity-part-2.
+
+\bibitem[\citeproctext]{ref-paudelMeasuringImpactTechnical2024}
+Paudel, Bhuwan, Javier Gonzalez-Huerta, Ehsan Zabardast, and Eriks
+Klotins. 2024. {``Towards {Measuring} the {Impact} of {Technical Debt}
+on {Lead Time}: {An Industrial Case Study}.''} arXiv.
+\url{https://doi.org/10.48550/arXiv.2406.01578}.
+
+\bibitem[\citeproctext]{ref-pedersenPatchworkComposerPlots2024}
+Pedersen, Thomas Lin. 2024. \emph{Patchwork: {The} Composer of Plots}.
+Manual.
+
+\bibitem[\citeproctext]{ref-pedersenScicoColourPalettes2025}
+Pedersen, Thomas Lin, and Fabio Crameri. 2025. \emph{Scico: {Colour}
+Palettes Based on the Scientific Colour-Maps}. Manual.
+
+\bibitem[\citeproctext]{ref-qiuShowtextUsingFonts2024}
+Qiu, Yixuan, and authors/contributors of the included software. See file
+AUTHORS for details. 2024. \emph{Showtext: {Using} Fonts More Easily in
+{R} Graphs}. Manual.
+
+\bibitem[\citeproctext]{ref-quadlinMarkWomansRecord2018}
+Quadlin, Natasha. 2018. {``The {Mark} of a {Woman}'s {Record}: {Gender}
+and {Academic Performance} in {Hiring}.''} \emph{American Sociological
+Review} 83 (2): 331--60. \url{https://doi.org/10.1177/0003122418762291}.
+
+\bibitem[\citeproctext]{ref-rcoreteamLanguageEnvironmentStatistical2023}
+R Core Team. 2023. \emph{R: A Language and Environment for Statistical
+Computing}. Manual. Vienna, Austria: R Foundation for Statistical
+Computing.
+
+\bibitem[\citeproctext]{ref-ramirezMeasuringKnowledgeWorker2004}
+Ramírez, Yuri W., and David A. Nembhard. 2004. {``Measuring Knowledge
+Worker Productivity.''} \emph{Journal of Intellectual Capital} 5 (4):
+602--28. \url{https://doi.org/10.1108/14691930410567040}.
+
+\bibitem[\citeproctext]{ref-rigginsWhatMcKinseyGot2023}
+Riggins, Jennifer. 2023. {``What {McKinsey} Got Wrong about Developer
+Productivity.''} \emph{LeadDev}.
+https://leaddev.com/career-development/what-mckinsey-got-wrong-about-developer-productivity.
+
+\bibitem[\citeproctext]{ref-riosaWrittenUnwrittenGuide2019}
+Riosa, Blake. 2019. {``The (Written) Unwritten Guide to Pull
+Requests.''} \emph{Work Life by Atlassian}.
+https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests.
+
+\bibitem[\citeproctext]{ref-rosserSystemsPerspectiveTechnical2021}
+Rosser, Larri Ann, and John H Norton. 2021. {``A {Systems Perspective}
+on {Technical Debt}.''} In \emph{2021 {IEEE Aerospace Conference}
+(50100)}, 1--10. \url{https://doi.org/10.1109/AERO50100.2021.9438359}.
+
+\bibitem[\citeproctext]{ref-rummelAverageWeibullAnalysis2017}
+Rummel, Bernard. 2017. {``Beyond {Average}: {Weibull Analysis} of {Task
+Completion Times}''} 12 (2).
+
+\bibitem[\citeproctext]{ref-ruvimovaExploratoryStudyProductivity2022}
+Ruvimova, Anastasia, Alexander Lill, Jan Gugler, Lauren Howe, Elaine
+Huang, Gail Murphy, and Thomas Fritz. 2022. {``An Exploratory Study of
+Productivity Perceptions in Software Teams.''} In \emph{Proceedings of
+the 44th {International Conference} on {Software Engineering}}, 99--111.
+Pittsburgh Pennsylvania: ACM.
+\url{https://doi.org/10.1145/3510003.3510081}.
+
+\bibitem[\citeproctext]{ref-sackmanExploratoryExperimentalStudies1968}
+Sackman, H., W. J. Erikson, and E. E. Grant. 1968. {``Exploratory
+Experimental Studies Comparing Online and Offline Programming
+Performance.''} \emph{Communications of the ACM} 11 (1): 3--11.
+\url{https://doi.org/10.1145/362851.362858}.
+
+\bibitem[\citeproctext]{ref-sadowskiSoftwareDevelopmentProductivity2019}
+Sadowski, Caitlin, Margaret-Anne Storey, and Robert Feldt. 2019. {``A
+{Software Development Productivity Framework}.''} In \emph{Rethinking
+{Productivity} in {Software Engineering}}, edited by Caitlin Sadowski
+and Thomas Zimmermann, 39--47. Berkeley, CA: Apress.
+\url{https://doi.org/10.1007/978-1-4842-4221-6_5}.
+
+\bibitem[\citeproctext]{ref-sadowskiRethinkingProductivitySoftware2019}
+Sadowski, Caitlin, and Thomas Zimmermann, eds. 2019. \emph{Rethinking
+{Productivity} in {Software Engineering}}. Springer Nature.
+\url{https://doi.org/10.1007/978-1-4842-4221-6}.
+
+\bibitem[\citeproctext]{ref-shrikanthAssessingPractitionerBeliefs2021}
+Shrikanth, N. C., William Nichols, Fahmid Morshed Fahid, and Tim
+Menzies. 2021. {``Assessing Practitioner Beliefs about Software
+Engineering.''} \emph{Empirical Software Engineering} 26 (4): 73.
+\url{https://doi.org/10.1007/s10664-021-09957-5}.
+
+\bibitem[\citeproctext]{ref-sjobergFutureEmpiricalMethods2007}
+Sjoberg, Dag I. K., Tore Dyba, and Magne Jorgensen. 2007. {``The
+{Future} of {Empirical Methods} in {Software Engineering Research}.''}
+In \emph{Future of {Software Engineering} ({FOSE} '07)}, 358--78.
+\url{https://doi.org/10.1109/FOSE.2007.30}.
+
+\bibitem[\citeproctext]{ref-standevelopmentteamStanHeadersHeadersInterface2020}
+Stan Development Team. 2020. {``{StanHeaders}: {Headers} for the {R}
+Interface to {Stan}.''}
+
+\bibitem[\citeproctext]{ref-storeyHowDevelopersManagers2022}
+Storey, Margaret-Anne, Brian Houck, and Thomas Zimmermann. 2022a. {``How
+{Developers} and {Managers Define} and {Trade Productivity} for
+{Quality}.''} \url{https://doi.org/10.1145/3528579.3529177}.
+
+\bibitem[\citeproctext]{ref-storeyHowDevelopersManagers2022b}
+---------. 2022b. {``How {Developers} and {Managers Define} and {Trade
+Productivity} for {Quality}.''} In \emph{Proceedings of the 15th
+{International Conference} on {Cooperative} and {Human Aspects} of
+{Software Engineering}}, 26--35.
+\url{https://doi.org/10.1145/3528579.3529177}.
+
+\bibitem[\citeproctext]{ref-storeyTheorySoftwareDeveloper2021}
+Storey, Margaret-Anne, Thomas Zimmermann, Christian Bird, Jacek
+Czerwonka, Brendan Murphy, and Eirini Kalliamvakou. 2021. {``Towards a
+{Theory} of {Software Developer Job Satisfaction} and {Perceived
+Productivity}.''} \emph{IEEE Transactions on Software Engineering} 47
+(10): 2125--42. \url{https://doi.org/10.1109/TSE.2019.2944354}.
+
+\bibitem[\citeproctext]{ref-gelman}
+Team, Stan Development. 2024. {``Stan {Modeling Language Users Guide}
+and {Reference Manual}, 2.35.''}
+
+\bibitem[\citeproctext]{ref-terhorst-northWorstProgrammerKnow2023}
+Terhorst-North, Daniel. 2023a. {``The {Worst Programmer I Know}.''}
+\emph{Dan North \& Associates Limited}.
+https://dannorth.net/the-worst-programmer/.
+
+\bibitem[\citeproctext]{ref-terhorst-northMcKinseyDeveloperProductivity2023}
+---------. 2023b. {``{McKinsey Developer Productivity Review}.''}
+\emph{Dan North \& Associates Limited}.
+https://dannorth.net/mckinsey-review/.
+
+\bibitem[\citeproctext]{ref-toxboeCycleTime2023}
+Toxboe, Anders. 2023. {``Cycle {Time}.''} \emph{Learning Loop}.
+https://learningloop.io/glossary/cycle-time.
+
+\bibitem[\citeproctext]{ref-trendowiczChapter6Factors2009}
+Trendowicz, Adam, and Jürgen Münch. 2009. {``Chapter 6 {Factors
+Influencing Software Development Productivity}---{State}-of-the-{Art}
+and {Industrial Experiences}.''} In \emph{Advances in {Computers}},
+77:185--241. Elsevier.
+\url{https://doi.org/10.1016/S0065-2458(09)01206-6}.
+
+\bibitem[\citeproctext]{ref-vehtariRanknormalizationFoldingLocalization2021}
+Vehtari, Aki, Andrew Gelman, Daniel Simpson, Bob Carpenter, and
+Paul-Christian Bürkner. 2021. {``Rank-Normalization, Folding, and
+Localization: {An} Improved {Rhat} for Assessing Convergence of {MCMC}
+(with Discussion).''} \emph{Bayesian Analysis}.
+
+\bibitem[\citeproctext]{ref-vonhippelFreeRevealingPrivatecollective2006}
+Von Hippel, Eric, and Georg Von Krogh. 2006. {``Free Revealing and the
+Private-Collective Model for Innovation Incentives.''} \emph{R and D
+Management} 36 (3): 295--306.
+\url{https://doi.org/10.1111/j.1467-9310.2006.00435.x}.
+
+\bibitem[\citeproctext]{ref-walkerEverythingWrongDORA2023}
+Walker, James. 2023a. {``Everything {Wrong} with {DORA Metrics}
+{\textbar} {Aviator}.''}
+
+\bibitem[\citeproctext]{ref-walkerConsUsingSPACE2023}
+---------. 2023b. {``Cons of {Using SPACE} to {Measure Productivity}
+{\textbar} {Aviator}.''}
+
+\bibitem[\citeproctext]{ref-wattsNewScienceNetworks2004}
+Watts, Duncan J. 2004. {``The {`{New}'} {Science} of {Networks}.''}
+\emph{Annual Review of Sociology} 30 (Volume 30, 2004): 243--70.
+\url{https://doi.org/10.1146/annurev.soc.30.020404.104342}.
+
+\bibitem[\citeproctext]{ref-waydevCycleTimeFormula2021}
+Waydev. 2021. {``Cycle {Time Formula}: {How} to {Optimize} the {Key
+Metric} to {Accelerate Software Delivery}.''}
+
+\bibitem[\citeproctext]{ref-wickhamGgplot2ElegantGraphics2016}
+Wickham, Hadley. 2016. \emph{Ggplot2: {Elegant} Graphics for Data
+Analysis}. Springer-Verlag New York.
+
+\bibitem[\citeproctext]{ref-wickhamScalesScaleFunctions2023}
+Wickham, Hadley, Thomas Lin Pedersen, and Dana Seidel. 2023.
+\emph{Scales: {Scale} Functions for Visualization}. Manual.
+
+\bibitem[\citeproctext]{ref-woodThinplateRegressionSplines2003}
+Wood, Simon N. 2003. {``Thin-Plate Regression Splines.''} \emph{Journal
+of the Royal Statistical Society (B)} 65 (1): 95--114.
+
+\bibitem[\citeproctext]{ref-woodStableEfficientMultiple2004}
+---------. 2004. {``Stable and Efficient Multiple Smoothing Parameter
+Estimation for Generalized Additive Models.''} \emph{Journal of the
+American Statistical Association} 99 (467): 673--86.
+
+\bibitem[\citeproctext]{ref-woodFastStableRestricted2011}
+---------. 2011. {``Fast Stable Restricted Maximum Likelihood and
+Marginal Likelihood Estimation of Semiparametric Generalized Linear
+Models.''} \emph{Journal of the Royal Statistical Society (B)} 73 (1):
+3--36.
+
+\bibitem[\citeproctext]{ref-woodGeneralizedAdditiveModels2017}
+---------. 2017. \emph{Generalized {Additive Models}: {An Introduction}
+with {R}, {Second Edition}}. CRC Press.
+
+\bibitem[\citeproctext]{ref-woodSmoothingParameterModel2016}
+Wood, Simon N., N. Pya, and B. Saefken. 2016. {``Smoothing Parameter and
+Model Selection for General Smooth Models (with Discussion).''}
+\emph{Journal of the American Statistical Association} 111: 1548--75.
+
+\bibitem[\citeproctext]{ref-xieKnitrComprehensiveTool2014}
+Xie, Yihui. 2014. {``Knitr: A Comprehensive Tool for Reproducible
+Research in {R}.''} In \emph{Implementing Reproducible Computational
+Research}, edited by Victoria Stodden, Friedrich Leisch, and Roger D.
+Peng. {Chapman and Hall/CRC}.
+
+\bibitem[\citeproctext]{ref-xieDynamicDocumentsKnitr2015}
+---------. 2015. \emph{Dynamic Documents with {R} and Knitr}. 2nd ed.
+Boca Raton, Florida: {Chapman and Hall/CRC}.
+
+\bibitem[\citeproctext]{ref-xieKnitrGeneralpurposePackage2024}
+---------. 2024. \emph{Knitr: A General-Purpose Package for Dynamic
+Report Generation in {R}}. Manual.
+
+\bibitem[\citeproctext]{ref-zhangPullRequestLatency2022}
+Zhang, Xunhui, Yue Yu, Tao Wang, Ayushi Rastogi, and Huaimin Wang. 2022.
+{``Pull Request Latency Explained: An Empirical Overview.''}
+\emph{Empirical Software Engineering} 27 (6): 126.
+\url{https://doi.org/10.1007/s10664-022-10143-4}.
+
+\end{CSLReferences}
+
 
 
 
