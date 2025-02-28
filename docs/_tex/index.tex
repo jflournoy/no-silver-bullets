@@ -126,10 +126,12 @@
 \usepackage{hyperref}
 \usepackage{float}
 \usepackage{wrapfig}
+\usepackage{afterpage}
 \usepackage{dblfloatfix}
 \usepackage{newunicodechar}
 \newunicodechar{λ}{\ensuremath{\lambda}}
 \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
+\newcommand{\xfnm}[1][]{\ifx!#1!\else\unskip,\space#1\fi}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -673,15 +675,17 @@ Technology, Finance, Government, Insurance, Retail, and others,
 indicating a wide diversity of business use cases and engineering
 contexts were present in this sample.
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=0.03125in,height=\textheight]{plots/org_size_hist.png}
+\includegraphics[width=3in,height=\textheight]{org_size_hist.png}
 
 }
 
-\caption{\label{fig-org-size}}
+\caption[Histogram of organization sizes in the
+dataset.]{\label{fig-org-size}Organization sizes clustered around 130
+users, with a long tail of larger organizations.}
 
 \end{figure}%
 
@@ -1063,20 +1067,6 @@ Notebook}}
 
 \subsection{Population-level effects}\label{population-level-effects}
 
-We find that all measured factors, both individual-difference and
-within-person deviations, have a non-zero association with cycle time,
-with 100\% of the posterior distribution for these parameters sharing
-the same sign (see Table~\ref{tbl-results-fe} for point estimates and
-uncertainty intervals). Within-quarter month showed a very small
-(relative to other effects shown below) negative association with cycle
-time, indicating that time to ticket completion is shorter at the end of
-quarters (Figure~\ref{fig-quarter}). Team size had almost no effect on
-cycle time (Table~\ref{tbl-results-fe}). Cycle times tended to decrease
-slightly over the year (Figure~\ref{fig-month}). The proportion of
-unclosed tickets, an important control variable, on average had close to
-no effect on our measure of average monthly cycle time but interacted
-with month.
-
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
 \global\setlength{\Oldtabcolsep}{\tabcolsep}
@@ -1242,35 +1232,54 @@ with month.
 \href{https://ps-data.github.io/uttvas-manuscript/index.qmd.html}{Article
 Notebook}}
 
-\begin{figure}
+We find that all measured factors, both individual-difference and
+within-person deviations, have a non-zero association with cycle time,
+with 100\% of the posterior distribution for these parameters sharing
+the same sign (see Table~\ref{tbl-results-fe} for point estimates and
+uncertainty intervals). Within-quarter month showed a very small
+(relative to other effects shown below) negative association with cycle
+time, indicating that time to ticket completion is shorter at the end of
+quarters (Figure~\ref{fig-quarter}). Team size had almost no effect on
+cycle time (Table~\ref{tbl-results-fe}). Cycle times tended to decrease
+slightly over the year (Figure~\ref{fig-month}). The proportion of
+unclosed tickets, an important control variable, on average had close to
+no effect on our measure of average monthly cycle time but interacted
+with month.
+
+\begin{figure}[htbp]
+
+\begin{minipage}{0.49\linewidth}
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_quarter.png}
+\includegraphics{cycle_time_full_intx_lin_remonth_quarter.png}
 
 }
 
-\caption[Within-quarter month doesn't affect cycle
-time]{\label{fig-quarter}Within-quarter month doesn't affect cycle time.
-Background pixels represent density of data, with darker colors
+\subcaption{\label{fig-quarter}Within-quarter month doesn't affect cycle
+time. Background pixels represent density of data, with darker colors
 indicating greater density. Lines are median posterior expectations,
 with 95\% credible interval ribbons.}
 
-\end{figure}%
-
-\begin{figure}
+\end{minipage}%
+%
+\begin{minipage}{0.02\linewidth}
+~\end{minipage}%
+%
+\begin{minipage}{0.49\linewidth}
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_month_num.png}
+\includegraphics{cycle_time_full_intx_lin_remonth_month_num.png}
 
 }
 
-\caption[Slight reduction of cycle time across the
-year]{\label{fig-month}Slight reduction of cycle time across the year.
-Background hexagons represent density of data, with darker colors
+\subcaption{\label{fig-month}Slight reduction of cycle time across the
+year. Background hexagons represent density of data, with darker colors
 indicating greater density. Lines are median posterior expectations,
 with 95\% credible interval ribbons.}
+
+\end{minipage}%
 
 \end{figure}%
 
@@ -1281,11 +1290,11 @@ tended to have lower cycle times (Figure~\ref{fig-codingdays}). The
 association between coding days and cycle time also tended to increase
 in strength across months, with 97\% of the posterior in this direction.
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_coding_days.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_coding_days.png}
 
 }
 
@@ -1302,11 +1311,11 @@ average differences and within-person differences. This effect also may
 get stronger across the year with 90\% of the posterior in this
 direction (Figure~\ref{fig-mergedprs}).
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_merged_prs.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_merged_prs.png}
 
 }
 
@@ -1330,11 +1339,11 @@ zero, with only 78\% of the posterior in the negative direction with a
 fairly narrow distribution around zero (95\% HDI = {[}-0.0003,
 0.0001{]}).
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_defect_tickets.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_defect_tickets.png}
 
 }
 
@@ -1361,11 +1370,11 @@ unambiguously strengthen or weaken across the year with 71\% of the
 posterior for the interaction effect having negative sign with a fairly
 narrow distribution around zero (95\% HDI = {[}-0.0005, 0.0002{]}).
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_degree_cent.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_degree_cent.png}
 
 }
 
@@ -1387,11 +1396,11 @@ with 59\% of the posterior for the interaction effect having negative
 sign with a fairly narrow distribution around zero (95\% HDI =
 {[}-0.0004, 0.0005{]}).
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_pr_comments.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_pr_comments.png}
 
 }
 
@@ -1427,13 +1436,13 @@ month, and then plot these as a heatmap where the color represents the
 expected change in cycle time. This allows us to see how the effect of a
 variable on cycle time changes across organizations and across time.
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \begin{minipage}{0.33\linewidth}
 
 \centering{
 
-\includegraphics{plots/avg_coding_days_per_week_eff_size.png}
+\includegraphics{avg_coding_days_per_week_eff_size.png}
 
 }
 
@@ -1445,7 +1454,7 @@ variable on cycle time changes across organizations and across time.
 
 \centering{
 
-\includegraphics{plots/total_merged_prs_eff_size.png}
+\includegraphics{total_merged_prs_eff_size.png}
 
 }
 
@@ -1457,7 +1466,7 @@ variable on cycle time changes across organizations and across time.
 
 \centering{
 
-\includegraphics{plots/defect_tickets_pct_indiv_eff_size.png}
+\includegraphics{defect_tickets_pct_indiv_eff_size.png}
 
 }
 
@@ -1472,7 +1481,7 @@ variable on cycle time changes across organizations and across time.
 
 \centering{
 
-\includegraphics{plots/degree_centrality_monthly_100_eff_size.png}
+\includegraphics{degree_centrality_monthly_100_eff_size.png}
 
 }
 
@@ -1484,7 +1493,7 @@ variable on cycle time changes across organizations and across time.
 
 \centering{
 
-\includegraphics{plots/comments_per_pr_eff_size.png}
+\includegraphics{comments_per_pr_eff_size.png}
 
 }
 
@@ -1598,47 +1607,6 @@ of our model captures well our data distribution
 \href{https://ps-data.github.io/uttvas-manuscript/index.qmd.html}{Article
 Notebook}}
 
-\begin{figure}
-
-\centering{
-
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_nlq_pp_check.png}
-
-}
-
-\caption[Distributions of cycle time vary widely across organizations
-both in their central tendency and
-spread]{\label{fig-pp-check-org}Distributions of cycle time vary widely
-across organizations both in their central tendency and spread.
-Posterior prediction densities for model-expected distributions of cycle
-time are shown across all organizations with at least 10 observations.
-Each density represents one organization, showing model-predicted cycle
-times from 50 posterior draws. The scale has been transformed slightly
-to better show the spread of data. Columns have been ordered by sample
-size, and rows are ordered by median predicted cycle time. Density fill
-colors reflect sample size. Note that distributions from larger orgs
-have less variability in their posterior predictions. Line at 4 weeks is
-set arbitrarily to aid in comparisons.}
-
-\end{figure}%
-
-\begin{figure}
-
-\centering{
-
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_nlq_pp_check_summary.png}
-
-}
-
-\caption[Model-predicted posterior distributions of cycle time captures
-the data distribution well]{\label{fig-pp-check-sum}Model-predicted
-posterior distributions of cycle time captures the data distribution
-well. The posterior prediction density for cycle time is shown across
-all data points. The scale has been transformed slightly to better show
-the spread of data.}
-
-\end{figure}%
-
 Variation across individuals' scale parameter after accounting for
 organization heterogeneity is also substantial, and greater in magnitude
 than organizational heterogeneity (sd = 0.65 {[}0.63, 0.66{]} versus sd
@@ -1668,18 +1636,40 @@ trajectories occur below the thick black median-cycle-time line.
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_lin_remonth_post_pred_ids.png}
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_nlq_pp_check.png}
 
 }
 
-\caption[Individual observations of cycle time are highly variable
-across the year]{\label{fig-bw-ct-traj}Individual observations of cycle
-time are highly variable across the year. Each line tracks cycle time
-month-to-month for one randomly sampled individual. Each facet shows the
-trajectories for individuals who have year-average
-average-coding-days-per-week in the quantile specified at the top of the
-facet. Shading represents prediction intervals from the model for
-plausible cycle time values for these individuals.}
+\caption[Distributions of cycle time vary widely across organizations
+both in their central tendency and
+spread]{\label{fig-pp-check-org}Distributions of cycle time vary widely
+across organizations both in their central tendency and spread.
+Posterior prediction densities for model-expected distributions of cycle
+time are shown across all organizations with at least 10 observations.
+Each density represents one organization, showing model-predicted cycle
+times from 50 posterior draws. The scale has been transformed slightly
+to better show the spread of data. Columns have been ordered by sample
+size, and rows are ordered by median predicted cycle time. Density fill
+colors reflect sample size. Note that distributions from larger orgs
+have less variability in their posterior predictions. Line at 4 weeks is
+set arbitrarily to aid in comparisons.}
+
+\end{figure}%
+
+\begin{figure}
+
+\centering{
+
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_nlq_pp_check_summary.png}
+
+}
+
+\caption[Model-predicted posterior distributions of cycle time captures
+the data distribution well]{\label{fig-pp-check-sum}Model-predicted
+posterior distributions of cycle time captures the data distribution
+well. The posterior prediction density for cycle time is shown across
+all data points. The scale has been transformed slightly to better show
+the spread of data.}
 
 \end{figure}%
 
@@ -1694,6 +1684,25 @@ information to the model. However, at present the conclusion must be
 that one must take great care in comparing cycle-time between
 individuals even in the same organization, or even against themselves.
 
+\begin{figure}[htbp]
+
+\centering{
+
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_lin_remonth_post_pred_ids.png}
+
+}
+
+\caption[Individual observations of cycle time are highly variable
+across the year]{\label{fig-bw-ct-traj}Individual observations of cycle
+time are highly variable across the year. Each line tracks cycle time
+month-to-month for one randomly sampled individual. Each facet shows the
+trajectories for individuals who have year-average
+average-coding-days-per-week in the quantile specified at the top of the
+facet. Shading represents prediction intervals from the model for
+plausible cycle time values for these individuals.}
+
+\end{figure}%
+
 We can also examine the effect of month-by-month deviations in
 coding-days-per-week at the level of these example individuals.
 Figure~\ref{fig-wi-ct-traj} shows data for the same quantiles as above,
@@ -1704,26 +1713,6 @@ tendency for within-person increases and decreases in
 average-coding-days-per-week to affect cycle time, there is considerable
 variation still, with many yellow-colored points above the 0 line and
 darker points below the zero line.
-
-\begin{figure}
-
-\centering{
-
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_nlq_post_pred_ids_win.png}
-
-}
-
-\caption[Individual month-to-month deviations from year-average cycle
-time are highly variable across the
-year]{\label{fig-wi-ct-traj}Individual month-to-month deviations from
-year-average cycle time are highly variable across the year. Each line
-tracks cycle time month-to-month for one randomly sampled individual.
-Each facet shows the trajectories for individuals who have year-average
-average-coding-days-per-week in the quantile specified at the top of the
-facet. Shading represents prediction intervals from the model for
-plausible cycle time values for these individuals.}
-
-\end{figure}%
 
 We can unpack this variability further with the help of our model. We
 will again examine a random subset of 10 participants with complete data
@@ -1738,6 +1727,26 @@ here is that there is some systematic effect on the central tendency for
 different levels of year-average coding days. Again, we see a lot of
 overlap across individuals. And when we examine both the observed data,
 and the model predictions, we see a whole lot more overlap.
+
+\begin{figure}[htbp]
+
+\centering{
+
+\includegraphics[width=4in,height=\textheight]{cycle_time_full_intx_nlq_post_pred_ids_win.png}
+
+}
+
+\caption[Individual month-to-month deviations from year-average cycle
+time are highly variable across the
+year]{\label{fig-wi-ct-traj}Individual month-to-month deviations from
+year-average cycle time are highly variable across the year. Each line
+tracks cycle time month-to-month for one randomly sampled individual.
+Each facet shows the trajectories for individuals who have year-average
+average-coding-days-per-week in the quantile specified at the top of the
+facet. Shading represents prediction intervals from the model for
+plausible cycle time values for these individuals.}
+
+\end{figure}%
 
 The next thing we can do with the model is ask it to give us these
 expectations and predictions under the counterfactual condition of each
@@ -1760,11 +1769,11 @@ factors that impact cycle time may expect to see relatively small or
 even invisible changes at the individual level, even when inducing
 changes that do scale to desired impact at the organizational level.
 
-\begin{figure}
+\begin{figure}[htbp]
 
 \centering{
 
-\includegraphics[width=4in,height=\textheight]{plots/cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png}
+\includegraphics[width=5in,height=\textheight]{cycle_time_full_intx_nlq_combined_post_pred_counterfactual.png}
 
 }
 
@@ -2206,8 +2215,9 @@ this complexity.
 
 \section{Acknowledgements}\label{acknowledgements}
 
-We would like to thank Kristen Foster-Marks, and Bennet Cook for their
-helpful advice on this research.
+We would like to thank Kristen Foster-Marks for advice on the project
+and helpful feedback on a draft; also thanks to Bennet Cook for his help
+navigating many databases.
 
 \section{Contributions}\label{contributions}
 

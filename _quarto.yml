@@ -24,10 +24,12 @@ format:
     pdf-engine: xelatex
     include-in-header:
       text: |
+        \usepackage{afterpage}
         \usepackage{dblfloatfix}
         \usepackage{newunicodechar}
         \newunicodechar{λ}{\ensuremath{\lambda}}
         \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
+        \newcommand{\xfnm}[1][]{\ifx!#1!\else\unskip,\space#1\fi}
 
 
 
