@@ -687,7 +687,7 @@ Table&nbsp;1: Variable descriptions
 </section>
 <section id="analytic-approach" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="analytic-approach"><span class="header-section-number">3.3</span> Analytic Approach</h2>
-<p>The models described below are fit using <code>brms</code> <span class="citation" data-cites="burknerAdvancedBayesianMultilevel2018 burknerBrmsPackageBayesian2017">(v2.21.6, <a href="#ref-burknerAdvancedBayesianMultilevel2018" role="doc-biblioref">Bürkner 2018</a>, <a href="#ref-burknerBrmsPackageBayesian2017" role="doc-biblioref">2017</a>)</span>, interface the the Stan probabilistic programming language for Bayesian sampling <span class="citation" data-cites="gelman">(v2.35.0, <a href="#ref-gelman" role="doc-biblioref">Team 2024</a>)</span>, with the <code>cmdstanr</code> backend <span class="citation" data-cites="gabryCmdstanrInterfaceCmdStan2024">(v0.8.0, <a href="#ref-gabryCmdstanrInterfaceCmdStan2024" role="doc-biblioref">Gabry et al. 2024</a>)</span>, in R <span class="citation" data-cites="rcoreteamLanguageEnvironmentStatistical2023">(v4.3.2, <a href="#ref-rcoreteamLanguageEnvironmentStatistical2023" role="doc-biblioref">R Core Team 2023</a>)</span>.</p>
+<p>The models described below are fit using <code>brms</code> <span class="citation" data-cites="burknerAdvancedBayesianMultilevel2018 burknerBrmsPackageBayesian2017">(v2.21.6, <a href="#ref-burknerAdvancedBayesianMultilevel2018" role="doc-biblioref">Bürkner 2018</a>, <a href="#ref-burknerBrmsPackageBayesian2017" role="doc-biblioref">2017</a>)</span>, interface the the Stan probabilistic programming language for Bayesian sampling <span class="citation" data-cites="gelman">(v2.35.0, <a href="#ref-gelman" role="doc-biblioref">Stan Development Team 2024</a>)</span>, with the <code>cmdstanr</code> backend <span class="citation" data-cites="gabryCmdstanrInterfaceCmdStan2024">(v0.8.0, <a href="#ref-gabryCmdstanrInterfaceCmdStan2024" role="doc-biblioref">Gabry et al. 2024</a>)</span>, in R <span class="citation" data-cites="rcoreteamLanguageEnvironmentStatistical2023">(v4.3.2, <a href="#ref-rcoreteamLanguageEnvironmentStatistical2023" role="doc-biblioref">R Core Team 2023</a>)</span>.</p>
 <p>We developed a model of monthly average ticket cycle time conditional on the following predictors: within-quarter month number, team size, proportion of unclosed tickets, month number, yearly means and month-level deviations for coding days per week, total merged PRs, defect ticket percentage, degree centrality, and comments per PR. Specifically, we modeled cycle time as distributed Weibull with two parameters, <span class="math inline">\(\lambda\)</span> (scale), and <em>k</em> (shape). The Weibull distribution is often used to model time-to-event data <span class="citation" data-cites="harrellRegressionModelingStrategies2015 rummelAverageWeibullAnalysis2017">(<a href="#ref-harrellRegressionModelingStrategies2015" role="doc-biblioref">Harrell 2015</a>; <a href="#ref-rummelAverageWeibullAnalysis2017" role="doc-biblioref">Rummel 2017</a>)</span>, where <em>k</em> determines the change over time in the probability of an event occurring (often called the “hazard rate”), and where <span class="math inline">\(\lambda\)</span> determines the time-to-event for some proportion of the cases (or in other words, how spread out the distribution is). For simplicity, we assume that the shape (hazard rate, <em>k</em>) is not influenced by the factors considered, and focus on how these factors affect the scale (time-to-event, <span class="math inline">\(\lambda\)</span>) of ticket closures, though we did allow the shape, <em>k</em>, to vary across organizations. In short, the Weibull distribution provides flexibility for accurately describing cycle time data that tend to have a bulk of observations at the low end, with a very long tail of more extreme observations.</p>
 <p>The model for <span class="math inline">\(\lambda\)</span> is</p>
 <p><span class="math display">\[\begin{equation}
@@ -1214,7 +1214,7 @@ Figure&nbsp;13: Variability in cycle time within-person across time overwhelms s
 </section>
 <section id="contributions" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Contributions</h1>
-<p>Contribution roles listed are defined in <span class="citation" data-cites="nisocreditworkinggroupANSINISOZ3910420222022">Group (<a href="#ref-nisocreditworkinggroupANSINISOZ3910420222022" role="doc-biblioref">2022</a>)</span>.</p>
+<p>Contribution roles listed are defined in <span class="citation" data-cites="nisocreditworkinggroupANSINISOZ3910420222022">NISO CRediT Working Group (<a href="#ref-nisocreditworkinggroupANSINISOZ3910420222022" role="doc-biblioref">2022</a>)</span>.</p>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lapply</span>(rmarkdown<span class="sc">::</span>metadata<span class="sc">$</span>author, \(x){</span>
@@ -1342,9 +1342,6 @@ Griffin, Abbie. 1993. <span>“Metrics for <span>Measuring Product Development C
 <div id="ref-grisoldDigitalSurveillanceOrganizations2024" class="csl-entry" role="listitem">
 Grisold, Thomas, Stefan Seidel, Markus Heck, and Nicholas Berente. 2024. <span>“Digital <span>Surveillance</span> in <span>Organizations</span>.”</span> <em>Business &amp; Information Systems Engineering</em> 66 (3): 401–10. <a href="https://doi.org/10.1007/s12599-024-00866-7">https://doi.org/10.1007/s12599-024-00866-7</a>.
 </div>
-<div id="ref-nisocreditworkinggroupANSINISOZ3910420222022" class="csl-entry" role="listitem">
-Group, NISO CRediT Working. 2022. <span>“<span>ANSI</span>/<span>NISO Z39</span>.104-2022, <span>CRediT</span>, <span>Contributor Roles Taxonomy</span>.”</span> 3600 Clipper Mill Road Suite 302 Baltimore, MD 21211: NISO. <a href="https://doi.org/10.3789/ansi.niso.z39.104-2022">https://doi.org/10.3789/ansi.niso.z39.104-2022</a>.
-</div>
 <div id="ref-guoNotMyBug2011" class="csl-entry" role="listitem">
 Guo, Philip J., Thomas Zimmermann, Nachiappan Nagappan, and Brendan Murphy. 2011. <span>“"<span>Not</span> My Bug!" and Other Reasons for Software Bug Report Reassignments.”</span> In <em>Proceedings of the <span>ACM</span> 2011 Conference on <span>Computer</span> Supported Cooperative Work</em>, 395–404. Hangzhou China: ACM. <a href="https://doi.org/10.1145/1958824.1958887">https://doi.org/10.1145/1958824.1958887</a>.
 </div>
@@ -1423,6 +1420,9 @@ Nelson, Wayne. 1982. <em>Applied Life Data Analysis</em>. Wiley Series in Probab
 <div id="ref-nicholsEndMythIndividual2019" class="csl-entry" role="listitem">
 Nichols, William R. 2019. <span>“The <span>End</span> to the <span>Myth</span> of <span>Individual Programmer Productivity</span>.”</span> <em>IEEE Software</em> 36 (5): 71–75. <a href="https://doi.org/10.1109/MS.2019.2908576">https://doi.org/10.1109/MS.2019.2908576</a>.
 </div>
+<div id="ref-nisocreditworkinggroupANSINISOZ3910420222022" class="csl-entry" role="listitem">
+NISO CRediT Working Group. 2022. <span>“<span>ANSI</span>/<span>NISO Z39</span>.104-2022, <span>CRediT</span>, <span>Contributor Roles Taxonomy</span>.”</span> 3600 Clipper Mill Road Suite 302 Baltimore, MD 21211: NISO. <a href="https://doi.org/10.3789/ansi.niso.z39.104-2022">https://doi.org/10.3789/ansi.niso.z39.104-2022</a>.
+</div>
 <div id="ref-obstbaumOngoingResearchSoftware" class="csl-entry" role="listitem">
 Obstbaum, Simon, and Yegor Denisov-Blanch. n.d. <span>“Ongoing <span>Research</span> on <span>Software Engineering Productivity</span>.”</span>
 </div>
@@ -1486,6 +1486,9 @@ Sjoberg, Dag I. K., Tore Dyba, and Magne Jorgensen. 2007. <span>“The <span>Fut
 <div id="ref-standevelopmentteamStanHeadersHeadersInterface2020" class="csl-entry" role="listitem">
 Stan Development Team. 2020. <span>“<span>StanHeaders</span>: <span>Headers</span> for the <span>R</span> Interface to <span>Stan</span>.”</span>
 </div>
+<div id="ref-gelman" class="csl-entry" role="listitem">
+———. 2024. <span>“Stan <span>Modeling Language Users Guide</span> and <span>Reference Manual</span>, 2.35.”</span>
+</div>
 <div id="ref-storeyHowDevelopersManagers2022" class="csl-entry" role="listitem">
 Storey, Margaret-Anne, Brian Houck, and Thomas Zimmermann. 2022a. <span>“How <span>Developers</span> and <span>Managers Define</span> and <span>Trade Productivity</span> for <span>Quality</span>.”</span> <a href="https://doi.org/10.1145/3528579.3529177">https://doi.org/10.1145/3528579.3529177</a>.
 </div>
@@ -1494,9 +1497,6 @@ Storey, Margaret-Anne, Brian Houck, and Thomas Zimmermann. 2022a. <span>“How <
 </div>
 <div id="ref-storeyTheorySoftwareDeveloper2021" class="csl-entry" role="listitem">
 Storey, Margaret-Anne, Thomas Zimmermann, Christian Bird, Jacek Czerwonka, Brendan Murphy, and Eirini Kalliamvakou. 2021. <span>“Towards a <span>Theory</span> of <span>Software Developer Job Satisfaction</span> and <span>Perceived Productivity</span>.”</span> <em>IEEE Transactions on Software Engineering</em> 47 (10): 2125–42. <a href="https://doi.org/10.1109/TSE.2019.2944354">https://doi.org/10.1109/TSE.2019.2944354</a>.
-</div>
-<div id="ref-gelman" class="csl-entry" role="listitem">
-Team, Stan Development. 2024. <span>“Stan <span>Modeling Language Users Guide</span> and <span>Reference Manual</span>, 2.35.”</span>
 </div>
 <div id="ref-terhorst-northWorstProgrammerKnow2023" class="csl-entry" role="listitem">
 Terhorst-North, Daniel. 2023a. <span>“The <span>Worst Programmer I Know</span>.”</span> <em>Dan North &amp; Associates Limited</em>. https://dannorth.net/the-worst-programmer/.
@@ -1992,7 +1992,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script>  </div> <!-- /content -->  <script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","selector":".lightbox","descPosition":"bottom","openEffect":"zoom","loop":false});
+</script>  </div> <!-- /content -->  <script>var lightboxQuarto = GLightbox({"descPosition":"bottom","selector":".lightbox","loop":false,"openEffect":"zoom","closeEffect":"zoom"});
 (function() {
   let previousOnload = window.onload;
   window.onload = () => {
