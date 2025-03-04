@@ -1219,7 +1219,8 @@ systems-level thinking rather than individual-focused interventions.</p>
   <sec id="population-level-effects">
     <title>4.1 Population-level effects</title>
     <fig id="tbl-results-fe">
-      <caption><p>Table 2: Fixed effects</p></caption>
+      <caption><p>Table 2: Population-level effect
+      estimates</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-fe-1.png" />
     </fig>
     <p>We find that all measured factors, both individual-difference and
@@ -1506,7 +1507,8 @@ systems-level thinking rather than individual-focused interventions.</p>
     model captures well our data distribution
     (<xref alt="Figure 10" rid="fig-pp-check-sum">Figure 10</xref>).</p>
     <fig id="tbl-results-re">
-      <caption><p>Table 3: Random effects</p></caption>
+      <caption><p>Table 3: Variance and covariance of organization and
+      individual-level effects</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-re-1.png" />
     </fig>
     <p>Variation across individuals’ scale parameter after accounting
@@ -3868,7 +3870,7 @@ systems-level thinking rather than individual-focused interventions.</p>
 </fn-group>
 </back>
 
-<sub-article article-type="notebook" id="nb-6-nb-article">
+<sub-article article-type="notebook" id="nb-5-nb-article">
 <front-stub>
 <title-group>
 <article-title>No Silver Bullets: Why Understanding Software Cycle Time
@@ -5165,7 +5167,8 @@ names(ct_model_pars_fe) &lt;- c('Parameter', 'Posterior Median', 'Lower 95% HDI'
   ) |&gt; 
   fontsize(size = 8, part = &quot;all&quot;)</code>
     <fig id="tbl-results-fe-nb-article">
-      <caption><p>Table 2: Fixed effects</p></caption>
+      <caption><p>Table 2: Population-level effect
+      estimates</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-fe-1.png" />
     </fig>
     </sec>
@@ -5530,7 +5533,8 @@ flextable(display_dt) |&gt;
   ) |&gt; 
   fontsize(size = 8, part = &quot;all&quot;)</code>
     <fig id="tbl-results-re-nb-article">
-      <caption><p>Table 3: Random effects</p></caption>
+      <caption><p>Table 3: Variance and covariance of organization and
+      individual-level effects</p></caption>
       <graphic mimetype="image" mime-subtype="png" xlink:href="index_files/figure-jats/tbl-results-re-1.png" />
     </fig>
     </sec>

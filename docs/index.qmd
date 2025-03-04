@@ -333,7 +333,7 @@ names(ct_model_pars_fe) <- c('Parameter', 'Posterior Median', 'Lower 95% HDI', '
 ## Population-level effects
 
 ```{r model summary table fe, eval=TRUE}
-#| tbl-cap: Fixed effects 
+#| tbl-cap: Population-level effect estimates
 #| label: tbl-results-fe
 
 flextable(ct_model_pars_fe) |>
@@ -477,7 +477,7 @@ There is heterogeneity in the distribution of cycle time across organizations in
 
 
 ```{r model summary table re, eval=TRUE}
-#| tbl-cap: Random effects 
+#| tbl-cap: Variance and covariance of organization and individual-level effects 
 #| label: tbl-results-re
 #| ft.latex.float: float
 

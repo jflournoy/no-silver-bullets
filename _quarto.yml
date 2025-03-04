@@ -22,6 +22,7 @@ format:
     pdf-engine: xelatex
     include-in-header:
       text: |
+        \usepackage{fbb}
         \usepackage{afterpage}
         \usepackage{dblfloatfix}
         \usepackage{newunicodechar}
