@@ -50,7 +50,12 @@ keywords: [cycle time, productivity, software engineering, collaboration, coding
 bibliography: references.bib
 number-sections: true
 license: "CC BY 4.0"
-
+citation:
+  type: article-journal
+  url: "https://arxiv.org/abs/2503.05040"
+  container-title: "arXiv"
+date: "2025-03-10"
+  
 editor: 
   markdown: 
     wrap: 72

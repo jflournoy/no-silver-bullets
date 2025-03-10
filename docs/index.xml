@@ -2,9 +2,21 @@
 <!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving
 and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
 
-<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="article-journal">
 
 <front>
+<journal-meta>
+<journal-id></journal-id>
+
+<journal-title-group>
+<journal-title>arXiv</journal-title>
+</journal-title-group>
+<issn></issn>
+
+<publisher>
+<publisher-name></publisher-name>
+</publisher>
+</journal-meta>
 
 
 <article-meta>
@@ -128,7 +140,11 @@ analysis</role>
 <corresp id="cor-1">jcflournoyphd@pm.me</corresp>
 </author-notes>
 
-
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2025-03-10">
+<year>2025</year>
+<month>3</month>
+<day>10</day>
+</pub-date>
 
 
 
