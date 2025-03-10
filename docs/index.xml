@@ -20,6 +20,7 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
 
 
 <article-meta>
+<article-id pub-id-type="doi">10.48550/arXiv.2503.05040</article-id>
 
 
 <title-group>
@@ -140,10 +141,10 @@ analysis</role>
 <corresp id="cor-1">jcflournoyphd@pm.me</corresp>
 </author-notes>
 
-<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2025-03-10">
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2025-03-06">
 <year>2025</year>
 <month>3</month>
-<day>10</day>
+<day>6</day>
 </pub-date>
 
 

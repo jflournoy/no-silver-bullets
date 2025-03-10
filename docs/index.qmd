@@ -52,9 +52,11 @@ number-sections: true
 license: "CC BY 4.0"
 citation:
   type: article-journal
+  doi: "10.48550/arXiv.2503.05040"
   url: "https://arxiv.org/abs/2503.05040"
   container-title: "arXiv"
-date: "2025-03-10"
+
+date: "2025-03-06"
   
 editor: 
   markdown: 
