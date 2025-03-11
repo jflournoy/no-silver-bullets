@@ -22,20 +22,20 @@ author:
       name: Pluralsight
       city: Draper, UT
       country: USA
-  - name: Catherine M. Hicks
+  - name: Maggie Wu
     degrees:
-      - Ph.D.
-    orcid: 0009-0007-5657-1661
-    roles: [Conceptualization, Funding acquisition, Investigation, Methodology, Project administration, Resources, Supervision, Writing – review & editing]
+      - M.S.
+    roles: [Conceptualization, Data curation, Formal analysis, Investigation, Methodology]
     corresponding: false
     affiliation:
       name: Pluralsight
       city: Draper, UT
       country: USA
-  - name: Maggie Wu
+  - name: Catherine M. Hicks
     degrees:
-      - M.S.
-    roles: [Conceptualization, Data curation, Formal analysis, Investigation, Methodology]
+      - Ph.D.
+    orcid: 0009-0007-5657-1661
+    roles: [Conceptualization, Funding acquisition, Investigation, Methodology, Project administration, Resources, Supervision, Writing – review & editing]
     corresponding: false
     affiliation:
       name: Pluralsight

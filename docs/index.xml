@@ -83,6 +83,24 @@ editing" vocab-term-identifier="https://credit.niso.org/contributor-roles/writin
 <xref ref-type="aff" rid="aff-1">a</xref>
 </contrib>
 <contrib contrib-type="author">
+<name>
+<surname>Wu</surname>
+<given-names>Maggie</given-names>
+</name>
+<string-name>Maggie Wu</string-name>
+<degrees>M.S.</degrees>
+<role vocab="https://credit.niso.org" vocab-term="conceptualization" vocab-term-identifier="https://credit.niso.org/contributor-roles/conceptualization/">Conceptualization</role>
+<role vocab="https://credit.niso.org" vocab-term="data
+curation" vocab-term-identifier="https://credit.niso.org/contributor-roles/data-curation/">Data
+curation</role>
+<role vocab="https://credit.niso.org" vocab-term="formal
+analysis" vocab-term-identifier="https://credit.niso.org/contributor-roles/formal-analysis/">Formal
+analysis</role>
+<role vocab="https://credit.niso.org" vocab-term="investigation" vocab-term-identifier="https://credit.niso.org/contributor-roles/investigation/">Investigation</role>
+<role vocab="https://credit.niso.org" vocab-term="methodology" vocab-term-identifier="https://credit.niso.org/contributor-roles/methodology/">Methodology</role>
+<xref ref-type="aff" rid="aff-1">a</xref>
+</contrib>
+<contrib contrib-type="author">
 <contrib-id contrib-id-type="orcid">0009-0007-5657-1661</contrib-id>
 <name>
 <surname>Hicks</surname>
@@ -104,24 +122,6 @@ administration</role>
 <role vocab="https://credit.niso.org" vocab-term="writing – review &amp;
 editing" vocab-term-identifier="https://credit.niso.org/contributor-roles/writing-review-editing/">Writing
 – review &amp; editing</role>
-<xref ref-type="aff" rid="aff-1">a</xref>
-</contrib>
-<contrib contrib-type="author">
-<name>
-<surname>Wu</surname>
-<given-names>Maggie</given-names>
-</name>
-<string-name>Maggie Wu</string-name>
-<degrees>M.S.</degrees>
-<role vocab="https://credit.niso.org" vocab-term="conceptualization" vocab-term-identifier="https://credit.niso.org/contributor-roles/conceptualization/">Conceptualization</role>
-<role vocab="https://credit.niso.org" vocab-term="data
-curation" vocab-term-identifier="https://credit.niso.org/contributor-roles/data-curation/">Data
-curation</role>
-<role vocab="https://credit.niso.org" vocab-term="formal
-analysis" vocab-term-identifier="https://credit.niso.org/contributor-roles/formal-analysis/">Formal
-analysis</role>
-<role vocab="https://credit.niso.org" vocab-term="investigation" vocab-term-identifier="https://credit.niso.org/contributor-roles/investigation/">Investigation</role>
-<role vocab="https://credit.niso.org" vocab-term="methodology" vocab-term-identifier="https://credit.niso.org/contributor-roles/methodology/">Methodology</role>
 <xref ref-type="aff" rid="aff-1">a</xref>
 </contrib>
 </contrib-group>
@@ -2165,11 +2165,11 @@ systems-level thinking rather than individual-focused interventions.</p>
   original draft, Writing – review &amp; editing. Carol S. Lee:
   Conceptualization, Data curation, Formal analysis, Investigation,
   Methodology, Writing – original draft, Writing – review &amp; editing.
-  Catherine M. Hicks: Conceptualization, Funding acquisition,
-  Investigation, Methodology, Project administration, Resources,
-  Supervision, Writing – review &amp; editing. Maggie Wu:
-  Conceptualization, Data curation, Formal analysis, Investigation,
-  Methodology.</p>
+  Maggie Wu: Conceptualization, Data curation, Formal analysis,
+  Investigation, Methodology. Catherine M. Hicks: Conceptualization,
+  Funding acquisition, Investigation, Methodology, Project
+  administration, Resources, Supervision, Writing – review &amp;
+  editing.</p>
 </sec>
 </body>
 
@@ -3950,6 +3950,24 @@ editing" vocab-term-identifier="https://credit.niso.org/contributor-roles/writin
 <xref ref-type="aff" rid="aff-1-nb-article">a</xref>
 </contrib>
 <contrib contrib-type="author">
+<name>
+<surname>Wu</surname>
+<given-names>Maggie</given-names>
+</name>
+<string-name>Maggie Wu</string-name>
+<degrees>M.S.</degrees>
+<role vocab="https://credit.niso.org" vocab-term="conceptualization" vocab-term-identifier="https://credit.niso.org/contributor-roles/conceptualization/">Conceptualization</role>
+<role vocab="https://credit.niso.org" vocab-term="data
+curation" vocab-term-identifier="https://credit.niso.org/contributor-roles/data-curation/">Data
+curation</role>
+<role vocab="https://credit.niso.org" vocab-term="formal
+analysis" vocab-term-identifier="https://credit.niso.org/contributor-roles/formal-analysis/">Formal
+analysis</role>
+<role vocab="https://credit.niso.org" vocab-term="investigation" vocab-term-identifier="https://credit.niso.org/contributor-roles/investigation/">Investigation</role>
+<role vocab="https://credit.niso.org" vocab-term="methodology" vocab-term-identifier="https://credit.niso.org/contributor-roles/methodology/">Methodology</role>
+<xref ref-type="aff" rid="aff-1-nb-article">a</xref>
+</contrib>
+<contrib contrib-type="author">
 <contrib-id contrib-id-type="orcid">0009-0007-5657-1661</contrib-id>
 <name>
 <surname>Hicks</surname>
@@ -3971,24 +3989,6 @@ administration</role>
 <role vocab="https://credit.niso.org" vocab-term="writing – review &amp;
 editing" vocab-term-identifier="https://credit.niso.org/contributor-roles/writing-review-editing/">Writing
 – review &amp; editing</role>
-<xref ref-type="aff" rid="aff-1-nb-article">a</xref>
-</contrib>
-<contrib contrib-type="author">
-<name>
-<surname>Wu</surname>
-<given-names>Maggie</given-names>
-</name>
-<string-name>Maggie Wu</string-name>
-<degrees>M.S.</degrees>
-<role vocab="https://credit.niso.org" vocab-term="conceptualization" vocab-term-identifier="https://credit.niso.org/contributor-roles/conceptualization/">Conceptualization</role>
-<role vocab="https://credit.niso.org" vocab-term="data
-curation" vocab-term-identifier="https://credit.niso.org/contributor-roles/data-curation/">Data
-curation</role>
-<role vocab="https://credit.niso.org" vocab-term="formal
-analysis" vocab-term-identifier="https://credit.niso.org/contributor-roles/formal-analysis/">Formal
-analysis</role>
-<role vocab="https://credit.niso.org" vocab-term="investigation" vocab-term-identifier="https://credit.niso.org/contributor-roles/investigation/">Investigation</role>
-<role vocab="https://credit.niso.org" vocab-term="methodology" vocab-term-identifier="https://credit.niso.org/contributor-roles/methodology/">Methodology</role>
 <xref ref-type="aff" rid="aff-1-nb-article">a</xref>
 </contrib>
 </contrib-group>
@@ -6202,11 +6202,11 @@ flextable(display_dt) |&gt;
   original draft, Writing – review &amp; editing. Carol S. Lee:
   Conceptualization, Data curation, Formal analysis, Investigation,
   Methodology, Writing – original draft, Writing – review &amp; editing.
-  Catherine M. Hicks: Conceptualization, Funding acquisition,
-  Investigation, Methodology, Project administration, Resources,
-  Supervision, Writing – review &amp; editing. Maggie Wu:
-  Conceptualization, Data curation, Formal analysis, Investigation,
-  Methodology.</p>
+  Maggie Wu: Conceptualization, Data curation, Formal analysis,
+  Investigation, Methodology. Catherine M. Hicks: Conceptualization,
+  Funding acquisition, Investigation, Methodology, Project
+  administration, Resources, Supervision, Writing – review &amp;
+  editing.</p>
 </sec>
 </body>
 
