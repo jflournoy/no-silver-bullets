@@ -146,7 +146,7 @@ Industry convention rationalizes that increased coding times increases the amoun
 
 # Research design and methodology
 
-Code for these analyses is available in the `manuscript-preprint_v1.0.0` release as `analyses.qmd`, here: [https://github.com/jflournoy/no-silver-bullets](https://github.com/jflournoy/no-silver-bullets).
+Code for these analyses is available as `analyses.qmd`, here: [https://github.com/jflournoy/no-silver-bullets](https://github.com/jflournoy/no-silver-bullets).
 
 ## Data Selection and Characteristics
 
