@@ -2159,14 +2159,8 @@ systems-level thinking rather than individual-focused interventions.</p>
 </sec>
 <sec id="declarations">
   <title>8. Declarations</title>
-  <sec id="funding">
-    <title>8.1 Funding</title>
-    <p>All authors were employees of Pluralsight during the course of
-    this research. Pluarlsite did not provide any additional funding for
-    this work.</p>
-  </sec>
   <sec id="ethical-approval">
-    <title>8.2 Ethical approval</title>
+    <title>8.1 Ethical approval</title>
     <p>This research used aggregated, anonymized GitHub activity data
     routinely collected through our company’s normal operations and
     permitted by our Terms of Service. No personal information was
@@ -2174,12 +2168,12 @@ systems-level thinking rather than individual-focused interventions.</p>
     followed to prevent re-identification of individuals or
     organizations. Because the dataset was pre-existing, fully
     anonymized, and did not involve direct interaction with human
-    subjects, the research is exempt from IRB review under 45 CFR §
+    subjects, the research is exempt from IRB review under 45 CFR
     46.104(d)(4)(ii). All data was stored on secure systems with limited
     access, ensuring both data integrity and confidentiality.</p>
   </sec>
   <sec id="author-contributions">
-    <title>8.3 Author Contributions</title>
+    <title>8.2 Author Contributions</title>
     <p>Contribution roles listed are defined in NISO CRediT Working
     Group
     (<xref alt="2022" rid="ref-nisocreditworkinggroupANSINISOZ3910420222022" ref-type="bibr">2022</xref>).</p>
@@ -2195,14 +2189,14 @@ systems-level thinking rather than individual-focused interventions.</p>
     &amp; editing.</p>
   </sec>
   <sec id="data-availability-statement">
-    <title>8.4 Data Availability Statement</title>
+    <title>8.3 Data Availability Statement</title>
     <p>Data are considered proprietary and are not available to be
     shared. Code for these analyses is available as
     <monospace>analyses.qmd</monospace>, here:
     <ext-link ext-link-type="uri" xlink:href="https://github.com/jflournoy/no-silver-bullets">https://github.com/jflournoy/no-silver-bullets</ext-link>.</p>
   </sec>
   <sec id="conflict-of-interest">
-    <title>8.5 Conflict of Interest</title>
+    <title>8.4 Conflict of Interest</title>
     <p>The authors are employed by Pluralsight, which is the source of
     the data used in this study. However, the authors’ roles do not
     involve product sales or marketing, and this research does not
@@ -2211,8 +2205,11 @@ systems-level thinking rather than individual-focused interventions.</p>
     methods, findings, or conclusions presented in this paper.</p>
   </sec>
   <sec id="other-declarations">
-    <title>8.6 Other declarations</title>
+    <title>8.5 Other declarations</title>
     <list list-type="bullet">
+      <list-item>
+        <p>Funding: Not applicable.</p>
+      </list-item>
       <list-item>
         <p>Informed consent: Not applicable.</p>
       </list-item>
@@ -6239,14 +6236,8 @@ flextable(display_dt) |&gt;
 </sec>
 <sec id="declarations-nb-article">
   <title>8. Declarations</title>
-  <sec id="funding-nb-article">
-    <title>8.1 Funding</title>
-    <p>All authors were employees of Pluralsight during the course of
-    this research. Pluarlsite did not provide any additional funding for
-    this work.</p>
-  </sec>
   <sec id="ethical-approval-nb-article">
-    <title>8.2 Ethical approval</title>
+    <title>8.1 Ethical approval</title>
     <p>This research used aggregated, anonymized GitHub activity data
     routinely collected through our company’s normal operations and
     permitted by our Terms of Service. No personal information was
@@ -6254,12 +6245,12 @@ flextable(display_dt) |&gt;
     followed to prevent re-identification of individuals or
     organizations. Because the dataset was pre-existing, fully
     anonymized, and did not involve direct interaction with human
-    subjects, the research is exempt from IRB review under 45 CFR §
+    subjects, the research is exempt from IRB review under 45 CFR
     46.104(d)(4)(ii). All data was stored on secure systems with limited
     access, ensuring both data integrity and confidentiality.</p>
   </sec>
   <sec id="author-contributions-nb-article">
-    <title>8.3 Author Contributions</title>
+    <title>8.2 Author Contributions</title>
     <p>Contribution roles listed are defined in NISO CRediT Working
     Group
     (<xref alt="2022" rid="ref-nisocreditworkinggroupANSINISOZ3910420222022-nb-article" ref-type="bibr">2022</xref>).</p>
@@ -6283,14 +6274,14 @@ flextable(display_dt) |&gt;
     &amp; editing.</p>
   </sec>
   <sec id="data-availability-statement-nb-article">
-    <title>8.4 Data Availability Statement</title>
+    <title>8.3 Data Availability Statement</title>
     <p>Data are considered proprietary and are not available to be
     shared. Code for these analyses is available as
     <monospace>analyses.qmd</monospace>, here:
     <ext-link ext-link-type="uri" xlink:href="https://github.com/jflournoy/no-silver-bullets">https://github.com/jflournoy/no-silver-bullets</ext-link>.</p>
   </sec>
   <sec id="conflict-of-interest-nb-article">
-    <title>8.5 Conflict of Interest</title>
+    <title>8.4 Conflict of Interest</title>
     <p>The authors are employed by Pluralsight, which is the source of
     the data used in this study. However, the authors’ roles do not
     involve product sales or marketing, and this research does not
@@ -6299,8 +6290,11 @@ flextable(display_dt) |&gt;
     methods, findings, or conclusions presented in this paper.</p>
   </sec>
   <sec id="other-declarations-nb-article">
-    <title>8.6 Other declarations</title>
+    <title>8.5 Other declarations</title>
     <list list-type="bullet">
+      <list-item>
+        <p>Funding: Not applicable.</p>
+      </list-item>
       <list-item>
         <p>Informed consent: Not applicable.</p>
       </list-item>
