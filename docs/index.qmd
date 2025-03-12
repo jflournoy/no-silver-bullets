@@ -57,11 +57,12 @@ citation:
   container-title: "arXiv"
 
 date: "2025-03-06"
-  
+
 editor: 
   markdown: 
     wrap: 72
 ---
+
 
 ```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, error = FALSE)
@@ -146,7 +147,7 @@ Industry convention rationalizes that increased coding times increases the amoun
 
 # Research design and methodology
 
-Code for these analyses is available as `analyses.qmd`, here: [https://github.com/jflournoy/no-silver-bullets](https://github.com/jflournoy/no-silver-bullets).
+Code for these analyses is available as `analyses.qmd`, here: [https://github.com/jflournoy/no-silver-bullets](https://github.com/jflournoy/no-silver-bullets). Data are considered proprietary and are not available to be shared.
 
 ## Data Selection and Characteristics
 
@@ -695,7 +696,17 @@ As the findings of the current work have demonstrated, moving toward a greater u
 
 `r rmarkdown::metadata$acknowledgements`
 
-# Contributions
+# Declarations
+
+## Funding
+
+All authors were employees of Pluralsight during the course of this research. Pluarlsite did not provide any additional funding for this work.
+
+## Ethical approval
+
+This research used aggregated, anonymized GitHub activity data routinely collected through our company's normal operations and permitted by our Terms of Service. No personal information was gathered specifically for this study, and strict protocols were followed to prevent re-identification of individuals or organizations. Because the dataset was pre-existing, fully anonymized, and did not involve direct interaction with human subjects, the research is exempt from IRB review under 45 CFR &sect; 46.104(d)(4)(ii). All data was stored on secure systems with limited access, ensuring both data integrity and confidentiality.
+
+## Author Contributions
 
 Contribution roles listed are defined in @nisocreditworkinggroupANSINISOZ3910420222022.
 
@@ -710,6 +721,19 @@ cat(
   )
 )
 ```
+
+## Data Availability Statement
+
+Data are considered proprietary and are not available to be shared. Code for these analyses is available as `analyses.qmd`, here: [https://github.com/jflournoy/no-silver-bullets](https://github.com/jflournoy/no-silver-bullets). 
+
+## Conflict of Interest
+
+The authors are employed by Pluralsight, which is the source of the data used in this study. However, the authors' roles do not involve product sales or marketing, and this research does not evaluate product performance. The company approved the use of anonymized data for this research but did not influence the analysis methods, findings, or conclusions presented in this paper.
+
+## Other declarations
+
+- Informed consent: Not applicable.
+- Clinical trial number: not applicable.
 
 # References {.unnumbered}
 
