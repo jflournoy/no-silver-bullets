@@ -13,6 +13,9 @@ format:
     toc: true
     comments:
       hypothesis: true
+  pdf:
+    pdf-engine: xelatex
+    pdf-engine-opt: "-output-directory=."
   docx: default
   jats: default
   arxiv-pdf:
@@ -20,6 +23,7 @@ format:
     authorcols: true
     runninghead: 'preprint: No Silver Bullets for Cycle Time'
     pdf-engine: xelatex
+    pdf-engine-opt: "-output-directory=."
     include-in-header:
       text: |
         \usepackage{fbb}

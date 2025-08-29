@@ -5,10 +5,11 @@ is_github_action <- function() {
 
 # Set custom library path if running locally
 if (!is_github_action()) {
-  .libPaths("/home/rstudio/R/aarch64-unknown-linux-gnu-library/4.3")
+  .libPaths("/home/rstudio/R/x86_64-pc-linux-gnu-library//4.3")
 }
 
 library(posterior)
+library(rstan)
 library(brms)
 library(kableExtra)
 library(memoise)
@@ -16,7 +17,7 @@ library(memoise)
 cm <- cachem::cache_mem(max_size = 5 * 1024^3)
 
 load_model <- memoise(function(model_file) {
-  readRDS(file.path('~/code/Developer-Insights-Lab/productivity-project/prod-proj-2/', model_file))
+  readRDS(file.path('~/remote/', model_file))
 }, cache = cm)
 
 brms_to_draws <- function(x, variables){
@@ -28,9 +29,11 @@ brms_to_draws <- function(x, variables){
 
 filename_do <- function(filename, do_this){
   if(!file.exists(filename)){
+    message('Creating ', filename, '...')
     result <- do_this
     saveRDS(result, filename)
   } else {
+    message('Loading ', filename, '...')
     result <- readRDS(filename)
   }
   return(result)

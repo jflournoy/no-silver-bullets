@@ -264,7 +264,7 @@ hierarchical modeling
 
 Understanding the factors that affect the delivery of software at an
 organizational level offers businesses and engineering teams the
-knowledge to deliver value to users, maintain competitiveness, and
+knowledge to deliver value to end-users, maintain competitiveness, and
 improve developer experience. Given engineering teams' fundamental role
 in software delivery, the velocity of their work---that is, the time it
 takes for task completion---has emerged as a focal point of empirical
@@ -418,7 +418,7 @@ paired with this are some indicators of uncertainty in whether and how
 metrics are being tracked or used (C. Hicks, Lee, and Ramsey 2023),
 there is often backlash against any attempt to define or popularize such
 metrics (Bruneaux 2024; Chhuneja 2024; Coté 2023; Finster 2023; Orosz
-2024a, 2024b; Riggins 2023; Terhorst-North 2023b, 2023a; Walker 2023b,
+2024b, 2024a; Riggins 2023; Terhorst-North 2023b, 2023a; Walker 2023b,
 2023a), and there is concern about mismeasurement by managers inside of
 organizations (C. Hicks, Lee, and Ramsey 2023), which is part of a
 broader discussion of surveillance and the discontent it can generate
@@ -541,19 +541,30 @@ measuring the time between task start and task delivery. It has
 consistently been described by industry research as one of the best and
 most trusted metrics for software productivity (Carey 2024). In this
 same report, similar metrics also showed preference, such as lead time,
-deploy frequency, and change failure rate. The common thread across
-these metrics is that the unit of work is defined by the team or company
-in relation to goals that serve the strategic interests of the project.
-While there is a good deal of nuance with respect to what goes into
-setting these units up, they are both discrete (and so
-``objective''-feeling) but also defined, often collaboratively, with
-respect to the outcomes that matter. This is in contrast to lines of
-code, for example, which may or may not be relevant to the goals of the
-engineering teams, and which is avoided by 70\% of respondents in the
-same industry report. Cycle time may also be considered an important
-part of developer experience as a component of what leads to a
-fluid-feeling development and release cycle (André N. Meyer et al.
-2021).
+deploy frequency, and change failure rate. The broader software
+engineering community has emphasized similar constructs through the
+research program DevOps Research and Assessment (DORA), which identified
+four key measures of software delivery performance: lead time,
+deployment frequency, change failure rate, and mean time to recovery
+(Forsgren, Humble, and Kim 2018). While cycle time is not identical to
+these measures, it overlaps conceptually---particularly with lead
+time---in capturing aspects of delivery speed. Positioning cycle time
+alongside these measures situates it within a family of indicators
+concerned with the timeliness and reliability of software delivery, even
+though the operational definitions vary across contexts.
+
+The common thread across these metrics is that the unit of work is
+defined by the team or company in relation to goals that serve the
+strategic interests of the project. While there is a good deal of nuance
+with respect to what goes into setting these units up, they are both
+discrete (and so ``objective''-feeling) but also defined, often
+collaboratively, with respect to the outcomes that matter. This is in
+contrast to lines of code, for example, which may or may not be relevant
+to the goals of the engineering teams, and which is avoided by 70\% of
+respondents in the same industry report. Cycle time may also be
+considered an important part of developer experience as a component of
+what leads to a fluid-feeling development and release cycle (André N.
+Meyer et al. 2021).
 
 In calls to re-examine the complexity of developer productivity,
 researchers have argued that velocity measures are highly
@@ -591,10 +602,10 @@ In the literature that does directly address this question, four major
 areas have been proposed to impact cycle time: (1) organizational
 structure and climate, (2) reward system, (3) software development
 process and (4) the use of software design and testing tools (Clincy
-2003). We focus in this paper on factors from (3) software development
-processes, in part because measurements of these processes continue to
-gather significant interest from the technology industry and are
-plausibly mobile levers that can be manipulated at the level of an
+2003). We focus in this paper on factors from part 3, software
+development processes, in part because measurements of these processes
+continue to gather significant interest from the technology industry and
+are plausibly mobile levers that can be manipulated at the level of an
 engineering team. They are also themselves relatively easy to measure
 and track at the team level if a software team within a larger
 organization were to decide they wanted to try to shift their processes
@@ -627,18 +638,27 @@ similarly yield more efficient teams by breaking work down into more
 manageable chunks and reducing the amount of unplanned work from bugs
 and defects. Finally, industry reports posit that improved collaboration
 can reduce the time it takes for developers to review PRs and increase
-review rates (Flow, n.d.; Gralha 2022; Waydev 2021). However, this has
-not yet been examined empirically. That is, although industry convention
-dictates that these practices work to reduce cycle time, we have yet to
-generate real world evidence of their effectiveness. We focus on these
-three areas as possible factors that impact cycle time.
+review rates (Flow, n.d.; Gralha 2022; Waydev 2021). There has also been
+some work looking at this empirically which supports the idea that
+collaboration under certain conditions does improve productivity
+Gousios, Pinzger, and Deursen (2014). We focus on these three areas as
+possible factors that impact cycle time.
 
 \section{Research design and
 methodology}\label{research-design-and-methodology}
 
 Code for these analyses is available as \texttt{analyses.qmd}, here:
 \url{https://github.com/jflournoy/no-silver-bullets}. Data are
-considered proprietary and are not available to be shared.
+considered proprietary and are not available to be shared. This research
+used aggregated, anonymized GitHub activity data routinely collected
+through our company's normal operations and permitted by our Terms of
+Service. No personal information was gathered specifically for this
+study, and strict protocols were followed to prevent re-identification
+of individuals or organizations. Because the dataset was pre-existing,
+fully anonymized, and did not involve direct interaction with human
+subjects, the research is exempt from IRB review under 45 CFR
+\S 46.104(d)(4)(ii). All data was stored on secure systems with limited
+access, ensuring both data integrity and confidentiality.
 
 \subsection{Data Selection and
 Characteristics}\label{data-selection-and-characteristics}
@@ -687,11 +707,14 @@ contexts were present in this sample.
 
 \includegraphics[width=3in,height=\textheight]{org_size_hist.png}
 
+Organization sizes clustered around 130 users, with a long tail of
+larger organizations.
+
 }
 
 \caption[Histogram of organization sizes in the
-dataset.]{\label{fig-org-size}Organization sizes clustered around 130
-users, with a long tail of larger organizations.}
+dataset.]{\label{fig-org-size}Note that ``users'' generally refers to
+developers or other individuals creating and closing tickets.}
 
 \end{figure}%
 
@@ -732,7 +755,9 @@ cycle time for each closed ticket in seconds, we found the median cycle
 time for each month for each user using all tickets \emph{opened} in
 that month. For example, a ticket opened on the 9th of April, and closed
 on the 3rd of May would contribute 2,246,400 seconds to the calculation
-of the median for April.
+of the median for April. Depending on how organizations actually use
+tickets in practice, it is not guaranteed that work has not already
+begun prior to ticket opening.
 
 \subsubsection{Unclosed Tickets}\label{unclosed-tickets}
 
@@ -788,7 +813,11 @@ effect of team size on an individual's cycle time.
 Coding days was summarized as the average number of days per week that a
 developer made at least one commit. We divided the number of coding days
 in a month by the total number of days in that month and multiplied by
-seven to aid in interpretation.
+seven to aid in interpretation. Based on conversations with software
+developers, we understand that making small commits frequently is often
+considered best-practice, but the fact that commits can be made
+independent of actual coding time means that our proxy measure for
+coding days is imperfect.
 
 \subsubsection{Total Merged PRs}\label{total-merged-prs}
 
@@ -796,22 +825,29 @@ One frequently proposed best practice in software work, intended to lead
 to outcomes such as improved task scoping, involves breaking work into
 smaller and more manageable chunks or pull requests that can be finished
 more quickly (Kudrjavets, Nagappan, and Rastogi 2022; Lines 2023; Riosa
-2019; Zhang et al. 2022). As such, we used the number of total merged
-pull requests as one measure of task scoping. To calculate this, we
-counted the number of merged pull requests for each user for each month.
+2019; Zhang et al. 2022). For a given software development goal, if we
+assume the set of commits necessary to accomplish that goals remains the
+same, more pull requests suggests that the task was broken down into
+smaller discrete goals in a way that groups more closely related
+subtasks together than one large pull request. Making smaller, more
+frequent pull requests is also itself a way to break up the task for
+code reviewers in a way that is thought to improve productivity. As
+such, we used the number of total merged pull requests as one measure of
+task scoping. To calculate this, we counted the number of merged pull
+requests for each user for each month.
 
 \subsubsection{Percent Defect Tickets}\label{percent-defect-tickets}
 
 Another potentially beneficial signal in software activity data is the
 reduction of unplanned work on bugs and defect tickets, which is also
-proposed as a bottleneck on improving cycle time (Paudel et al. 2024,
-2024; Rosser and Norton 2021; Toxboe 2023). As such, we used the
-percentage of defect tickets as another measure of task scoping to
-represent unplanned work that may interfere with timely completion of
-planned work. This may also be a downstream signal of individuals'
-opportunity for focused work time and code quality. To account for this
-possibility, for each user, for each month, we computed the percent of
-tickets that were defect tickets.
+proposed as a bottleneck on improving cycle time (Paudel et al. 2024;
+Rosser and Norton 2021; Toxboe 2023). As such, we used the percentage of
+defect tickets as another measure of task scoping to represent unplanned
+work that may interfere with timely completion of planned work. This may
+also be a downstream signal of individuals' opportunity for focused work
+time and code quality. To account for this possibility, for each user,
+for each month, we computed the percent of tickets that were defect
+tickets.
 
 \subsubsection{Degree centrality}\label{degree-centrality}
 
@@ -836,7 +872,9 @@ PRs. We undertook a comprehensive examination of all PRs that were
 successfully merged in the year 2022 and, for each user, calculated the
 average number of comments per PR that they authored each month. This
 served as a measure to gauge the depth of collaboration exhibited during
-the development and review process.
+the development and review process. However, see Bacchelli and Bird
+(2013) suggesting that more comments may reflect, for example, poorer
+code quality.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1393}}
@@ -885,10 +923,9 @@ on \\
 \subsection{Analytic Approach}\label{analytic-approach}
 
 The models described below are fit using \texttt{brms} (v2.21.6, Bürkner
-2018, 2017), interface the the Stan probabilistic programming language
-for Bayesian sampling (v2.35.0, Stan Development Team 2024), with the
-\texttt{cmdstanr} backend (v0.8.0, Gabry et al. 2024), in R (v4.3.2, R
-Core Team 2023).
+2018, 2017), interface the Stan probabilistic programming language for
+Bayesian sampling (v2.35.0, Team 2024), with the \texttt{cmdstanr}
+backend (v0.8.0, Gabry et al. 2024), in R (v4.3.2, R Core Team 2023).
 
 We developed a model of monthly average ticket cycle time conditional on
 the following predictors: within-quarter month number, team size,
@@ -1054,7 +1091,7 @@ variability in these effects across time, across individuals, and across
 organizations.
 
 \textsubscript{Source:
-\href{https://ps-data.github.io/uttvas-manuscript/index.qmd.html}{Article
+\href{https://jflournoy.github.io/no-silver-bullets/index.qmd.html}{Article
 Notebook}}
 
 \subsection{Population-level effects}\label{population-level-effects}
@@ -1079,133 +1116,133 @@ Notebook}}
 
 \ascline{1.5pt}{666666}{1-5}
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Parameter}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Posterior\ Median}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{1}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Lower\ 95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Upper\ 95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Sign\ Probability}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{3}}}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Parameter}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Posterior\ Median}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{1}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Lower\ 95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Upper\ 95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Sign\ Probability}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{3}}}}}} \\
 
 \ascline{1.5pt}{666666}{1-5}\endfirsthead 
 
 \ascline{1.5pt}{666666}{1-5}
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Parameter}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Posterior\ Median}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{1}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Lower\ 95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Upper\ 95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Sign\ Probability}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{3}}}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Parameter}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Posterior\ Median}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{1}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Lower\ 95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Upper\ 95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Sign\ Probability}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{3}}}}}} \\
 
 \ascline{1.5pt}{666666}{1-5}\endhead
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept\ log(λ)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{14.3484}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{14.2727}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{14.4282}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept\ log(λ)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{14.3484}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{14.2727}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{14.4282}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept\ log(k)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.1214}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0807}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.1585}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept\ log(k)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.1214}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0807}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.1585}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Within-quarter\ month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0085}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0188}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0013}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 95\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Within-quarter\ month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0085}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0188}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0013}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 95\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Team\ size}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0644}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0560}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 50\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Team\ size}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0644}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0560}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 50\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Avg.\ coding\ days/week\ (within-person)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0794}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0911}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0677}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Avg.\ coding\ days/week\ (within-person)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0794}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0911}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0677}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Avg.\ coding\ days/week}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0839}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.1100}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0587}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Avg.\ coding\ days/week}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0839}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.1100}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0587}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Total\ merged\ PRs\ (within-person)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0127}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0155}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0097}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Total\ merged\ PRs\ (within-person)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0127}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0155}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0097}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Total\ merged\ PRs}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0083}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0139}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0027}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Total\ merged\ PRs}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0083}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0139}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0027}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Defect\ tickets\ \%\ (within-person)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0019}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0023}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0014}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Defect\ tickets\ \%\ (within-person)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0019}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0023}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0014}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Defect\ tickets\ \%}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0060}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0049}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0070}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Defect\ tickets\ \%}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0060}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0049}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0070}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Degree\ centrality\ (within-person)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0023}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0040}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0006}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Degree\ centrality\ (within-person)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0023}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0040}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0006}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Degree\ centrality}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0040}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0063}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0015}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Degree\ centrality}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0040}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0063}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0015}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Comments\ per\ PR\ (within-person)}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0046}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0037}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0054}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Comments\ per\ PR\ (within-person)}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0046}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0037}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0054}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Comments\ per\ PR}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0098}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0075}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0120}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 100\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Comments\ per\ PR}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0098}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0075}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0120}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Avg.\ coding\ days/week\ ×\ Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0047}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0098}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 97\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Avg.\ coding\ days/week\ ×\ Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0047}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0098}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 97\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Total\ merged\ PRs\ ×\ Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0007}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0017}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0003}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 90\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Total\ merged\ PRs\ ×\ Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0007}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0017}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0003}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 90\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Defect\ tickets\ \%\ ×\ Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0003}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 78\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Defect\ tickets\ \%\ ×\ Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0003}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 78\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Degree\ centrality\ ×\ Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0005}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0002}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 71\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Degree\ centrality\ ×\ Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0005}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0002}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 71\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Comments\ per\ PR\ ×\ Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0001}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.0004}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.0005}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\ 59\%}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 1.25in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Comments\ per\ PR\ ×\ Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0001}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.0004}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.0005}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\ 59\%}}}} \\
 
 \ascline{1.5pt}{666666}{1-5}
 
 
 
-\multicolumn{5}{>{\raggedright}m{\dimexpr 4.25in+8\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{1}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Median\ of\ the\ posterior\ distribution,\ used\ as\ point\ estimate}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{2}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{95\%\ Highest\ Density\ Interval,\ containing\ the\ most\ probable\ parameter\ values\ with\ 95\%\ posterior\ probability\ mass}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{3}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Probability\ that\ the\ effect\ is\ in\ the\ reported\ direction,\ calculated\ as\ the\ proportion\ of\ posterior\ samples\ with\ the\ same\ sign\ as\ the\ point\ estimate}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}} \\
+\multicolumn{5}{>{\raggedright}m{\dimexpr 4.25in+8\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{1}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Median\ of\ the\ posterior\ distribution,\ used\ as\ point\ estimate}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{2}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{95\%\ Highest\ Density\ Interval,\ containing\ the\ most\ probable\ parameter\ values\ with\ 95\%\ posterior\ probability\ mass}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{3}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Probability\ that\ the\ effect\ is\ in\ the\ reported\ direction,\ calculated\ as\ the\ proportion\ of\ posterior\ samples\ with\ the\ same\ sign\ as\ the\ point\ estimate}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}} \\
 
 
 
@@ -1221,7 +1258,7 @@ Notebook}}
 \renewcommand*{\arraystretch}{1}
 
 \textsubscript{Source:
-\href{https://ps-data.github.io/uttvas-manuscript/index.qmd.html}{Article
+\href{https://jflournoy.github.io/no-silver-bullets/index.qmd.html}{Article
 Notebook}}
 
 We find that all measured factors, both individual-difference and
@@ -1535,61 +1572,61 @@ and individual-level effects}
 
 \ascline{1.5pt}{666666}{1-7}
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Par}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{1}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Grp}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Stat}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{3}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Pred}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{4}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Post\ Med}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{5}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{6}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Sign\ Prob}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{7}}}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Par}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{1}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Grp}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Stat}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{3}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Pred}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{4}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Post\ Med}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{5}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{6}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Sign\ Prob}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{7}}}}}} \\
 
 \ascline{1.5pt}{666666}{1-7}\endfirsthead 
 
 \ascline{1.5pt}{666666}{1-7}
 
-\multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Par}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{1}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Grp}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{2}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Stat}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{3}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Pred}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{4}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Post\ Med}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{5}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{95\%\ HDI}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{6}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{Sign\ Prob}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textbf{\textsuperscript{7}}}}} \\
+\multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Par}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{1}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Grp}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{2}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Stat}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{3}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Pred}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{4}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Post\ Med}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{5}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{95\%\ HDI}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{6}}}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Sign\ Prob}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\textsuperscript{7}}}}}} \\
 
 \ascline{1.5pt}{666666}{1-7}\endhead
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.474}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[0.424,\ 0.529]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.474}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[0.424,\ 0.529]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\multirow[t]{-2}{*}{\parbox{0.5in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{SD}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.034}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[0.027,\ 0.042]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\multirow[t]{-2}{*}{\parbox{0.5in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{SD}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.034}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[0.027,\ 0.042]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-3}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{org}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Correlation}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept-Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.123}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[-0.335,\ 0.110]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{86.15\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-3}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{org}}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Correlation}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept-Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.123}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[-0.335,\ 0.110]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{86.15\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.645}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[0.631,\ 0.661]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.645}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[0.631,\ 0.661]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\multirow[t]{-2}{*}{\parbox{0.5in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{SD}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.067}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[0.062,\ 0.071]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\multirow[t]{-2}{*}{\parbox{0.5in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{SD}}}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.067}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[0.062,\ 0.071]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-6}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{log(λ)}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-3}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{org:user}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Correlation}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept-Month}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{-0.131}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[-0.192,\ -0.077]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-6}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{log(λ)}}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\multirow[t]{-3}{*}{\parbox{0.4in}{\raggedright \textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{org:user}}}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Correlation}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept-Month}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{-0.131}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[-0.192,\ -0.077]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{log(k)}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{org}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{SD}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Intercept}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{0.277}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{[0.247,\ 0.310]}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{100\%}}} \\
+\multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{log(k)}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{org}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{SD}}}} & \multicolumn{1}{>{\raggedright}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Intercept}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{0.277}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{[0.247,\ 0.310]}}}} & \multicolumn{1}{>{\raggedleft}m{\dimexpr 0.5in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{100\%}}}} \\
 
 \ascline{1.5pt}{666666}{1-7}
 
 
 
-\multicolumn{7}{>{\raggedright}m{\dimexpr 3.55in+12\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{1}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Response\ distribution\ parameter\ (λ:\ rate\ parameter,\ k:\ shape\ parameter)}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{2}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Random\ effects\ grouping\ structure}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{3}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Statistic\ type\ (SD:\ standard\ deviation\ of\ random\ effect,\ Correlation:\ correlation\ between\ random\ effects)}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{4}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Fixed\ or\ random\ effect\ term}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{5}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Median\ of\ the\ posterior\ distribution,\ used\ as\ point\ estimate}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{6}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{95\%\ Highest\ Density\ Interval,\ containing\ the\ most\ probable\ parameter\ values\ with\ 95\%\ posterior\ probability\ mass}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\textsuperscript{7}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{Probability\ that\ the\ effect\ is\ in\ the\ reported\ direction,\ calculated\ as\ the\ proportion\ of\ posterior\ samples\ with\ the\ same\ sign\ as\ the\ point\ estimate}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{.\ }}} \\
+\multicolumn{7}{>{\raggedright}m{\dimexpr 3.55in+12\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{1}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Response\ distribution\ parameter\ (λ:\ rate\ parameter,\ k:\ shape\ parameter)}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{2}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Random\ effects\ grouping\ structure}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{3}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Statistic\ type\ (SD:\ standard\ deviation\ of\ random\ effect,\ Correlation:\ correlation\ between\ random\ effects)}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{4}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Fixed\ or\ random\ effect\ term}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{5}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Median\ of\ the\ posterior\ distribution,\ used\ as\ point\ estimate}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{6}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{95\%\ Highest\ Density\ Interval,\ containing\ the\ most\ probable\ parameter\ values\ with\ 95\%\ posterior\ probability\ mass}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{\textsuperscript{7}}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{Probability\ that\ the\ effect\ is\ in\ the\ reported\ direction,\ calculated\ as\ the\ proportion\ of\ posterior\ samples\ with\ the\ same\ sign\ as\ the\ point\ estimate}}}\textcolor[HTML]{000000}{\fontsize{8}{8}\selectfont{\global\setmainfont{DejaVu Sans}{.\ }}}} \\
 
 
 
@@ -1597,7 +1634,7 @@ and individual-level effects}
 \end{longtable}
 
 \textsubscript{Source:
-\href{https://ps-data.github.io/uttvas-manuscript/index.qmd.html}{Article
+\href{https://jflournoy.github.io/no-silver-bullets/index.qmd.html}{Article
 Notebook}}
 
 Variation across individuals' scale parameter after accounting for
@@ -1804,11 +1841,15 @@ including that such a metric does not capture business outcomes, the
 quality of task performance, and perceived value of software development
 work. Nevertheless, monitoring cycle time is frequently recommended as a
 measurement practice for software management. Below, we elaborate on
-four key limitations of the current findings in greater detail, which
-are of course also opportunities for future research. In general, these
-limitations point to the need for more and better empirical evidence for
-software engineering (Devanbu, Zimmermann, and Bird 2016; Kitchenham,
-Dyba, and Jorgensen 2004; Sjoberg, Dyba, and Jorgensen 2007).
+four key limitations of the current findings in greater detail, using
+the framework of internal, external, construct, and statistical
+conclusion validity (Vazire, Schiavone, and Bottesini 2022). In general,
+these limitations point to the need for more and better empirical
+evidence for software engineering (Devanbu, Zimmermann, and Bird 2016;
+Kitchenham, Dyba, and Jorgensen 2004; Sjoberg, Dyba, and Jorgensen
+2007).
+
+\subsection{Construct validity}\label{construct-validity}
 
 First, measurement validity challenges in ticket data and sample
 representativeness constrain our analysis. A primary contribution of
@@ -1827,43 +1868,46 @@ validate team practices around ticket entry, and while we sought to
 align our assumptions with known practices around these ticketing tools
 and software workflows, it is important to note that differences in the
 timeliness and accuracy of ticket entries may be an important factor
-complicating our ability to understand cycle time. This context
-limitation also applies to our sample of organizations which is
-non-random and reflects organizations that invested in the software
-metrics tool that provided that data, and does threaten the
-generalizability of these results (Baltes and Ralph 2021).
+complicating our ability to understand cycle time.
 
-Second, systematic differences in ticket assignment patterns may
-complicate cycle time interpretations. In this analysis, we have
-primarily explored cycle time as derived from a tickets-based metric.
-However, how a ticket and its associated work tasks are assigned inside
-of an organization is likely an important factor in how tickets are
-completed. Assignment of tickets, especially defect tickets, is complex
-over time and both the initial and subsequent assignments of tickets can
-be impacted by many factors. For example, after an initial assignment to
-a developer, bugs may frequently be reassigned due to diverse factors
-such as determining ownership, time constraints, and identifying
-developers who may have a particular view into the root cause of the bug
-(Guo et al. 2011). Some individuals may get assigned defect tickets
-systematically more often than others, and changes in the proportion of
-work that consists of defect tickets may change how fast someone is able
-to work in general, either because defect tickets tend to be larger or
-smaller in scope than other tickets, or because of disruptions.
+\subsection{External validity}\label{external-validity}
 
-Third, our simplified measurement of team structures fails to capture
-the complex collaborative reality of software development. In this
-analysis, given limitations in our dataset about contexts such as
-internal team structures within organizations, we have operationalized
-team size with a generous attribution of team membership across shared
-activity, which almost certainly represents a very rough estimate of
-team size. We have also calculated team size as averaged in a static
-measure for the entire year, rather than captured over time. Given that
-team size likely impacts how quickly work is completed, we may miss out
-on nuanced effects here; for instance, it is reasonable to imagine that
-further variables around how resources are distributed and allocated to
-teams may provide further predictive value to our understanding of
-team-level factors that change cycle time. Team ``assignment'' itself is
-also highly complex in technical work, as cross-team collaboration is
+This context limitation also applies to our sample of organizations
+which is non-random and reflects organizations that invested in the
+software metrics tool that provided that data, and does threaten the
+generalizability of these results (Baltes and Ralph 2021). Moreover,
+systematic differences in ticket assignment patterns may complicate
+cycle time interpretations. How a ticket and its associated work tasks
+are assigned inside of an organization is likely an important factor in
+how tickets are completed. Assignment of tickets, especially defect
+tickets, is complex over time and both the initial and subsequent
+assignments of tickets can be impacted by many factors. For example,
+after an initial assignment to a developer, bugs may frequently be
+reassigned due to diverse factors such as determining ownership, time
+constraints, and identifying developers who may have a particular view
+into the root cause of the bug (Guo et al. 2011). Some individuals may
+get assigned defect tickets systematically more often than others, and
+changes in the proportion of work that consists of defect tickets may
+change how fast someone is able to work in general, either because
+defect tickets tend to be larger or smaller in scope than other tickets,
+or because of disruptions.
+
+\subsection{Internal validity}\label{internal-validity}
+
+Our simplified measurement of team structures fails to capture the
+complex collaborative reality of software development. In this analysis,
+given limitations in our dataset about contexts such as internal team
+structures within organizations, we have operationalized team size with
+a generous attribution of team membership across shared activity, which
+almost certainly represents a very rough estimate of team size. We have
+also calculated team size as averaged in a static measure for the entire
+year, rather than captured over time. Given that team size likely
+impacts how quickly work is completed, we may miss out on nuanced
+effects here; for instance, it is reasonable to imagine that further
+variables around how resources are distributed and allocated to teams
+may provide further predictive value to our understanding of team-level
+factors that change cycle time. Team ``assignment'' itself is also
+highly complex in technical work, as cross-team collaboration is
 typical, and collaborations across software projects may frequently not
 match explicit organizational hierarchies. In our previous research
 using self-reports from software teams, we have found that over 60\% of
@@ -1873,15 +1917,16 @@ Hicks, Lee, and Ramsey 2023). In short, software development is a
 collaborative exercise that is embedded in an ecosystem with history and
 many actors (C. M. Hicks and Hevesi 2024).
 
-Fourth, invisible collaborative activities and contributor role
-ambiguity limit interpretations of cycle time variations. Developers
-communicate and collaborate in many ways that may not be captured in a
-ticket, e.g.~impromptu or formal mentorship, paired or mob programming,
-and planning meetings. Where activity data are collected for some of
-these activities, it is likely that such data may be perceived in our
-data collection as ``belonging'' to a single individual, but work may
-often reflect joint work (e.g., in the case of mentorship, paired, and
-planning activities where one developers ``logs'' the work of many).
+Another major issue that threatens internal validity is invisible
+collaborative activities and contributor role ambiguity limit
+interpretations of cycle time variations. Developers communicate and
+collaborate in many ways that may not be captured in a ticket,
+e.g.~impromptu or formal mentorship, paired or mob programming, and
+planning meetings. Where activity data are collected for some of these
+activities, it is likely that such data may be perceived in our data
+collection as ``belonging'' to a single individual, but work may often
+reflect joint work (e.g., in the case of mentorship, paired, and
+planning activities where one developer ``logs'' the work of many).
 These organizational communication activities and social norms may
 provide informative context for interpreting cycle time activities. For
 instance, organizational planning data may provide a useful next step in
@@ -1890,6 +1935,30 @@ time to progress more efficiently. Also many people that work on
 software may not be represented in this ticketing data. We also do not
 know for certain the job titles of each contributor to this dataset and
 use the term software developer broadly.
+
+\subsection{Statistical conclusion
+validity}\label{statistical-conclusion-validity}
+
+Even using an outcome distribution appropriate to the context (Weibull,
+in this case), hierarchical structure to account for nested
+non-independence, and an emphasis on effect sizes over dichotomous
+significance, our statistical conclusions remain conditional on a
+particular modeling representation. First, the model encodes causal and
+functional-form assumptions (e.g., additivity, smoothness, and the
+exogeneity of our target predictors) that may be only approximately
+true; good fit does not preclude biased inferences if these assumptions
+are wrong. Second, unmodeled confounders may bias what we infer to be
+causal associations. Third, cycle time is a time-evolving, heavy-tailed
+process; departures from assumed variance and tail behavior, lagged
+dependencies, or feedback (e.g., long tickets begetting process changes
+that alter future tickets) can distort estimated associations. Fourth,
+inferences depend on operationalization and scaling (e.g., static versus
+time-varying team size; alternative definitions of ticket start and
+close); different defensible specifications can yield materially
+different effect sizes (Giudice and Gangestad 2021). Finally, our
+results test a narrow class of models. Together, these considerations
+suggest treating our estimates as conditional on the specific model
+chosen.
 
 \section{Discussion}\label{discussion}
 
@@ -2145,11 +2214,12 @@ days and taking the average cycle time for each group, as a basis for
 making inferences about differences between groups, is not sufficient to
 account for the possibility that other factors systematically differ
 between those groups. Nevertheless, this is an approach which we have
-frequently seen in the industry. Modeling these factors simultaneously
-as continuous variables allows us to get closer to the idea of ``X has
-an effect on Y, all else being held equal.'' This is necessary for
-starting to figure out the effect of a particular factor in isolation.
-Of course, if one has access to even more sophisticated
+frequently seen in the industry. While not necessarily uncommon in this
+literature, it is worth mentioning that modeling these factors
+simultaneously as continuous variables allows us to get closer to the
+idea of ``X has an effect on Y, all else being held equal.'' This is
+necessary for starting to figure out the effect of a particular factor
+in isolation. Of course, if one has access to even more sophisticated
 observational-causal-inference methods (e.g., natural experiments, or
 matching) or even interventional approaches, these would be even better.
 If this sounds a little bit difficult, it's because, like many things in
@@ -2253,8 +2323,7 @@ with limited access, ensuring both data integrity and confidentiality.
 
 \subsection{Author Contributions}\label{author-contributions}
 
-Contribution roles listed are defined in NISO CRediT Working Group
-(2022).
+Contribution roles listed are defined in Group (2022).
 
 John C. Flournoy: Conceptualization, Data curation, Formal analysis,
 Investigation, Methodology, Visualization, Writing -- original draft,
@@ -2314,6 +2383,13 @@ Box of Social, Process, and People Debts in Software Engineering.''}
 \bibitem[\citeproctext]{ref-arel-bundockMarginaleffectsPredictionsComparisons2024}
 Arel-Bundock, Vincent. 2024. \emph{Marginaleffects: {Predictions},
 Comparisons, Slopes, Marginal Means, and Hypothesis Tests}. Manual.
+\url{https://marginaleffects.com/}.
+
+\bibitem[\citeproctext]{ref-bacchelliExpectationsOutcomesChallenges2013}
+Bacchelli, Alberto, and Christian Bird. 2013. {``Expectations, Outcomes,
+and Challenges of Modern Code Review.''} In \emph{2013 35th
+{International Conference} on {Software Engineering} ({ICSE})}, 712--21.
+\url{https://doi.org/10.1109/ICSE.2013.6606617}.
 
 \bibitem[\citeproctext]{ref-ballWorkplaceSurveillanceOverview2010}
 Ball, Kirstie. 2010. {``Workplace Surveillance: An Overview.''}
@@ -2322,13 +2398,13 @@ Ball, Kirstie. 2010. {``Workplace Surveillance: An Overview.''}
 
 \bibitem[\citeproctext]{ref-baltesSamplingSoftwareEngineering2021a}
 Baltes, Sebastian, and Paul Ralph. 2021. {``Sampling in {Software
-Engineering Research}: {A Critical Review} and {Guidelines}.''} arXiv.
-\url{https://doi.org/10.48550/arXiv.2002.07764}.
+Engineering Research}: {A Critical Review} and {Guidelines}.''} October
+20, 2021. \url{https://doi.org/10.48550/arXiv.2002.07764}.
 
 \bibitem[\citeproctext]{ref-barrettDatatableExtensionDataframe2024}
 Barrett, Tyson, Matt Dowle, Arun Srinivasan, Jan Gorecki, Michael
 Chirico, and Toby Hocking. 2024. \emph{Data.table: {Extension} of
-`Data.frame`}. Manual.
+`Data.frame`}. Manual. \url{https://r-datatable.com}.
 
 \bibitem[\citeproctext]{ref-beskerTechnicalDebtCripples2018}
 Besker, Terese, Antonio Martini, and Jan Bosch. 2018. {``Technical Debt
@@ -2369,13 +2445,13 @@ Software Engineering}. Reading, Mass.: Addison-Wesley Pub. Co.
 
 \bibitem[\citeproctext]{ref-bruneauxWhatMcKinseyHas2024}
 Bruneaux, Taylor. 2024. {``What {McKinsey} Has to Say about Developer
-Productivity.''}
-https://getdx.com/blog/mckinsey-developer-productivity/.
+Productivity.''} May 9, 2024.
+\url{https://getdx.com/blog/mckinsey-developer-productivity/}.
 
 \bibitem[\citeproctext]{ref-burknerBrmsPackageBayesian2017}
 Bürkner, Paul-Christian. 2017. {``Brms: {An R Package} for {Bayesian
 Multilevel Models Using Stan}.''} \emph{Journal of Statistical Software}
-80 (1): 1--28. \url{https://doi.org/10.18637/jss.v080.i01}.
+80 (1, 1): 1--28. \url{https://doi.org/10.18637/jss.v080.i01}.
 
 \bibitem[\citeproctext]{ref-burknerAdvancedBayesianMultilevel2018}
 ---------. 2018. {``Advanced {Bayesian} Multilevel Modeling with the {R}
@@ -2390,6 +2466,7 @@ and {Stan}.''} \emph{Journal of Statistical Software} 100 (November):
 \bibitem[\citeproctext]{ref-burknerPosteriorToolsWorking2023}
 Bürkner, Paul-Christian, Jonah Gabry, Matthew Kay, and Aki Vehtari.
 2023. {``Posterior: {Tools} for Working with Posterior Distributions.''}
+\url{https://mc-stan.org/posterior/}.
 
 \bibitem[\citeproctext]{ref-caesensPerceivedOrganizationalSupport2017}
 Caesens, Gaëtane, Florence Stinglhamber, Stéphanie Demoulin, and
@@ -2401,22 +2478,32 @@ Psychology} 26 (4): 527--40.
 
 \bibitem[\citeproctext]{ref-careyWhy70Engineers2024}
 Carey, Scott. 2024. {``Why 70\% of Engineers Avoid Measuring Lines of
-Code.''} \emph{LeadDev}.
-https://leaddev.com/reporting/why-70-of-engineers-avoid-measuring-lines-of-code.
+Code.''} LeadDev. December 5, 2024.
+\url{https://leaddev.com/reporting/why-70-of-engineers-avoid-measuring-lines-of-code}.
 
 \bibitem[\citeproctext]{ref-carmelCycleTimePackaged1995}
 Carmel, Erran. 1995. {``Cycle {Time} in {Packaged Software Firms}.''}
 \emph{Journal of Product Innovation Management} 12 (2): 110--23.
 \url{https://doi.org/10.1111/j.1540-5885.1995.jpim122_0110.xml.x}.
 
+\bibitem[\citeproctext]{ref-cataldoSociotechnicalCongruenceFramework2008}
+Cataldo, Marcelo, James D. Herbsleb, and Kathleen M. Carley. 2008.
+{``Socio-Technical Congruence: A Framework for Assessing the Impact of
+Technical and Work Dependencies on Software Development Productivity.''}
+In \emph{Proceedings of the {Second ACM-IEEE} International Symposium on
+{Empirical} Software Engineering and Measurement}, 2--11. {ESEM} '08.
+New York, NY, USA: Association for Computing Machinery.
+\url{https://doi.org/10.1145/1414004.1414008}.
+
 \bibitem[\citeproctext]{ref-chhunejaWhy50Developers2024}
 Chhuneja, Shivam. 2024. {``Why 50\% {Developers Hate DORA Metrics}?''}
-https://middlewarehq.com/blog/why-50-developers-hate-dora-metrics.
+April 19, 2024.
+\url{https://middlewarehq.com/blog/why-50-developers-hate-dora-metrics}.
 
 \bibitem[\citeproctext]{ref-clincySoftwareDevelopmentProductivity2003}
 Clincy, Victor. 2003. {``Software {Development Productivity} and {Cycle
 Time Reduction}.''} \emph{Journal of Computing Sciences in Colleges} 19
-(2): 278--87.
+(2): 278--87. \url{https://digitalcommons.kennesaw.edu/facpubs/1581}.
 
 \bibitem[\citeproctext]{ref-collettModellingSurvivalData1994}
 Collett, D. 1994. \emph{Modelling Survival Data in Medical Research}.
@@ -2426,9 +2513,10 @@ Hall.
 \bibitem[\citeproctext]{ref-coteOnlyPeopleWho2023}
 Coté. 2023. {``The Only People Who Don't Like Metrics Are the People
 Being Measured, or, Developer Productivity Metrics Quicksand.''}
-https://newsletter.cote.io/p/the-only-people-who-dont-like-metrics.
+February 2, 2023.
+\url{https://newsletter.cote.io/p/the-only-people-who-dont-like-metrics}.
 
-\bibitem[\citeproctext]{ref-curranDisaggregationPersonPerson2011}
+\bibitem[\citeproctext]{ref-curranDisaggregationWithinPersonBetweenPerson2011}
 Curran, Patrick J., and Daniel J. Bauer. 2011. {``The {Disaggregation}
 of {Within-Person} and {Between-Person Effects} in {Longitudinal Models}
 of {Change}.''} \emph{Annual Review of Psychology} 62 (1): 583--619.
@@ -2437,7 +2525,8 @@ of {Change}.''} \emph{Annual Review of Psychology} 62 (1): 583--619.
 \bibitem[\citeproctext]{ref-denisov-blanchPredictingExpertEvaluations2024}
 Denisov-Blanch, Yegor, Igor Ciobanu, Simon Obstbaum, and Michal
 Kosinski. 2024. {``Predicting {Expert Evaluations} in {Software Code
-Reviews}.''} arXiv. \url{https://doi.org/10.48550/arXiv.2409.15152}.
+Reviews}.''} September 23, 2024.
+\url{https://doi.org/10.48550/arXiv.2409.15152}.
 
 \bibitem[\citeproctext]{ref-devanbuBeliefEvidenceEmpirical2016}
 Devanbu, Prem, Thomas Zimmermann, and Christian Bird. 2016. {``Belief \&
@@ -2457,11 +2546,18 @@ Millennium} ({Cat}. {No}.{98CH36266})}, 377--83.
 
 \bibitem[\citeproctext]{ref-finster5MinuteDevOps2023}
 Finster, Bryan. 2023. {``5 {Minute DevOps}: {McKinsey Gets Developer
-Productivity Wrong}.''} \emph{Medium}.
+Productivity Wrong}.''} Medium. September 8, 2023.
+\url{https://bdfinst.medium.com/5-minute-devops-mckinsey-gets-developer-productivity-wrong-573b57cd6f6a}.
 
 \bibitem[\citeproctext]{ref-flowHowIncreaseSoftware}
 Flow. n.d. {``How to Increase Software Delivery Speeds by Reducing Cycle
 Time.''}
+\url{https://www.pluralsight.com/product/flow/flow-academy/how-to-improve-cycle-time}.
+
+\bibitem[\citeproctext]{ref-forsgrenAccelerateScienceDevOps2018}
+Forsgren, Nicole, Jez Humble, and Gene Kim. 2018. \emph{Accelerate: The
+Science Behind {DevOps}: Building and Scaling High Performing Technology
+Organizations}. First edition. Portland, Oregon: IT Revolution.
 
 \bibitem[\citeproctext]{ref-fraserNoSilverBullet2007}
 Fraser, Steven D., Frederick P. Brooks, Martin Fowler, Ricardo Lopez,
@@ -2476,6 +2572,7 @@ Association for Computing Machinery.
 \bibitem[\citeproctext]{ref-gabryCmdstanrInterfaceCmdStan2024}
 Gabry, Jonah, Rok Češnovar, Andrew Johnson, and Steve Bronder. 2024.
 \emph{Cmdstanr: {R Interface} to '{CmdStan}'}. Manual.
+\url{https://mc-stan.org/cmdstanr/}.
 
 \bibitem[\citeproctext]{ref-GelmanPowerCalculationsAssessing2014}
 Gelman, Andrew, and John Carlin. 2014. {``Beyond {Power Calculations
@@ -2483,12 +2580,28 @@ Assessing Type S} ({Sign}) and {Type M} ({Magnitude}) {Errors}.''}
 \emph{Perspectives on Psychological Science} 9 (6): 641--51.
 \url{https://doi.org/10.1177/1745691614551642}.
 
+\bibitem[\citeproctext]{ref-giudiceTravelersGuideMultiverse2021}
+Giudice, Marco Del, and Steven W. Gangestad. 2021. {``A {Traveler}'s
+{Guide} to the {Multiverse}: {Promises}, {Pitfalls}, and a {Framework}
+for the {Evaluation} of {Analytic Decisions}.''} \emph{Advances in
+Methods and Practices in Psychological Science} 4 (1): 251524592095492.
+\url{https://doi.org/10.1177/2515245920954925}.
+
 \bibitem[\citeproctext]{ref-gohelFlextableFunctionsTabular2024}
 Gohel, David, and Panagiotis Skintzos. 2024. \emph{Flextable:
 {Functions} for Tabular Reporting}. Manual.
+\url{https://ardata-fr.github.io/flextable-book/}.
+
+\bibitem[\citeproctext]{ref-gousiosExploratoryStudyPullbased2014}
+Gousios, Georgios, Martin Pinzger, and Arie Van Deursen. 2014. {``An
+Exploratory Study of the Pull-Based Software Development Model.''} In
+\emph{Proceedings of the 36th {International Conference} on {Software
+Engineering}}, 345--55. Hyderabad India: ACM.
+\url{https://doi.org/10.1145/2568225.2568260}.
 
 \bibitem[\citeproctext]{ref-gralhaReduceCycleTime2022}
-Gralha, Catarina. 2022. {``Reduce Cycle Time - Best Practices.''}
+Gralha, Catarina. 2022. {``Reduce Cycle Time - Best Practices.''} August
+18, 2022. \url{https://blog.codacy.com/reducing-cycle-time}.
 
 \bibitem[\citeproctext]{ref-griffinMetricsMeasuringProduct1993}
 Griffin, Abbie. 1993. {``Metrics for {Measuring Product Development
@@ -2500,6 +2613,12 @@ Grisold, Thomas, Stefan Seidel, Markus Heck, and Nicholas Berente. 2024.
 {``Digital {Surveillance} in {Organizations}.''} \emph{Business \&
 Information Systems Engineering} 66 (3): 401--10.
 \url{https://doi.org/10.1007/s12599-024-00866-7}.
+
+\bibitem[\citeproctext]{ref-nisocreditworkinggroupANSINISOZ3910420222022}
+Group, NISO CRediT Working. 2022. \emph{{ANSI}/{NISO Z39}.104-2022,
+{CRediT}, {Contributor Roles Taxonomy}}. 3600 Clipper Mill Road Suite
+302 Baltimore, MD 21211: NISO.
+\url{https://doi.org/10.3789/ansi.niso.z39.104-2022}.
 
 \bibitem[\citeproctext]{ref-guoNotMyBug2011}
 Guo, Philip J., Thomas Zimmermann, Nachiappan Nagappan, and Brendan
@@ -2530,16 +2649,17 @@ Springer International Publishing.
 \bibitem[\citeproctext]{ref-henryRlangFunctionsBase2024}
 Henry, Lionel, and Hadley Wickham. 2024. \emph{Rlang: {Functions} for
 Base Types and Core {R} and 'Tidyverse' Features}. Manual.
+\url{https://rlang.r-lib.org}.
 
 \bibitem[\citeproctext]{ref-hicksPsychologicalAffordancesCan2024}
 Hicks, Catherine M. 2024. {``Psychological {Affordances Can Provide} a
 {Missing Explanatory Layer} for {Why Interventions} to {Improve
-Developer Experience Take Hold} or {Fail}.''} OSF.
+Developer Experience Take Hold} or {Fail}.''} January 25, 2024.
 \url{https://doi.org/10.31234/osf.io/qz43x}.
 
 \bibitem[\citeproctext]{ref-hicksCumulativeCultureTheory2024}
 Hicks, Catherine M., and Ana Hevesi. 2024. {``A {Cumulative Culture
-Theory} for {Developer Problem-Solving}.''} PsyArXiv.
+Theory} for {Developer Problem-Solving}.''} November 21, 2024.
 \url{https://doi.org/10.31234/osf.io/tfjyw}.
 
 \bibitem[\citeproctext]{ref-hicksDeveloperThrivingFour2024}
@@ -2552,13 +2672,14 @@ Productivity} on {Software Teams}.''} \emph{IEEE Software} 41 (4):
 Hicks, Catherine M., Carol Lee, and Kristen Foster-Marks. 2024. {``The
 {New Developer}: {AI Skill Threat}, {Identity Change} \& {Developer
 Thriving} in the {Transition} to {AI-Assisted Software Development}.''}
-OSF. \url{https://doi.org/10.31234/osf.io/2gej5}.
+April 20, 2024. \url{https://doi.org/10.31234/osf.io/2gej5}.
 
 \bibitem[\citeproctext]{ref-hicksDeveloperThrivingFour2023}
 Hicks, Catherine, Carol S. Lee, and Morgan Ramsey. 2023. {``Developer
 {Thriving}: {The} Four Factors That Drive {Software Developer
 Productivity} Across {Industries}.''} Developer Success Lab at
 Pluralsight.
+\url{https://www.pluralsight.com/resource-center/guides/developer-thriving-research-paper}.
 
 \bibitem[\citeproctext]{ref-kayTidybayesTidyData2023}
 Kay, Matthew. 2023. \emph{{tidybayes}: {Tidy} Data and Geoms for
@@ -2598,8 +2719,8 @@ Hoboken, N.J.: Wiley-Interscience.
 
 \bibitem[\citeproctext]{ref-linesWhyEliteDev2023}
 Lines, Dan. 2023. {``Why Elite Dev Teams Focus on Pull-Request
-Metrics.''} \emph{LeadDev}.
-https://leaddev.com/reporting/why-elite-dev-teams-focus-pull-request-metrics.
+Metrics.''} LeadDev. May 11, 2023.
+\url{https://leaddev.com/reporting/why-elite-dev-teams-focus-pull-request-metrics}.
 
 \bibitem[\citeproctext]{ref-ludeckeExtractingComputingExploring2020}
 Lüdecke, Daniel, Mattan S. Ben-Shachar, Indrajeet Patil, and Dominique
@@ -2661,44 +2782,39 @@ Nichols, William R. 2019. {``The {End} to the {Myth} of {Individual
 Programmer Productivity}.''} \emph{IEEE Software} 36 (5): 71--75.
 \url{https://doi.org/10.1109/MS.2019.2908576}.
 
-\bibitem[\citeproctext]{ref-nisocreditworkinggroupANSINISOZ3910420222022}
-NISO CRediT Working Group. 2022. {``{ANSI}/{NISO Z39}.104-2022,
-{CRediT}, {Contributor Roles Taxonomy}.''} 3600 Clipper Mill Road Suite
-302 Baltimore, MD 21211: NISO.
-\url{https://doi.org/10.3789/ansi.niso.z39.104-2022}.
-
 \bibitem[\citeproctext]{ref-obstbaumOngoingResearchSoftware}
 Obstbaum, Simon, and Yegor Denisov-Blanch. n.d. {``Ongoing {Research} on
 {Software Engineering Productivity}.''}
 
-\bibitem[\citeproctext]{ref-oroszMeasuringDeveloperProductivity2024}
-Orosz, Gergely. 2024a. {``Measuring Developer Productivity? {A} Response
-to {McKinsey}.''}
-https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity.
-
 \bibitem[\citeproctext]{ref-oroszMeasuringDeveloperProductivity2024a}
+Orosz, Gergely. 2024a. {``Measuring Developer Productivity? {A} Response
+to {McKinsey}.''} January 30, 2024.
+\url{https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity}.
+
+\bibitem[\citeproctext]{ref-oroszMeasuringDeveloperProductivity2024}
 ---------. 2024b. {``Measuring Developer Productivity? {A} Response to
-{McKinsey}, {Part} 2.''}
-https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity-part-2.
+{McKinsey}, {Part} 2.''} October 22, 2024.
+\url{https://newsletter.pragmaticengineer.com/p/measuring-developer-productivity-part-2}.
 
 \bibitem[\citeproctext]{ref-paudelMeasuringImpactTechnical2024}
 Paudel, Bhuwan, Javier Gonzalez-Huerta, Ehsan Zabardast, and Eriks
 Klotins. 2024. {``Towards {Measuring} the {Impact} of {Technical Debt}
-on {Lead Time}: {An Industrial Case Study}.''} arXiv.
+on {Lead Time}: {An Industrial Case Study}.''} June 3, 2024.
 \url{https://doi.org/10.48550/arXiv.2406.01578}.
 
 \bibitem[\citeproctext]{ref-pedersenPatchworkComposerPlots2024}
 Pedersen, Thomas Lin. 2024. \emph{Patchwork: {The} Composer of Plots}.
-Manual.
+Manual. \url{https://patchwork.data-imaginist.com}.
 
 \bibitem[\citeproctext]{ref-pedersenScicoColourPalettes2025}
 Pedersen, Thomas Lin, and Fabio Crameri. 2025. \emph{Scico: {Colour}
 Palettes Based on the Scientific Colour-Maps}. Manual.
+\url{https://github.com/thomasp85/scico}.
 
 \bibitem[\citeproctext]{ref-qiuShowtextUsingFonts2024}
 Qiu, Yixuan, and authors/contributors of the included software. See file
 AUTHORS for details. 2024. \emph{Showtext: {Using} Fonts More Easily in
-{R} Graphs}. Manual.
+{R} Graphs}. Manual. \url{https://github.com/yixuan/showtext}.
 
 \bibitem[\citeproctext]{ref-quadlinMarkWomansRecord2018}
 Quadlin, Natasha. 2018. {``The {Mark} of a {Woman}'s {Record}: {Gender}
@@ -2708,7 +2824,7 @@ Review} 83 (2): 331--60. \url{https://doi.org/10.1177/0003122418762291}.
 \bibitem[\citeproctext]{ref-rcoreteamLanguageEnvironmentStatistical2023}
 R Core Team. 2023. \emph{R: A Language and Environment for Statistical
 Computing}. Manual. Vienna, Austria: R Foundation for Statistical
-Computing.
+Computing. \url{https://www.R-project.org/}.
 
 \bibitem[\citeproctext]{ref-ramirezMeasuringKnowledgeWorker2004}
 Ramírez, Yuri W., and David A. Nembhard. 2004. {``Measuring Knowledge
@@ -2717,13 +2833,13 @@ Worker Productivity.''} \emph{Journal of Intellectual Capital} 5 (4):
 
 \bibitem[\citeproctext]{ref-rigginsWhatMcKinseyGot2023}
 Riggins, Jennifer. 2023. {``What {McKinsey} Got Wrong about Developer
-Productivity.''} \emph{LeadDev}.
-https://leaddev.com/career-development/what-mckinsey-got-wrong-about-developer-productivity.
+Productivity.''} LeadDev. October 23, 2023.
+\url{https://leaddev.com/career-development/what-mckinsey-got-wrong-about-developer-productivity}.
 
 \bibitem[\citeproctext]{ref-riosaWrittenUnwrittenGuide2019}
 Riosa, Blake. 2019. {``The (Written) Unwritten Guide to Pull
-Requests.''} \emph{Work Life by Atlassian}.
-https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests.
+Requests.''} Work Life by Atlassian. July 25, 2019.
+\url{https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests}.
 
 \bibitem[\citeproctext]{ref-rosserSystemsPerspectiveTechnical2021}
 Rosser, Larri Ann, and John H Norton. 2021. {``A {Systems Perspective}
@@ -2774,16 +2890,13 @@ In \emph{Future of {Software Engineering} ({FOSE} '07)}, 358--78.
 
 \bibitem[\citeproctext]{ref-standevelopmentteamStanHeadersHeadersInterface2020}
 Stan Development Team. 2020. {``{StanHeaders}: {Headers} for the {R}
-Interface to {Stan}.''}
-
-\bibitem[\citeproctext]{ref-gelman}
----------. 2024. {``Stan {Modeling Language Users Guide} and {Reference
-Manual}, 2.35.''}
+Interface to {Stan}.''} \url{https://mc-stan.org/}.
 
 \bibitem[\citeproctext]{ref-storeyHowDevelopersManagers2022}
 Storey, Margaret-Anne, Brian Houck, and Thomas Zimmermann. 2022a. {``How
 {Developers} and {Managers Define} and {Trade Productivity} for
-{Quality}.''} \url{https://doi.org/10.1145/3528579.3529177}.
+{Quality}.''} April 27, 2022.
+\url{https://doi.org/10.1145/3528579.3529177}.
 
 \bibitem[\citeproctext]{ref-storeyHowDevelopersManagers2022b}
 ---------. 2022b. {``How {Developers} and {Managers Define} and {Trade
@@ -2799,26 +2912,37 @@ Czerwonka, Brendan Murphy, and Eirini Kalliamvakou. 2021. {``Towards a
 Productivity}.''} \emph{IEEE Transactions on Software Engineering} 47
 (10): 2125--42. \url{https://doi.org/10.1109/TSE.2019.2944354}.
 
+\bibitem[\citeproctext]{ref-gelman}
+Team, Stan Development. 2024. {``Stan {Modeling Language Users Guide}
+and {Reference Manual}, 2.35.''} \url{https://mc-stan.org}.
+
 \bibitem[\citeproctext]{ref-terhorst-northWorstProgrammerKnow2023}
-Terhorst-North, Daniel. 2023a. {``The {Worst Programmer I Know}.''}
-\emph{Dan North \& Associates Limited}.
-https://dannorth.net/the-worst-programmer/.
+Terhorst-North, Daniel. 2023a. {``The {Worst Programmer I Know}.''} Dan
+North \& Associates Limited. September 2, 2023.
+\url{https://dannorth.net/the-worst-programmer/}.
 
 \bibitem[\citeproctext]{ref-terhorst-northMcKinseyDeveloperProductivity2023}
----------. 2023b. {``{McKinsey Developer Productivity Review}.''}
-\emph{Dan North \& Associates Limited}.
-https://dannorth.net/mckinsey-review/.
+---------. 2023b. {``{McKinsey Developer Productivity Review}.''} Dan
+North \& Associates Limited. October 4, 2023.
+\url{https://dannorth.net/mckinsey-review/}.
 
 \bibitem[\citeproctext]{ref-toxboeCycleTime2023}
-Toxboe, Anders. 2023. {``Cycle {Time}.''} \emph{Learning Loop}.
-https://learningloop.io/glossary/cycle-time.
+Toxboe, Anders. 2023. {``Cycle {Time}.''} Learning Loop. February 10,
+2023. \url{https://learningloop.io/glossary/cycle-time}.
 
 \bibitem[\citeproctext]{ref-trendowiczChapter6Factors2009}
 Trendowicz, Adam, and Jürgen Münch. 2009. {``Chapter 6 {Factors
-Influencing Software Development Productivity}---{State}-of-the-{Art}
+Influencing Software Development Productivity}---{State}‐of‐the‐{Art}
 and {Industrial Experiences}.''} In \emph{Advances in {Computers}},
 77:185--241. Elsevier.
 \url{https://doi.org/10.1016/S0065-2458(09)01206-6}.
+
+\bibitem[\citeproctext]{ref-vazireCredibilityReplicabilityImproving2022}
+Vazire, Simine, Sarah R. Schiavone, and Julia G. Bottesini. 2022.
+{``Credibility {Beyond Replicability}: {Improving} the {Four Validities}
+in {Psychological Science}.''} \emph{Current Directions in Psychological
+Science} 31 (2): 162--68.
+\url{https://doi.org/10.1177/09637214211067779}.
 
 \bibitem[\citeproctext]{ref-vehtariRanknormalizationFoldingLocalization2021}
 Vehtari, Aki, Andrew Gelman, Daniel Simpson, Bob Carpenter, and
@@ -2834,28 +2958,33 @@ Management} 36 (3): 295--306.
 
 \bibitem[\citeproctext]{ref-walkerEverythingWrongDORA2023}
 Walker, James. 2023a. {``Everything {Wrong} with {DORA Metrics}
-{\textbar} {Aviator}.''}
+\textbar{} {Aviator}.''} January 18, 2023.
+\url{https://www.aviator.co/blog/everything-wrong-with-dora-metrics/}.
 
 \bibitem[\citeproctext]{ref-walkerConsUsingSPACE2023}
 ---------. 2023b. {``Cons of {Using SPACE} to {Measure Productivity}
-{\textbar} {Aviator}.''}
+\textbar{} {Aviator}.''} February 27, 2023.
+\url{https://www.aviator.co/blog/whats-wrong-with-using-space-to-measure-developer-productivity/}.
 
 \bibitem[\citeproctext]{ref-wattsNewScienceNetworks2004}
 Watts, Duncan J. 2004. {``The {`{New}'} {Science} of {Networks}.''}
-\emph{Annual Review of Sociology} 30 (Volume 30, 2004): 243--70.
+\emph{Annual Review of Sociology} 30 (August): 243--70.
 \url{https://doi.org/10.1146/annurev.soc.30.020404.104342}.
 
 \bibitem[\citeproctext]{ref-waydevCycleTimeFormula2021}
 Waydev. 2021. {``Cycle {Time Formula}: {How} to {Optimize} the {Key
-Metric} to {Accelerate Software Delivery}.''}
+Metric} to {Accelerate Software Delivery}.''} July 26, 2021.
+\url{https://waydev.co/reduce-cycle-time/}.
 
 \bibitem[\citeproctext]{ref-wickhamGgplot2ElegantGraphics2016}
 Wickham, Hadley. 2016. \emph{Ggplot2: {Elegant} Graphics for Data
 Analysis}. Springer-Verlag New York.
+\url{https://ggplot2.tidyverse.org}.
 
 \bibitem[\citeproctext]{ref-wickhamScalesScaleFunctions2023}
 Wickham, Hadley, Thomas Lin Pedersen, and Dana Seidel. 2023.
 \emph{Scales: {Scale} Functions for Visualization}. Manual.
+\url{https://scales.r-lib.org}.
 
 \bibitem[\citeproctext]{ref-woodThinplateRegressionSplines2003}
 Wood, Simon N. 2003. {``Thin-Plate Regression Splines.''} \emph{Journal
@@ -2890,10 +3019,11 @@ Peng. {Chapman and Hall/CRC}.
 \bibitem[\citeproctext]{ref-xieDynamicDocumentsKnitr2015}
 ---------. 2015. \emph{Dynamic Documents with {R} and Knitr}. 2nd ed.
 Boca Raton, Florida: {Chapman and Hall/CRC}.
+\url{https://yihui.org/knitr/}.
 
 \bibitem[\citeproctext]{ref-xieKnitrGeneralpurposePackage2024}
 ---------. 2024. \emph{Knitr: A General-Purpose Package for Dynamic
-Report Generation in {R}}. Manual.
+Report Generation in {R}}. Manual. \url{https://yihui.org/knitr/}.
 
 \bibitem[\citeproctext]{ref-zhangPullRequestLatency2022}
 Zhang, Xunhui, Yue Yu, Tao Wang, Ayushi Rastogi, and Huaimin Wang. 2022.
