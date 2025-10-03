@@ -1,6 +1,9 @@
 This paper is also a [page](http://johnflournoy.science/no-silver-bullets/) on the world wide web.
 
-https://doi.org/10.5281/zenodo.17259754
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17259754.svg)](https://doi.org/10.5281/zenodo.17259754)
+
+
 
 # Understanding Technology Team Velocity at Scale
 
