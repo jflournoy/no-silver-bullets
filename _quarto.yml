@@ -7,17 +7,15 @@ manuscript:
 
 execute:
   freeze: auto
+  daemon: false
 
 format:
   html:
     toc: true
-    comments:
-      hypothesis: true
-  pdf:
-    pdf-engine: xelatex
-    pdf-engine-opt: "-output-directory=."
+  # pdf:
+  #   pdf-engine: xelatex
+  #   pdf-engine-opt: "-output-directory=."
   docx: default
-  jats: default
   arxiv-pdf:
     keep-tex: true
     authorcols: true
@@ -34,7 +32,7 @@ format:
         \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
         \newcommand{\xfnm}[1][]{\ifx!#1!\else\unskip,\space#1\fi}
   # nature-pdf:
-  #   journal: 
+  #   journal:
   #     cite-style: sn-mathphys-ay
   #   cite-method: natbib
   #   keep-tex: true
@@ -42,12 +40,48 @@ format:
   #   pdf-engine: xelatex
   #   include-in-header:
   #     text: |
+  #       \usepackage{array}
+  #       \usepackage{colortbl}
   #       \usepackage{afterpage}
   #       \usepackage{dblfloatfix}
   #       \usepackage{newunicodechar}
   #       \newunicodechar{λ}{\ensuremath{\lambda}}
   #       \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cmidrule(l){#3}}
   #       \newcommand{\xfnm}[1][]{\ifx!#1!\else\unskip,\space#1\fi}
+  #       % ensure fontspec is present before we patch
+  #       \makeatletter
+  #       \@ifpackageloaded{fontspec}{}{\usepackage{fontspec}}
+  #       \makeatother
+  # 
+  #       \usepackage{xparse}
+  #       % save original one-arg commands
+  #       \let\SetMainFontPrimitive\setmainfont
+  #       \let\SetSansFontPrimitive\setsansfont
+  #       \let\SetMonoFontPrimitive\setmonofont
+  # 
+  #       % accept 1-arg (preamble) or 2-arg (inline content) forms;
+  #       % add \relax so a following '[' isn't parsed as fontspec options
+  #       \RenewDocumentCommand{\setmainfont}{m g}{%
+  #         \IfNoValueTF{#2}{%
+  #           \SetMainFontPrimitive{#1}%
+  #         }{%
+  #           {\fontspec{#1}\relax #2}%
+  #         }%
+  #       }
+  #       \RenewDocumentCommand{\setsansfont}{m g}{%
+  #         \IfNoValueTF{#2}{%
+  #           \SetSansFontPrimitive{#1}%
+  #         }{%
+  #           {\fontspec{#1}\relax #2}%
+  #         }%
+  #       }
+  #       \RenewDocumentCommand{\setmonofont}{m g}{%
+  #         \IfNoValueTF{#2}{%
+  #           \SetMonoFontPrimitive{#1}%
+  #         }{%
+  #           {\fontspec{#1}\relax #2}%
+  #         }%
+  #       }
 
 
 
