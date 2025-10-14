@@ -12,14 +12,11 @@ execute:
 format:
   html:
     toc: true
-  # pdf:
-  #   pdf-engine: xelatex
-  #   pdf-engine-opt: "-output-directory=."
   docx: default
   arxiv-pdf:
     keep-tex: true
     authorcols: true
-    runninghead: 'preprint: No Silver Bullets for Cycle Time'
+    runninghead: 'No Silver Bullets for Cycle Time'
     pdf-engine: xelatex
     pdf-engine-opt: "-output-directory=."
     include-in-header:
