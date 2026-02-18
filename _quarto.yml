@@ -12,6 +12,9 @@ execute:
 format:
   html:
     toc: true
+    include-in-header:
+      - text: |
+          <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
   docx: default
   arxiv-pdf:
     keep-tex: true
